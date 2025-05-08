@@ -1,19 +1,38 @@
-//Tạo cấu trúc schema cho dữ liệu product
 const mongoose = require('mongoose');
 
 const productSchema = new mongoose.Schema({
-  tenSP: { type: String, required: true },
-  mota: { type: String },
-  anhSP: { type: String, required: true },
-  ngayTao: { type: Date, required: true},
-  soluong : { type: Number, required: true },
-  //ref: 'Categories' để liên kết với collection Categories
-  danhMuc_id: { type: mongoose.Schema.Types.ObjectId, ref: 'danhmuc' },
-  
-},{versionKey: false});
+  name: { type: String, required: true },
+  description: { type: String },
+  images: { type: String, required: true },
+  createdAt: { type: Date, required: true },
+  quantity: { type: Number, required: true },
+  categoryId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'categories',
+    required: true
+  }
+}, {
+  versionKey: false,
+  toJSON: {
+    virtuals: true,
+    transform: function (doc, ret) {
+      delete ret.id;
+      return ret;
+    }
+  },
+  toObject: {
+    virtuals: true
+  },
+  id: false
+});
 
+// Tạo virtual cho mảng variants
+productSchema.virtual('variants', {
+  ref: 'variants',
+  localField: '_id',
+  foreignField: 'productId'
+});
 
-// Tạo model từ schema trên Collection products
-const productModel = mongoose.model('sanpham', productSchema);
+const productModel = mongoose.model('products', productSchema);
 
 module.exports = productModel;

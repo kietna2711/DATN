@@ -18,40 +18,47 @@ const upload = multer({storage: storage, fileFilter: checkfile})
 
 const categories = require('../models/categoryModel');
 const products = require('../models/productModel');
+const variants = require('../models/variantsModel')
 
 const getAllProducts = async (req, res) => {
     try {
         const { name, idcate, limit, sort, page, hot } = req.query;
-        
+
         let query = {};
         let options = {};
-
+        
         if (name) {
-            query.tenSP = new RegExp(name, 'i');
+            query.name = new RegExp(name, 'i'); // ✅
         }
-
+        
+        
         if (hot) {
             query.hot = parseInt(hot);
         }
-
+        
         if (idcate) {
-            query.danhMuc_id = idcate;
+            query.categoryId = idcate; // ✅ dùng đúng tên field trong schema
         }
-
+        
         if (limit) {
             options.limit = parseInt(limit);
         }
-
+        
         if (sort) {
             options.sort = { price: sort === 'asc' ? 1 : -1 };
         }
-
+        
         if (page && options.limit) {
             options.skip = (parseInt(page) - 1) * options.limit;
         }
-
+        
         const arr = await products.find(query, null, options)
-            .populate('danhMuc_id', 'tenDanhMuc');
+        .populate('categoryId', 'name description')
+        .populate({
+            path: 'variants',
+            select: 'size price'
+        });
+        
         res.json(arr);
     } catch (error) {
         console.error(error);
