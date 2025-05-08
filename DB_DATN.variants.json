@@ -1,0 +1,30 @@
+[{
+  "_id": {
+    "$oid": "681cc8081904c1bc8d515e32"
+  },
+  "size": 20,
+  "price": 100000,
+  "productId": {
+    "$oid": "681cc6771904c1bc8d515e29"
+  }
+},
+{
+  "_id": {
+    "$oid": "681cd8368277e647a9dff3dd"
+  },
+  "size": 20,
+  "price": 100000,
+  "productId": {
+    "$oid": "681cd81e8277e647a9dff3db"
+  }
+},
+{
+  "_id": {
+    "$oid": "681cd87b8277e647a9dff3df"
+  },
+  "size": 60,
+  "price": 200000,
+  "productId": {
+    "$oid": "681cc6771904c1bc8d515e29"
+  }
+}]
