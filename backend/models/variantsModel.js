@@ -3,7 +3,8 @@ const mongoose = require('mongoose');
 const variantsSchema = new mongoose.Schema({
   size: { type: Number, required: true },
   price: { type: Number, required: true },
-  productId: { type: mongoose.Schema.Types.ObjectId, ref: 'products', required: true }
+  productId: { type: mongoose.Schema.Types.ObjectId, ref: 'products', required: true },
+  quantity: { type: Number, required: true },
 }, {
   versionKey: false,
   toJSON: {
