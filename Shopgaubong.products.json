@@ -1,0 +1,480 @@
+[{
+  "_id": {
+    "$oid": "6810efe917e05da002e59bed"
+  },
+  "name": "Chó Bông Puppy Váy Babydoll",
+  "description": "Chó Bông Puppy Váy Babydoll, phù hợp làm quà tặng.",
+  "price": 365000,
+  "image": "https://gaubongonline.vn/wp-content/uploads/2025/04/Cho-Bong-Puppy-Vay-Babydoll-11.jpg",
+  "categoryId": {
+    "$oid": "681107d831bf250910c59b83"
+  },
+  "createdAt": {
+    "$date": "2025-05-16T00:00:00.000Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "6810f3e617e05da002e59bef"
+  },
+  "name": "Cho Bông Puppy Đeo Túi Cool",
+  "description": "Cho Bông Puppy Đeo Túi Cool, phù hợp làm quà tặng.",
+  "price": 455000,
+  "image": "https://gaubongonline.vn/wp-content/uploads/2025/04/Gau-Bong-Puppy-Tui-Cook-4.jpg",
+  "categoryId": {
+    "$oid": "681107d831bf250910c59b83"
+  },
+  "createdAt": {
+    "$date": "2025-04-16T00:00:00.000Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "6810f45217e05da002e59bf0"
+  },
+  "name": "Chó Bông Puppy Đầu Bếp",
+  "description": "Chó Bông Puppy Đầu Bếp, phù hợp làm quà tặng.",
+  "price": 455000,
+  "image": "https://gaubongonline.vn/wp-content/uploads/2025/04/Gau-Bong-Puppy-Dau-Bep-2.jpg",
+  "categoryId": {
+    "$oid": "681107d831bf250910c59b83"
+  },
+  "createdAt": {
+    "$date": "2025-07-16T00:00:00.000Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "6810f5a317e05da002e59bf1"
+  },
+  "name": "Gối Ôm Shiba Giơ Tay",
+  "description": "Gối Ôm Shiba Giơ Tay, phù hợp làm quà tặng.",
+  "price": 275000,
+  "image": "https://gaubongonline.vn/wp-content/uploads/2025/04/Gau-Bong-Puppy-Dau-Bep-2.jpg",
+  "categoryId": {
+    "$oid": "681107d831bf250910c59b83"
+  },
+  "createdAt": {
+    "$date": "2025-02-16T00:00:00.000Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "6810f61c17e05da002e59bf2"
+  },
+  "name": "Gối Ôm Husky Má Tim Xám Nằm",
+  "description": "Gối Ôm Husky Má Tim Xám Nằm, phù hợp làm quà tặng.",
+  "price": 255000,
+  "image": "https://gaubongonline.vn/wp-content/uploads/2023/10/goi-om-hussky-ma-tim-xam-nam-1-500x500.webp",
+  "categoryId": {
+    "$oid": "681107d831bf250910c59b83"
+  },
+  "createdAt": {
+    "$date": "2025-01-16T00:00:00.000Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "6810f70217e05da002e59bf3"
+  },
+  "name": "Chó Bông Quàng Khăn Kẻ",
+  "description": "Chó Bông Quàng Khăn Kẻ, phù hợp làm quà tặng.",
+  "price": 235000,
+  "image": "https://gaubongonline.vn/wp-content/uploads/2025/02/Cho-Bong-Quang-Khan-Ke-1-500x500.jpg",
+  "categoryId": {
+    "$oid": "681107d831bf250910c59b83"
+  },
+  "createdAt": {
+    "$date": "2025-08-16T00:00:00.000Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "6810f76417e05da002e59bf4"
+  },
+  "name": "Em Bé Poodle",
+  "description": "Em Bé Poodle, phù hợp làm quà tặng.",
+  "price": 125000,
+  "image": "https://gaubongonline.vn/wp-content/uploads/2024/02/Em-Be-Poodle-7-1.jpg",
+  "categoryId": {
+    "$oid": "681107d831bf250910c59b83"
+  },
+  "createdAt": {
+    "$date": "2025-01-16T00:00:00.000Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "6810f7ae17e05da002e59bf5"
+  },
+  "name": "Chó Bông Đội Mũ Mcdonalds",
+  "description": "Chó Bông Đội Mũ Mcdonalds, phù hợp làm quà tặng.",
+  "price": 155000,
+  "image": "https://gaubongonline.vn/wp-content/uploads/2025/02/Cho-Bong-Doi-Mu-MCDonald-7-500x500.jpg",
+  "categoryId": {
+    "$oid": "681107d831bf250910c59b83"
+  },
+  "createdAt": {
+    "$date": "2025-03-16T00:00:00.000Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "6810f7f217e05da002e59bf6"
+  },
+  "name": "Chó Puppy Quàng Khăn",
+  "description": "Chó Puppy Quàng Khăn, phù hợp làm quà tặng.",
+  "price": 225000,
+  "image": "https://gaubongonline.vn/wp-content/uploads/2024/03/Cho-puppy-quang-khan-1-500x500.jpg",
+  "categoryId": {
+    "$oid": "681107d831bf250910c59b83"
+  },
+  "createdAt": {
+    "$date": "2025-04-16T00:00:00.000Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "6810f83617e05da002e59bf7"
+  },
+  "name": "Gối Ôm Chó Bông Áo Len",
+  "description": "Gối Ôm Chó Bông Áo Len, phù hợp làm quà tặng.",
+  "price": 285000,
+  "image": "https://gaubongonline.vn/wp-content/uploads/2024/01/goi-om-cho-bong-ao-len-2-jpg-500x500.webp",
+  "categoryId": {
+    "$oid": "681107d831bf250910c59b83"
+  },
+  "createdAt": {
+    "$date": "2025-05-16T00:00:00.000Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "6810f87517e05da002e59bf8"
+  },
+  "name": "Gấu Bông Shiba Cosplay Ong Nằm",
+  "description": "Gấu Bông Shiba Cosplay Ong Nằm, phù hợp làm quà tặng.",
+  "price": 275000,
+  "image": "https://gaubongonline.vn/wp-content/uploads/2024/08/Shiba-cosplay-ong-nam-10-500x500.jpg",
+  "categoryId": {
+    "$oid": "681107d831bf250910c59b83"
+  },
+  "createdAt": {
+    "$date": "2025-04-16T00:00:00.000Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "6810f8bb17e05da002e59bf9"
+  },
+  "name": "Chó Bông Bụng Xương Hello",
+  "description": "Chó Bông Bụng Xương Hello, phù hợp làm quà tặng.",
+  "price": 255000,
+  "image": "https://gaubongonline.vn/wp-content/uploads/2023/08/cho-bung-xuong-hello-4-500x500.webp",
+  "categoryId": {
+    "$oid": "6815222d15f0aee3d252f93e"
+  },
+  "createdAt": {
+    "$date": "2025-05-16T00:00:00.000Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "6810f90217e05da002e59bfa"
+  },
+  "name": "Chó Bông Pochacco Hamberger",
+  "description": "Chó Bông Pochacco Hamberger, phù hợp làm quà tặng.",
+  "price": 225000,
+  "image": "https://gaubongonline.vn/wp-content/uploads/2023/07/cho-pochacco-hamberger-4-500x500.webp",
+  "categoryId": {
+    "$oid": "681107d831bf250910c59b83"
+  },
+  "createdAt": {
+    "$date": "2025-04-16T00:00:00.000Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "6810f94517e05da002e59bfb"
+  },
+  "name": "Chó Bông Ôm Đùi Gà",
+  "description": "Chó Bông Ôm Đùi Gà, phù hợp làm quà tặng.",
+  "price": 65000,
+  "image": "https://gaubongonline.vn/wp-content/uploads/2023/01/cho-om-dui-ga12-500x500.webp",
+  "categoryId": {
+    "$oid": "681107d831bf250910c59b83"
+  },
+  "createdAt": {
+    "$date": "2025-05-16T00:00:00.000Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "6810f98e17e05da002e59bfc"
+  },
+  "name": "Chó Bông Corgi",
+  "description": "Chó Bông Corgi, phù hợp làm quà tặng.",
+  "price": 125000,
+  "image": "https://gaubongonline.vn/wp-content/uploads/2022/10/cho-corgi-beo-500x500.webp",
+  "categoryId": {
+    "$oid": "681107d831bf250910c59b83"
+  },
+  "createdAt": {
+    "$date": "2025-03-16T00:00:00.000Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "6810f9bb17e05da002e59bfd"
+  },
+  "name": "Chó Corgi Bông Mông Tim",
+  "description": "Chó Corgi Bông Mông Tim, phù hợp làm quà tặng.",
+  "price": 245000,
+  "image": "https://gaubongonline.vn/wp-content/uploads/2022/08/Corgi-mong-tim-1-500x500.jpg",
+  "categoryId": {
+    "$oid": "681107d831bf250910c59b83"
+  },
+  "createdAt": {
+    "$date": "2025-05-16T00:00:00.000Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "6826ba00f9e648674d9aeba0"
+  },
+  "name": "Gấu Bông Teddy Đeo Nhẫn",
+  "description": "Gấu Bông Teddy Đeo Nhẫn, phù hợp làm quà tặng.",
+  "price": 455000,
+  "image": "https://gaubongonline.vn/wp-content/uploads/2024/10/Gau-Bong-Teddy-Deo-Nhan-2.jpg",
+  "categoryId": {
+    "$oid": "6826a89cfffe451213244074"
+  },
+  "createdAt": {
+    "$date": "2025-05-16T00:00:00.000Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "6826ba71f9e648674d9aeba2"
+  },
+  "name": "Gấu Bông Teddy Angel Hồng",
+  "description": "Gấu Bông Teddy Angel Hồng, phù hợp làm quà tặng.",
+  "price": 295000,
+  "image": "https://gaubongonline.vn/wp-content/uploads/2022/09/teddy-angel-hong-24-jpg.webp",
+  "categoryId": {
+    "$oid": "6826a89cfffe451213244074"
+  },
+  "createdAt": {
+    "$date": "2025-05-16T00:00:00.000Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "6826baaff9e648674d9aeba3"
+  },
+  "name": "Gấu Bông Teddy Angel Tím",
+  "description": "Gấu Bông Teddy Angel Tím, phù hợp làm quà tặng.",
+  "price": 455000,
+  "image": "https://gaubongonline.vn/wp-content/uploads/2024/02/teddy-angel-tim-4-jpg.webp",
+  "categoryId": {
+    "$oid": "6826a89cfffe451213244074"
+  },
+  "createdAt": {
+    "$date": "2025-05-16T00:00:00.000Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "6826badef9e648674d9aeba4"
+  },
+  "name": "Gấu Bông Teddy Socola",
+  "description": "Gấu Bông Teddy Socola, phù hợp làm quà tặng.",
+  "price": 425000,
+  "image": "https://gaubongonline.vn/wp-content/uploads/2022/09/teddy-socola-2-jpg.webp",
+  "categoryId": {
+    "$oid": "6826a89cfffe451213244074"
+  },
+  "createdAt": {
+    "$date": "2025-05-16T00:00:00.000Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "6826bb0cf9e648674d9aeba5"
+  },
+  "name": "Gấu Bông Teddy Logo Babya",
+  "description": "Gấu Bông Teddy Logo Baby, phù hợp làm quà tặng.",
+  "price": 445000,
+  "image": "https://gaubongonline.vn/wp-content/uploads/2022/09/teddy-logo-baby-4-500x500.webp",
+  "categoryId": {
+    "$oid": "6826a89cfffe451213244074"
+  },
+  "createdAt": {
+    "$date": "2025-05-16T00:00:00.000Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "6826bb69f9e648674d9aeba6"
+  },
+  "name": "Gấu Bông Teddy Ngực Love",
+  "description": "Gấu Bông Teddy Ngực Love, phù hợp làm quà tặng.",
+  "price": 1100000,
+  "image": "https://gaubongonline.vn/wp-content/uploads/2024/03/Gau-Bong-Teddy-Nguc-Love-13-500x500.jpg",
+  "categoryId": {
+    "$oid": "6826a89cfffe451213244074"
+  },
+  "createdAt": {
+    "$date": "2025-05-16T00:00:00.000Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "6826bc1ef9e648674d9aeba7"
+  },
+  "name": "Gấu Bông Teddy Áo Len Love",
+  "description": "Gấu Bông Teddy Áo Len Love, phù hợp làm quà tặng.",
+  "price": 385000,
+  "image": "https://gaubongonline.vn/wp-content/uploads/2024/03/Gau-Bong-Teddy-Ao-Len-Love-New-3-500x500.jpg",
+  "categoryId": {
+    "$oid": "6826a89cfffe451213244074"
+  },
+  "createdAt": {
+    "$date": "2025-05-16T00:00:00.000Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "6826bc50f9e648674d9aeba8"
+  },
+  "name": "Gấu Bông Teddy Áo Len Quàng Khăn",
+  "description": "Gấu Bông Teddy Áo Len Quàng Khăn, phù hợp làm quà tặng.",
+  "price": 575000,
+  "image": "https://gaubongonline.vn/wp-content/uploads/2024/02/Teddy-Ao-Len-Quang-Khan-5-500x500.jpg",
+  "categoryId": {
+    "$oid": "6826a89cfffe451213244074"
+  },
+  "createdAt": {
+    "$date": "2025-05-16T00:00:00.000Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "6826bca5f9e648674d9aeba9"
+  },
+  "name": "Gấu Bông Teddy Cầm Phong Thư",
+  "description": "Gấu Bông Teddy Cầm Phong Thư, phù hợp làm quà tặng.",
+  "price": 425000,
+  "image": "https://gaubongonline.vn/wp-content/uploads/2024/02/Gau-Bong-Teddy-Cam-Phong-Thu-5-500x500.jpg",
+  "categoryId": {
+    "$oid": "6826a89cfffe451213244074"
+  },
+  "createdAt": {
+    "$date": "2025-05-16T00:00:00.000Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "6826bcd0f9e648674d9aebaa"
+  },
+  "name": "Gấu Bông Teddy Thiên Thần Trắng Đeo Nơ",
+  "description": "Gấu Bông Teddy Thiên Thần Trắng Đeo Nơ, phù hợp làm quà tặng.",
+  "price": 495000,
+  "image": "https://gaubongonline.vn/wp-content/uploads/2024/01/Gau-Bong-Teddy-Thien-Than-Trang-Deo-No-13-500x500.jpg",
+  "categoryId": {
+    "$oid": "6826a89cfffe451213244074"
+  },
+  "createdAt": {
+    "$date": "2025-05-16T00:00:00.000Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "6826bdcdf9e648674d9aebab"
+  },
+  "name": "Gấu Bông Teddy Ngực Quả Dâu",
+  "description": "Gấu Bông Teddy Ngực Quả Dâu, phù hợp làm quà tặng.",
+  "price": 325000,
+  "image": "https://gaubongonline.vn/wp-content/uploads/2022/11/gau-nguc-qua-dau-6-500x500.jpg",
+  "categoryId": {
+    "$oid": "6826a89cfffe451213244074"
+  },
+  "createdAt": {
+    "$date": "2025-05-16T00:00:00.000Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "6826be49f9e648674d9aebac"
+  },
+  "name": "Gấu Bông Teddy Ôm Tim Thỏ",
+  "description": "Gấu Bông Teddy Ôm Tim Thỏ, phù hợp làm quà tặng.",
+  "price": 445000,
+  "image": "https://gaubongonline.vn/wp-content/uploads/2023/02/teddy-om-tim-tho-5-500x500.webp",
+  "categoryId": {
+    "$oid": "6826a89cfffe451213244074"
+  },
+  "createdAt": {
+    "$date": "2025-05-16T00:00:00.000Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "6826bfe1f9e648674d9aebad"
+  },
+  "name": "Gấu Bông Teddy Mặt Gấu Ôm Tim ",
+  "description": "Gấu Bông Teddy Ôm Tim Thỏ, phù hợp làm quà tặng.",
+  "price": 465000,
+  "image": "https://gaubongonline.vn/wp-content/uploads/2023/09/teddy-mat-gau-om-tim-4-jpg-500x500.webp",
+  "categoryId": {
+    "$oid": "6826a89cfffe451213244074"
+  },
+  "createdAt": {
+    "$date": "2025-05-16T00:00:00.000Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "6826c00ef9e648674d9aebae"
+  },
+  "name": "Gấu Bông Áo Len Love Cầu Vồng",
+  "description": "Gấu Bông Áo Len Love Cầu Vồng, phù hợp làm quà tặng.",
+  "price": 435000,
+  "image": "https://gaubongonline.vn/wp-content/uploads/2022/09/teddy-len-love-cau-vong-4-500x500.webp",
+  "categoryId": {
+    "$oid": "6826a89cfffe451213244074"
+  },
+  "createdAt": {
+    "$date": "2025-05-16T00:00:00.000Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "6826c052f9e648674d9aebaf"
+  },
+  "name": "Gấu Bông Teddy Áo Mặt Cười",
+  "description": "Gấu Bông Teddy Áo Mặt Cười, phù hợp làm quà tặng.",
+  "price": 345000,
+  "image": "https://gaubongonline.vn/wp-content/uploads/2024/02/teddy-ao-mat-cuoi-2-jpg-500x500.webp",
+  "categoryId": {
+    "$oid": "6826a89cfffe451213244074"
+  },
+  "createdAt": {
+    "$date": "2025-05-16T00:00:00.000Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "6826c0a0f9e648674d9aebb0"
+  },
+  "name": "Gấu Bông Teddy Nơ Cầm Hoa",
+  "description": "Gấu Bông Teddy Nơ Cầm Hoa, phù hợp làm quà tặng.",
+  "price": 455000,
+  "image": "https://gaubongonline.vn/wp-content/uploads/2024/01/teddy-no-cam-hoa-9-jpg-500x500.webp",
+  "categoryId": {
+    "$oid": "6826a89cfffe451213244074"
+  },
+  "createdAt": {
+    "$date": "2025-05-16T00:00:00.000Z"
+  }
+}]
