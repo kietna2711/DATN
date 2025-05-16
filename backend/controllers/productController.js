@@ -56,7 +56,7 @@ const getAllProducts = async (req, res) => {
         .populate('categoryId', 'name description')
         .populate({
             path: 'variants',
-            select: 'size price'
+            select: 'size price quantity',
         });
         
         res.json(arr);
