@@ -9,7 +9,7 @@ const variantsSchema = new mongoose.Schema({
   toJSON: {
     transform: function (doc, ret) {
       delete ret.id;        // Xóa trường 'id' nếu có
-      delete ret.productId; // Xóa trường 'productId'
+      // delete ret.productId; // Xóa trường 'productId'
       return ret;
     }
   },
