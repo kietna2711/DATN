@@ -14,29 +14,37 @@ export default function ProductList({
     product: Products[];
   };
 }) {
-  const [activeCategory, setActiveCategory] = useState<string | null>(
-    props.category?.[0]?._id || null
-  );
+  const [activeCategory, setActiveCategory] = useState<string>("all");
 
+  // Nếu có danh mục thì lọc theo activeCategory
   const filteredProducts =
-    activeCategory === null
-      ? props.product
-      : props.product.filter((p) => p.categoryId._id === activeCategory);
+    props.category && props.category.length > 0
+      ? activeCategory === "all"
+        ? props.product.slice(0, 4)
+        : props.product
+            .filter((p) => p.categoryId._id === activeCategory)
+            .slice(0, 4)
+      : props.product.slice(0, 4); // Không có category, lấy 4 sản phẩm đầu
 
   return (
     <section>
-      <div className={styles["container-product"]}>
+      <div className={styles.container_product}>
         <p className={styles.tieude}>{props.title}</p>
 
+        {/* Chỉ hiển thị nút chọn danh mục nếu có danh mục */}
         {props.category && props.category.length > 0 && (
           <div className={styles.danhmucgau}>
-            {props.category.map((ctgr, index) => (
+            <button
+              onClick={() => setActiveCategory("all")}
+              className={activeCategory === "all" ? styles.active : ""}
+            >
+              Tất cả
+            </button>
+            {props.category.map((ctgr) => (
               <button
-                key={ctgr._id || index}
-                className={
-                  ctgr._id === activeCategory ? styles["ctgr-active"] : ""
-                }
+                key={ctgr._id}
                 onClick={() => setActiveCategory(ctgr._id)}
+                className={activeCategory === ctgr._id ? styles.active : ""}
               >
                 {ctgr.name}
               </button>
@@ -44,12 +52,14 @@ export default function ProductList({
           </div>
         )}
 
+        {/* Ảnh nếu có */}
         {props.image && (
-          <div className={styles["img-category-product"]}>
+          <div className={styles["img_category_product"]}>
             <img src={props.image} alt="Category" />
           </div>
         )}
 
+        {/* Hiển thị sản phẩm */}
         <div className={styles.products}>
           {filteredProducts.map((p: Products) => (
             <ProductItem product={p} key={p._id} />

@@ -8,6 +8,6 @@ export interface Products {
   description: string;
   image: string;
   categoryId: Category;  // categoryId là một object chứ không phải number/string
-  createdAt: string;     // hoặc Date nếu bạn parse
+  createdAt: Date;     // hoặc Date nếu bạn parse
   variants: Variant[];
 }
