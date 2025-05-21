@@ -4,15 +4,12 @@
     import { Swiper, SwiperSlide } from "swiper/react";
     import { Autoplay, Navigation } from "swiper/modules";
     import { Row, Col } from "antd";
-
     import "swiper/css";
     import "swiper/css/navigation";
     import styles from "../styles/banner.module.css";
 
     export default function Banner() {
     const [mounted, setMounted] = useState(false);
-
-    // Đảm bảo chỉ render sau khi component đã mounted (chỉ chạy ở client)
     useEffect(() => {
         setMounted(true);
     }, []);
@@ -51,7 +48,7 @@
         )}
 
         {/* Features section */}
-        {/* <div className={styles.featuresContainer}>
+        <div className={styles.featuresContainer}>
             <Row gutter={[16, 24]} justify="center" style={{ marginTop: "30px" }}>
             {features.map((feature, index) => (
                 <Col
@@ -90,7 +87,7 @@
                 </Col>
             ))}
             </Row>
-        </div> */}
+        </div>
         </section>
     );
     }
