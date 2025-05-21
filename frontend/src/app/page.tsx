@@ -41,7 +41,7 @@ export default function HomePage() {
           props={{
             title: "Danh sách gấu bông",
             category: categories,
-            image: "img/image51.png",
+            image: "http://localhost:3000/images/image 37.png",
             product: products.slice(0, 4),
           }}
         />

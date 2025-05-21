@@ -195,7 +195,7 @@ body {
   z-index: 2;
   cursor: pointer;
 }
-.product .image-hover {
+.product .imageHover {
   position: absolute;
   margin: 0 auto;
   top: 15px;
@@ -210,7 +210,7 @@ body {
   z-index: 1;
 }
 
-.product:hover .image-hover {
+.product:hover .imageHover {
   opacity: 1;
 }
 
@@ -228,7 +228,7 @@ body {
   border-radius: 25px;
   display: block;
 }
-.product .image-wrapper {
+.product .imageWrapper {
   position: relative;
   overflow: hidden;
 }
@@ -249,7 +249,7 @@ body {
   border: 1px solid #e04e7d;
 }
 
-.product .image-wrapper .logo-left {
+.product .imageWrapper .logo-left {
   position: absolute;
   top: -5px;
   left: 10px;
@@ -833,7 +833,7 @@ body {
     padding: 3px 10px;
     border-radius: 14px 5px 14px 14px;
   }
-  .product .image-wrapper .logo-left {
+  .product .imageWrapper .logo-left {
     width: 35px;
     height: 35px;
     top: 0;
@@ -952,7 +952,7 @@ body {
   border-radius: 25px;
   display: block;
 }
-.product .image-hover {
+.product .imageHover {
   transform: translateX(-50%);
   left: 50%;
   width: 90%;
@@ -962,7 +962,7 @@ body {
     padding: 2px 12px;
     border-radius: 14px 5px 14px 14px;
   }
-  .product .image-wrapper .logo-left {
+  .product .imageWrapper .logo-left {
     width: 35px;
     height: 35px;
     top: 0;

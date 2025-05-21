@@ -8,20 +8,20 @@ export default function ProductItem({ product }: { product: Products }) {
   return (
     // <a href={`/products/${product._id}`} className={styles.product}>
       <div className={styles.product}>
-        <div className={styles.imageWrapper}>
+        <div className={styles.image_wrapper}>
           <img src={product.image} alt="Gấu Bông" />
           <img
             src={product.image}
-            className={styles.imageHover}
+            className={styles.image_hover}
             alt="Gấu Bông Hover"
           />
           <img
             src="http://localhost:3000/images/logoXP.png"
-            className={styles.logoLeft}
+            className={styles.logo_left}
             alt="logo"
           />
-          <div className={styles.saleTag}></div>
-          <button className={styles.buyNowBtn}>
+          <div className={styles.sale_tag}></div>
+          <button className={styles.buy_NowBtn}>
             <img
               src="http://localhost:3000/images/button.png"
               className={styles.bearLeft}
