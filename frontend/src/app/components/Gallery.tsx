@@ -1,0 +1,44 @@
+"use client";
+import React, { useState } from "react";
+import styles from "../styles/productsDetail.module.css";
+
+type Props = {
+  images: string[];
+};
+
+const Gallery: React.FC<Props> = ({ images }) => {
+  const [current, setCurrent] = useState<number>(0);
+
+  const nextImage = () => setCurrent((prev) => (prev + 1) % images.length);
+  const prevImage = () => setCurrent((prev) => (prev - 1 + images.length) % images.length);
+
+  if (images.length === 0) return <p>Không có ảnh sản phẩm</p>; // fallback khi không có ảnh
+
+  return (
+    <div className={styles.product_img_container}>
+      <div className={styles.product_img_main}>
+        <button onClick={prevImage} className={styles.prevBtn}>←</button>
+        <img
+          src={images[current]}
+          alt={`Ảnh sản phẩm ${current + 1}`}
+          className={styles.product_img}
+        />
+        <button onClick={nextImage} className={styles.nextBtn}>→</button>
+      </div>
+      <div className={styles.product_img_thumbnails}>
+        {images.map((img, idx) => (
+          <img
+            key={img + idx}
+            className={`${styles.thumb} ${idx === current ? styles.thumb_active : ""}`}
+            src={img}
+            alt={`Thumbnail ${idx + 1}`}
+            onClick={() => setCurrent(idx)}
+          />
+        ))}
+      </div>
+    </div>
+  );
+};
+
+
+export default Gallery;

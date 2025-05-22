@@ -1,13 +1,17 @@
 import { Products } from "../types/productD";
 import styles from "../styles/productitem.module.css";
 
+
 export default function ProductItem({ product }: { product: Products }) {
+
   const prices = product.variants.map((v) => v.price);
   const minPrice = Math.min(...prices);
   const maxPrice = Math.max(...prices);
 
   return (
+
     <div className={styles.product}>
+      <a href={`/products/${product._id}`}>
       <div className={styles.image_wrapper}>
         {/* Ảnh chính và ảnh hover */}
         <img src={product.image} alt={product.name} />
@@ -69,6 +73,7 @@ export default function ProductItem({ product }: { product: Products }) {
           </span>
         ))}
       </div>
+      </a>
     </div>
   );
 }
