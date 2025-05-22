@@ -7,9 +7,13 @@ const ProductInfo = ({ product }: { product: Products }) => {
   const [activeSize, setActiveSize] = useState<number>(0);
   const [quantity, setQuantity] = useState<number>(1);
 
-  const prices = product.variants.map(v => v.price);
-  const minPrice = Math.min(...prices);
-  const maxPrice = Math.max(...prices);
+  // Đảm bảo variants luôn là mảng
+  const variants = product.variants ??[];
+
+  // Nếu variants rỗng thì không render giá
+  const prices = variants.map(v => v.price);
+  const minPrice = prices.length ? Math.min(...prices) : 0;
+  const maxPrice = prices.length ? Math.max(...prices) : 0;
 
   return (
     <div className={styles.productInfo_v3_noCard}>
@@ -18,11 +22,13 @@ const ProductInfo = ({ product }: { product: Products }) => {
           <span className={styles.productTitle}>{product.name}</span>
         </div>
         <div className={styles.productPrice}>
-          {minPrice.toLocaleString("vi-VN")} đ – {maxPrice.toLocaleString("vi-VN")} đ
+          {prices.length
+            ? `${minPrice.toLocaleString("vi-VN")} đ – ${maxPrice.toLocaleString("vi-VN")} đ`
+            : "Liên hệ"}
         </div>
         <div className={styles.productSizeNote}>
           Kích thước:
-          {product.variants.map((v, i) => (
+          {(variants).map((v, i) => (
             <span
               key={v.size}
               className={`${styles.btnSize} ${activeSize === i ? styles.btnSize_active : ""}`}
@@ -47,7 +53,7 @@ const ProductInfo = ({ product }: { product: Products }) => {
             </tr>
           </thead>
           <tbody>
-            {product.variants.map((v) => (
+            {variants.map((v) => (
               <tr key={v.size}>
                 <td>{v.size}</td>
                 <td className={styles.price}>
