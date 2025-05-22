@@ -1,0 +1,50 @@
+.Slideshow {
+  position: relative;
+  max-width: 100%;
+  overflow: hidden;
+
+  padding-top: 100px; /* Đẩy banner xuống dưới header */
+}
+
+
+.mySwiper {
+  width: 100%;
+  height: 600px; /* chiều cao banner */
+}
+
+/* Swiper global classes must be wrapped in :global */
+:global(.swiper-slide) {
+  text-align: center;
+  font-size: 18px;
+  background: #000;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+:global(.swiper-button-prev),
+:global(.swiper-button-next) {
+  color: rgb(255, 255, 255);
+  top: 50%;
+  width: 40px;
+  height: 40px;
+  margin-top: -20px;
+  position: absolute;
+  z-index: 10;
+  cursor: pointer;
+  border-radius: 50%;
+}
+
+:global(.swiper-button-prev) {
+  left: 10px;
+}
+
+:global(.swiper-button-next) {
+  right: 10px;
+}
+.featuresContainer {
+  padding: 0 20px;
+}
+.featuresContainer img{
+   max-width: 100px;
+}
