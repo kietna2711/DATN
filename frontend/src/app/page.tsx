@@ -7,6 +7,8 @@ import { Products } from "./types/productD";
 import { Category } from "./types/categoryD";
 import { getProducts } from "./services/productService";
 import { getCategories } from "./services/categoryServie";
+import ProductSlider from "./components/ProductSlider";
+// import ProductSlider from "./components/ProductSlider";
 
 export default function HomePage() {
   const [products, setProducts] = useState<Products[]>([]);
@@ -17,7 +19,11 @@ export default function HomePage() {
   useEffect(() => {
     getProducts()
       .then(data => {
-        setProducts(data);
+        // Sắp xếp theo ngày tạo mới nhất (createdAt giảm dần)
+        const sortedByDate = data.sort(
+          (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+        );
+        setProducts(sortedByDate);
         setLoading(false);
       })
       .catch(err => {
@@ -35,6 +41,12 @@ export default function HomePage() {
   return (
     <main>
       <Banner />
+      <ProductSlider
+        props={{
+          title: "Danh sách gấu bông",
+          products: products.slice(0, 5),
+        }}
+      />
       {error && <p>Lỗi: {error}</p>}
       {!error && products.length > 0 && (
         <ProductList
@@ -42,10 +54,11 @@ export default function HomePage() {
             title: "Danh sách gấu bông",
             category: categories,
             image: "http://localhost:3000/images/image 37.png",
-            product: products.slice(0, 4),
+            product: products.slice(0, 8)
           }}
         />
       )}
+
     </main>
   );
 }
