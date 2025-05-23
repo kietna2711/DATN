@@ -168,7 +168,7 @@
 }
 .products {
   display: flex;
-  /* flex-wrap: wrap; */
+  flex-wrap: wrap;
   justify-content: space-between;
   gap: 25px;
 }
@@ -1107,3 +1107,116 @@
 }
 
 
+/*  */
+/* ===== FILTER BAR & PHÂN TRANG ===== */
+.filter-bar {
+  max-width: 1200px;
+  display: flex;
+  align-items: center;
+  margin: 20px auto;
+  flex-wrap: wrap;
+  justify-content: space-between;
+}
+
+.filter-left {
+  display: flex;
+  position: relative;
+  align-items: center;
+  gap: 12px;
+  margin: 10px 0;
+}
+
+.filter-button {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border: 1px solid #f72585;
+  background-color: transparent;
+  color: #f72585;
+  font-size: 14px;
+  font-weight: 500;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.filter-button:hover {
+  background-color: #f72585;
+  color: #fff;
+}
+
+.filter-icon {
+  stroke: #f72585;
+}
+
+.filter-button:hover .filter-icon {
+  stroke: #fff;
+}
+
+.filter-right {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  justify-content: flex-end;
+}
+
+.filter-select {
+  background-color: rgba(255, 5, 180, 0.692);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px); 
+  padding: 6px 12px;
+  border: 1px solid rgba(202, 193, 193, 0.3);
+  border-radius: 6px;
+  font-size: 14px;
+  cursor: pointer;
+  text-align: start;
+  text-align-last: center;
+}
+.filter-select option {
+  background-color: rgba(218, 210, 210, 0.11);
+  backdrop-filter: blur(8px); 
+  -webkit-backdrop-filter: blur(8px); 
+  border: 1px solid rgba(230, 147, 147, 0.3);
+}
+
+/* Tổng số sản phẩm */
+.product-total {
+  font-weight: bold;
+  color: #ee076ffb;
+  font-size: 18px;
+}
+
+/* PHÂN TRANG */
+.pagination {
+  display: flex; 
+  gap: 6px;
+  margin: 30px auto;
+  justify-content: center;
+}
+
+.pagination a {
+  display: flex;
+  align-items: center;
+  margin: 0;
+  padding: 6px 12px;
+  border: 1px solid #ddd;
+  text-decoration: none;
+  color: #333;
+  background-color: #fff;
+  transition: background-color 0.2s ease;
+  border-radius: 50%;
+  min-width: 34px;
+  justify-content: center;
+}
+
+.pagination a:hover {
+  background-color: #eee;
+}
+
+.pagination a.printer {
+  background-color: #f4589e;
+  color: white;
+  border-color: #f4589e;
+}
