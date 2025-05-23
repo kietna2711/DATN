@@ -69,7 +69,7 @@ const getAllProducts = async (req, res) => {
 
 const getProductById = async (req, res) => {
     try {
-        const product = await products.findById(req.params.id);
+       const product = await products.findById(req.params.id).populate('variants');
         res.json(product);
     } catch (error) {
         console.error(error);

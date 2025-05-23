@@ -8,12 +8,10 @@ const ProductInfo = ({ product }: { product: Products }) => {
   const [quantity, setQuantity] = useState<number>(1);
 
   // Đảm bảo variants luôn là mảng
-  const variants = product.variants ??[];
+  const variants = product.variants ?? [];
 
-  // Nếu variants rỗng thì không render giá
-  const prices = variants.map(v => v.price);
-  const minPrice = prices.length ? Math.min(...prices) : 0;
-  const maxPrice = prices.length ? Math.max(...prices) : 0;
+  // Variant đang chọn
+  const currentVariant = variants[activeSize];
 
   return (
     <div className={styles.productInfo_v3_noCard}>
@@ -22,8 +20,8 @@ const ProductInfo = ({ product }: { product: Products }) => {
           <span className={styles.productTitle}>{product.name}</span>
         </div>
         <div className={styles.productPrice}>
-          {prices.length
-            ? `${minPrice.toLocaleString("vi-VN")} đ – ${maxPrice.toLocaleString("vi-VN")} đ`
+          {currentVariant
+            ? `${currentVariant.price.toLocaleString("vi-VN")} đ`
             : "Liên hệ"}
         </div>
         <div className={styles.productSizeNote}>
@@ -53,13 +51,15 @@ const ProductInfo = ({ product }: { product: Products }) => {
             </tr>
           </thead>
           <tbody>
-            {variants.map((v) => (
-              <tr key={v.size}>
+            {variants.map((v, idx) => (
+              <tr key={v.size} className={idx === activeSize ? styles.activeRow : ""}>
                 <td>{v.size}</td>
                 <td className={styles.price}>
                   {v.price.toLocaleString("vi-VN")} đ
                 </td>
-               
+                <td>
+                  {idx === activeSize && <span style={{color: "#0a0"}}>Đang chọn</span>}
+                </td>
               </tr>
             ))}
           </tbody>

@@ -1,8 +1,15 @@
 "use client";
 import React, { useState, useRef, useEffect } from "react";
 import styles from "../styles/productsDetail.module.css";
+import { Products } from "../types/productD";
+import { Variant } from "../types/variantD";
 
-const ProductTabs = () => {
+type Props = {
+  product: Products;
+};
+
+
+const ProductTabs: React.FC<Props> = ({ product }) => {
   const [tab, setTab] = useState("info");
   const [isExpanded, setIsExpanded] = useState(false);
   const contentRef = useRef<HTMLDivElement>(null);
@@ -17,6 +24,8 @@ const ProductTabs = () => {
   const toggleExpand = () => {
     setIsExpanded((prev) => !prev);
   };
+  
+   const variants: Variant[] = product.variants ?? [];
 
   return (
     <div className={styles.productTabs}>
@@ -47,11 +56,11 @@ const ProductTabs = () => {
         style={{ display: tab === "info" ? "block" : "none" }}
       >
         <h4 className={styles.tabTitle}>THÔNG TIN SẢN PHẨM</h4>
-        <p><strong>Gấu Bông Cánh Cụt Cà Tím</strong></p>
+        <p><strong>{product.name}</strong></p>
         <img
           className={styles.productInfoImage}
-          src="/img/image.png"
-          alt="Gấu Bông Cánh Cụt Cà Tím"
+          src={product.image}
+          alt={product.name}
         />
 
         <div
@@ -63,13 +72,20 @@ const ProductTabs = () => {
             transition: "max-height 0.5s ease",
           }}
         >
-          <p><strong>Mã sản phẩm:</strong> GB40332</p>
-          <p><strong>Kích Thước:</strong></p>
-          <p>
-            Size 1: 70cm – 385.000đ.<br />
-            Size 2: 40cm – 255.000đ.<br />
-            Size 3: 25cm – 125.000đ.
-          </p>
+          <p><strong>Mã sản phẩm:</strong>{product._id}</p>
+        
+
+            {variants.length > 0 && (
+            <>
+              <p><strong>Kích Thước & Giá:</strong></p>
+              {variants.map((v, idx) => (
+                <div key={v.size || idx}>
+                  Size: {v.size} – {v.price.toLocaleString("vi-VN")}đ
+                </div>
+              ))}
+            </>
+          )}
+    
           <p><strong>Chất liệu:</strong><br />
             Vải bên ngoài: lông thú cao cấp.<br />
             Bông nhồi bên trong: 100% bông polyester trắng đàn hồi loại 1.

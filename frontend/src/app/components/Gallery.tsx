@@ -12,7 +12,7 @@ const Gallery: React.FC<Props> = ({ images }) => {
   const nextImage = () => setCurrent((prev) => (prev + 1) % images.length);
   const prevImage = () => setCurrent((prev) => (prev - 1 + images.length) % images.length);
 
-  if (images.length === 0) return <p>Không có ảnh sản phẩm</p>; // fallback khi không có ảnh
+  if (images.length === 0) return <p>Không có ảnh sản phẩm</p>; 
 
   return (
     <div className={styles.product_img_container}>
