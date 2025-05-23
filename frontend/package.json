@@ -11,8 +11,10 @@
   "dependencies": {
     "antd": "^5.25.2",
     "next": "15.3.2",
+    "owl.carousel": "^2.3.4",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
+    "react-owl-carousel": "^2.3.3",
     "react-slick": "^0.30.3",
     "slick-carousel": "^1.8.1",
     "swiper": "^11.2.7"
