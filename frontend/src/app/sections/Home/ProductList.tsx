@@ -1,8 +1,8 @@
 import { useState } from "react";
-import { Products } from "../types/productD";
-import ProductItem from "./ProductItem";
-import styles from "../styles/productitem.module.css";
-import { Category } from "../types/categoryD";
+import { Products } from "../../types/productD";
+import ProductItem from "../../components/ProductItem";
+import styles from "@/app/styles/productitem.module.css";
+import { Category } from "../../types/categoryD";
 
 export default function ProductList({
   props,

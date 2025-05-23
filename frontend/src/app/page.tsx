@@ -1,13 +1,16 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import Banner from "./components/Banner";
-import ProductList from "./components/ProductList";
+import Banner from "./sections/Home/Banner";
+import ProductList from "./sections/Home/ProductList";
 import { Products } from "./types/productD";
 import { Category } from "./types/categoryD";
 import { getProducts } from "./services/productService";
 import { getCategories } from "./services/categoryServie";
-import ProductSlider from "./components/ProductSlider";
+import ProductSlider from "./sections/Home/ProductSlider";
+import ProductCollection from "./sections/Home/ProductCollection";
+import ServiceSection from "./sections/Home/ServiceSection";
+import ProductHot from "./sections/Home/ProductHot";
 // import ProductSlider from "./components/ProductSlider";
 
 export default function HomePage() {
@@ -41,24 +44,29 @@ export default function HomePage() {
   return (
     <main>
       <Banner />
+      <ProductCollection/>
+      <ProductHot
+          props={{
+            title: "Sản phẩm hot",
+            description: "Những chú gấu bông hot nhất, đáng yêu nhất, luôn sẵn sàng ôm bạn!",
+            products: products.slice(0, 8),
+          }}
+      />
       <ProductSlider
         props={{
-          title: "Danh sách gấu bông",
-          products: products.slice(0, 5),
+          title: "Gấu bông yêu thích",
+          products: products.slice(0, 8),
         }}
       />
-      {error && <p>Lỗi: {error}</p>}
-      {!error && products.length > 0 && (
-        <ProductList
+      <ProductList
           props={{
             title: "Danh sách gấu bông",
             category: categories,
             image: "http://localhost:3000/images/image 37.png",
             product: products.slice(0, 8)
           }}
-        />
-      )}
-
+      />
+      <ServiceSection/>
     </main>
   );
 }
