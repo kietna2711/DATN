@@ -70,13 +70,12 @@
   flex-direction: column;
   gap: 5px;
   position: relative;
-  width: calc(24% - 20px);
-  min-width: 260px;
+  width: calc(25% - 20px);
   box-sizing: border-box;
   border-radius: 30px 30px 20px 20px;
   background: linear-gradient(180deg, #fff8fb 60%, #ffe5f0 100%);
   overflow: hidden;
-  min-width: 250px;
+  min-width: 280px;
   padding-bottom: 20px;
   transition: transform 0.5s ease, box-shadow 0.5s ease;
   transform: scale(1);
@@ -401,7 +400,6 @@
 .hop_noi_dung {
   max-width: 1200px;
   margin: 40px auto;
-  padding: 0 20px;
   font-family: "Montserrat", sans-serif;
 }
 
@@ -415,7 +413,6 @@
   overflow: hidden;
   gap: 40px;
   margin-bottom: 40px;
-  padding: 30px;
   box-shadow: 0 0 15px rgba(0, 0, 0, 0.05);
 }
 
