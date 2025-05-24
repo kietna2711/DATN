@@ -19,7 +19,7 @@ type ProductHotProps = {
   };
 };
 
-export default function ProductHot({ props }: ProductHotProps) {
+export default function ProductNew({ props }: ProductHotProps) {
   const { title, description, products } = props;
   const swiperRef = useRef<any>(null);
 

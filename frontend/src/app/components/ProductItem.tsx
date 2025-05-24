@@ -10,9 +10,9 @@ export default function ProductItem({ product }: { product: Products }) {
     <div className={styles.product}>
       <div className={styles.image_wrapper}>
         {/* Ảnh chính và ảnh hover */}
-        <img src={product.image} alt={product.name} />
+        <img src={`http://localhost:3000/images/${product.image}`} alt={product.name} />
         <img
-          src={product.image} 
+          src= {`http://localhost:3000/images/${product.image}`}
           className={styles.image_hover}
           alt={`${product.name} Hover`}
         />
