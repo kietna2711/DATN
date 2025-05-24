@@ -81,7 +81,9 @@ const Header: React.FC = () => {
       <header className={`${styles.header}${headerShrink ? " " + styles.shrink : ""}`} id="header">
         <div className={styles["header-row"]}>
           <div className={styles["logo-wrap"]}>
-            <img src="http://localhost:3000/images/logoXP.png" alt="Mimi Bear Logo" />
+            <a href="/">
+                        <img src="http://localhost:3000/images/logoXP.png" alt="Mimi Bear Logo" />
+            </a>
             <div className={styles.slogan}>“Hug MimiBear-Unbox Love”</div>
           </div>
           <div className={styles["search-box"]}>
