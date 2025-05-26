@@ -2,11 +2,12 @@
 import { useEffect, useState } from "react";
 import { getProducts } from "../services/productService";
 import { Products } from "../types/productD";
-import ProductList from "../components/ProductList";
+import ProductList from "../components/ProductAll";
 import InstagramSection from "../components/InstagramSection";
 import styles from "../styles/productitem.module.css";
+import Pagination from "../components/Pagination";
 
-const PRODUCTS_PER_PAGE = 12; //mỗi trang hiển thị 12 sp
+const PRODUCTS_PER_PAGE = 16; //mỗi trang hiển thị 12 sp
 
 export default function ProductsPage() {
   const [products, setProducts] = useState<Products[]>([]);
@@ -63,8 +64,8 @@ export default function ProductsPage() {
     if (sort === "Giá : Cao đến thấp") {
       return [...list].sort(
         (a, b) =>
-          Math.max(...b.variants.map((v) => v.price)) -
-          Math.max(...a.variants.map((v) => v.price))
+          Math.min(...b.variants.map((v) => v.price)) -
+          Math.min(...a.variants.map((v) => v.price))
       );
     }
     return list;
@@ -82,58 +83,6 @@ export default function ProductsPage() {
     (currentPage - 1) * PRODUCTS_PER_PAGE,
     currentPage * PRODUCTS_PER_PAGE
   );
-
-  // Hàm render pagination
-  function renderPagination() {
-    if (totalPages <= 1) return null;
-    const pages = [];
-    for (let i = 1; i <= totalPages; ++i) {
-      pages.push(
-        <a
-          key={i}
-          className={i === currentPage ? styles.printer : ""}
-          onClick={() => setCurrentPage(i)}
-          style={{
-            cursor: "pointer",
-            fontWeight: i === currentPage ? 700 : 400,
-          }}
-        >
-          {i}
-        </a>
-      );
-    }
-    return (
-      <div className={styles.pagination}>
-        {pages}
-        {/* Next page */}
-        {currentPage < totalPages && (
-          <a
-            onClick={() => setCurrentPage(currentPage + 1)}
-            style={{
-              cursor: "pointer",
-              fontWeight: 700,
-            }}
-            title="Trang tiếp theo"
-          >
-            &#8250;
-          </a>
-        )}
-        {/* Last page */}
-        {currentPage < totalPages && (
-          <a
-            onClick={() => setCurrentPage(totalPages)}
-            style={{
-              cursor: "pointer",
-              fontWeight: 700,
-            }}
-            title="Trang cuối"
-          >
-            &#187;
-          </a>
-        )}
-      </div>
-    );
-  }
 
   return (
     <div>
@@ -189,7 +138,11 @@ export default function ProductsPage() {
         }}
       />
       {/* Pagination */}
-      {renderPagination()}
+      <Pagination
+        currentPage={currentPage}
+        totalPages={totalPages}
+        onPageChange={setCurrentPage}
+      />
       {/* PHẦN INSTAGRAM */}
       <InstagramSection />
     </div>

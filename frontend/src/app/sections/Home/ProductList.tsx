@@ -20,11 +20,11 @@ export default function ProductList({
   const filteredProducts =
     props.category && props.category.length > 0
       ? activeCategory === "all"
-        ? props.product.slice(0, 8)
+        ? props.product.slice(0, 4)
         : props.product
             .filter((p) => p.categoryId._id === activeCategory)
             .slice(0, 4)
-      : props.product.slice(0, 8); // Không có category, lấy 4 sản phẩm đầu
+      : props.product.slice(0, 16); // Không có category, lấy 4 sản phẩm đầu
 
 
   return (
