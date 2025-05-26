@@ -54,7 +54,7 @@ export default function Footer() {
         </div>
       </div>
       <div className={styles["footer-bottom"]}>
-        © Since 2024. Hộ Kinh Doanh Gấu Bông MiMiBear
+        © Since 2025. Cữa Hàng Gấu Bông MiMiBear
       </div>
     </footer>
   );

@@ -6,7 +6,7 @@
     import { Row, Col } from "antd";
     import "swiper/css";
     import "swiper/css/navigation";
-    import styles from "../styles/banner.module.css";
+    import styles from "@/app/styles/banner.module.css";
 
     export default function Banner() {
     const [mounted, setMounted] = useState(false);

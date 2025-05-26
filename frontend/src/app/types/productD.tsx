@@ -10,4 +10,5 @@ export interface Products {
   categoryId: Category;  // categoryId là một object chứ không phải number/string
   createdAt: Date;     // hoặc Date nếu bạn parse
   variants: Variant[];
+  sold: number;
 }
