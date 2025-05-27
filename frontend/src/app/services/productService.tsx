@@ -52,8 +52,5 @@ export const getProductsNew = async (): Promise<Products[]> => {
     .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
 
   const latestProducts = sorted.slice(0, 8);
-
-  // console.log("📦 Sản phẩm mới nhất (đầu tiên là mới nhất):", latestProducts);
-
   return latestProducts;
 };
