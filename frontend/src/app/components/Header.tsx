@@ -16,24 +16,23 @@ import { Category } from "../types/categoryD";
 
 
 const Header: React.FC = () => {
-  const [headerShrink, setHeaderShrink] = useState(false);
   const [mobileMenuActive, setMobileMenuActive] = useState(false);
   const [mobileOpenIndex, setMobileOpenIndex] = useState<number | null>(null);
   const [categories, setCategories] = useState<Category[]>([]);
 
-useEffect(() => {
-  const fetchCategories = async () => {
-    try {
-      const res = await fetch("http://localhost:3000/categories");
-      const data: Category[] = await res.json();
-      setCategories(data);
-    } catch (err) {
-      console.error("Lỗi khi tải danh mục:", err);
-    }
-  };
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const res = await fetch("http://localhost:3000/categories");
+        const data: Category[] = await res.json();
+        setCategories(data);
+      } catch (err) {
+        console.error("Lỗi khi tải danh mục:", err);
+      }
+    };
 
-  fetchCategories();
-}, []);
+    fetchCategories();
+  }, []);
 
   useEffect(() => {
     document.body.style.overflow = mobileMenuActive ? "hidden" : "";
@@ -51,7 +50,7 @@ useEffect(() => {
 
   return (
     <>
-      <header className={`${styles.header}${headerShrink ? " " + styles.shrink : ""}`} id="header">
+      <header className={`${styles.header}`} id="header">
         <div className={styles["header-row"]}>
           <div className={styles["logo-wrap"]}>
             <a href="/">
@@ -103,7 +102,7 @@ useEffect(() => {
           </div>
         </nav>
       </Affix>
-
+{/* Menu dọc cho resposive */}
       <div
         className={`${styles.overlay}${mobileMenuActive ? " " + styles.active : ""}`}
         id="overlay"
