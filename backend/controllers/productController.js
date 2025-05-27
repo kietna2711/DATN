@@ -28,7 +28,7 @@ const getAllProducts = async (req, res) => {
         let options = {};
         
         if (name) {
-            query.name = new RegExp(name, 'i'); // ✅
+            query.name = new RegExp(name, 'i');
         }
         
         
@@ -37,7 +37,7 @@ const getAllProducts = async (req, res) => {
         }
         
         if (idcate) {
-            query.categoryId = idcate; // ✅ dùng đúng tên field trong schema
+            query.categoryId = idcate;
         }
         
         if (limit) {

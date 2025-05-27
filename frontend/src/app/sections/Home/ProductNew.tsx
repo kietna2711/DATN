@@ -67,9 +67,9 @@ export default function ProductNew({ props }: ProductHotProps) {
       </div>
       <div className={styles.contentCol}>
         <h2>
-          Câu chuyện của Mimibear
+          {title}
           <br />
-          <span>{title}</span>
+          {/* <span>{title}</span> */}
         </h2>
         <p>{description}</p>
         <div className={styles.storyActions}>
