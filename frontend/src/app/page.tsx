@@ -10,11 +10,11 @@ import { getCategories } from "./services/categoryServie";
 import ProductSlider from "./sections/Home/ProductSlider";
 import ProductCollection from "./sections/Home/ProductCollection";
 import ServiceSection from "./sections/Home/ServiceSection";
-import ProductNew from "./sections/Home/ProductHot";
+import ProductNew from "./sections/Home/ProductNew";
 
 export default function HomePage() {
   const [products, setProducts] = useState<Products[]>([]);
-  const [newProducts, setNewProducts] = useState<Products[]>([]); // ✅ Tách riêng sản phẩm mới
+  const [newProducts, setNewProducts] = useState<Products[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
