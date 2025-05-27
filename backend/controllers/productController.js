@@ -28,7 +28,7 @@ const getAllProducts = async (req, res) => {
         let options = {};
         
         if (name) {
-            query.name = new RegExp(name, 'i'); // ✅
+            query.name = new RegExp(name, 'i');
         }
         
         
@@ -37,7 +37,7 @@ const getAllProducts = async (req, res) => {
         }
         
         if (idcate) {
-            query.categoryId = idcate; // ✅ dùng đúng tên field trong schema
+            query.categoryId = idcate;
         }
         
         if (limit) {
@@ -69,7 +69,7 @@ const getAllProducts = async (req, res) => {
 
 const getProductById = async (req, res) => {
     try {
-        const product = await products.findById(req.params.id);
+       const product = await products.findById(req.params.id).populate('variants');
         res.json(product);
     } catch (error) {
         console.error(error);

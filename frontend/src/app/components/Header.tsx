@@ -12,55 +12,28 @@ import {
   DownOutlined,
 } from "@ant-design/icons";
 import styles from "../styles/header.module.css"
-
-const menuItems = [
-  { label: "BLINDBOX", href: "#" },
-  {
-    label: "GẤU TEDDY",
-    submenu: [
-      { label: "Gấu Teddy Classic", href: "#" },
-      { label: "Gấu Teddy Đặc biệt", href: "#" },
-    ],
-  },
-  {
-    label: "BỘ SƯU TẬP",
-    submenu: [
-      { label: "BST Valentine", href: "#" },
-      { label: "BST Noel", href: "#" },
-    ],
-  },
-  {
-    label: "GẤU HOẠT HÌNH",
-    submenu: [
-      { label: "Gấu Brown", href: "#" },
-      { label: "Gấu Trắng", href: "#" },
-    ],
-  },
-  { label: "THÚ BÔNG", href: "#" },
-  { label: "PHỤ KIỆN", href: "#" },
-//   {
-//     label: "HOA GẤU BÔNG",
-//     submenu: [
-//       { label: "Hoa Gấu Mini", href: "#" },
-//       { label: "Hoa Gấu Đặc biệt", href: "#" },
-//     ],
-//   },
-//   { label: "GÓC CỦA GẤU", href: "#" },
-//   { label: "DỊCH VỤ", href: "#" },
-//   { label: "TẤT CẢ SP", href: "#" },
-];
+import { Category } from "../types/categoryD";
 
 
 const Header: React.FC = () => {
   const [headerShrink, setHeaderShrink] = useState(false);
   const [mobileMenuActive, setMobileMenuActive] = useState(false);
   const [mobileOpenIndex, setMobileOpenIndex] = useState<number | null>(null);
+  const [categories, setCategories] = useState<Category[]>([]);
 
-  useEffect(() => {
-    const handleScroll = () => setHeaderShrink(window.scrollY > 50);
-    window.addEventListener("scroll", handleScroll, { passive: true });
-    return () => window.removeEventListener("scroll", handleScroll);
-  }, []);
+useEffect(() => {
+  const fetchCategories = async () => {
+    try {
+      const res = await fetch("http://localhost:3000/categories");
+      const data: Category[] = await res.json();
+      setCategories(data);
+    } catch (err) {
+      console.error("Lỗi khi tải danh mục:", err);
+    }
+  };
+
+  fetchCategories();
+}, []);
 
   useEffect(() => {
     document.body.style.overflow = mobileMenuActive ? "hidden" : "";
@@ -81,7 +54,9 @@ const Header: React.FC = () => {
       <header className={`${styles.header}${headerShrink ? " " + styles.shrink : ""}`} id="header">
         <div className={styles["header-row"]}>
           <div className={styles["logo-wrap"]}>
-            <img src="http://localhost:3000/images/logoXP.png" alt="Mimi Bear Logo" />
+            <a href="/">
+                        <img src="http://localhost:3000/images/logoXP.png" alt="Mimi Bear Logo" />
+            </a>
             <div className={styles.slogan}>“Hug MimiBear-Unbox Love”</div>
           </div>
           <div className={styles["search-box"]}>
@@ -110,14 +85,14 @@ const Header: React.FC = () => {
         <nav className={styles.menu}>
           <div className={styles["menu-row"]}>
             <ul>
-              {menuItems.map((item) => (
-                <li key={item.label}>
-                  <a href={item.href || "#"}>{item.label}</a>
-                  {item.submenu && (
+              {categories.map((item) => (
+                <li key={item._id}>
+                  <a href={`/products/${item._id}`}>{item.name}</a>
+                  {item.subcategories && item.subcategories.length > 0 && (
                     <ul className={styles.submenu}>
-                      {item.submenu.map((sub) => (
-                        <li key={sub.label}>
-                          <a href={sub.href}>{sub.label}</a>
+                      {item.subcategories.map((sub) => (
+                        <li key={sub._id}>
+                          <a href={`/products/${sub._id}`}>{sub.name}</a>
                         </li>
                       ))}
                     </ul>
@@ -157,24 +132,24 @@ const Header: React.FC = () => {
         </div>
         <div className={styles["mobile-menu-list"]}>
           <ul>
-            {menuItems.map((item, idx) => (
+            {categories.map((item, idx) => (
               <li
-                key={item.label}
-                className={item.submenu && mobileOpenIndex === idx ? styles.open : ""}
+                key={item._id}
+                className={item.subcategories && mobileOpenIndex === idx ? styles.open : ""}
               >
-                {item.submenu ? (
+                {item.subcategories && item.subcategories.length > 0 ? (
                   <>
                     <a
-                      href="#"
-                      onClick={e => {
+                      href={`/products/${item._id}`}
+                      onClick={(e) => {
                         e.preventDefault();
                         handleMobileSubmenuToggle(idx);
                       }}
                     >
-                      {item.label}
+                      {item.name}
                       <button
                         className={styles["submenu-toggle"]}
-                        onClick={e => {
+                        onClick={(e) => {
                           e.preventDefault();
                           e.stopPropagation();
                           handleMobileSubmenuToggle(idx);
@@ -187,15 +162,15 @@ const Header: React.FC = () => {
                       </button>
                     </a>
                     <ul className={styles.submenu}>
-                      {item.submenu.map(sub => (
-                        <li key={sub.label}>
-                          <a href={sub.href}>{sub.label}</a>
+                      {item.subcategories.map((sub) => (
+                        <li key={sub._id}>
+                          <a href={`/products/${sub._id}`}>{sub.name}</a>
                         </li>
                       ))}
                     </ul>
                   </>
                 ) : (
-                  <a href={item.href}>{item.label}</a>
+                  <a href={`/products/${item._id}`}>{item.name}</a>
                 )}
               </li>
             ))}

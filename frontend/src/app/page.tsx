@@ -1,17 +1,20 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import Banner from "./components/Banner";
-import ProductList from "./components/ProductList";
+import Banner from "./sections/Home/Banner";
+import ProductList from "./sections/Home/ProductList";
 import { Products } from "./types/productD";
 import { Category } from "./types/categoryD";
-import { getProducts } from "./services/productService";
+import { getProducts, getProductsNew } from "./services/productService";
 import { getCategories } from "./services/categoryServie";
-import ProductSlider from "./components/ProductSlider";
-// import ProductSlider from "./components/ProductSlider";
+import ProductSlider from "./sections/Home/ProductSlider";
+import ProductCollection from "./sections/Home/ProductCollection";
+import ServiceSection from "./sections/Home/ServiceSection";
+import ProductNew from "./sections/Home/ProductNew";
 
 export default function HomePage() {
   const [products, setProducts] = useState<Products[]>([]);
+  const [newProducts, setNewProducts] = useState<Products[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -19,13 +22,21 @@ export default function HomePage() {
   useEffect(() => {
     getProducts()
       .then(data => {
-        // Sắp xếp theo ngày tạo mới nhất (createdAt giảm dần)
-        const sortedByDate = data.sort(
+        const sorted = data.sort(
           (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
         );
-        setProducts(sortedByDate);
+        setProducts(sorted);
         setLoading(false);
       })
+      .catch(err => {
+        setError(err.message);
+        setLoading(false);
+      });
+  }, []);
+
+  useEffect(() => {
+    getProductsNew()
+      .then(data => setNewProducts(data))
       .catch(err => {
         setError(err.message);
         setLoading(false);
@@ -41,24 +52,29 @@ export default function HomePage() {
   return (
     <main>
       <Banner />
-      <ProductSlider
+      <ProductCollection />
+      <ProductNew
         props={{
-          title: "Danh sách gấu bông",
-          products: products.slice(0, 5),
+          title: "Sản phẩm mới",
+          description: "Những chú gấu bông hot nhất, đáng yêu nhất, luôn sẵn sàng ôm bạn!",
+          products: newProducts,
         }}
       />
-      {error && <p>Lỗi: {error}</p>}
-      {!error && products.length > 0 && (
-        <ProductList
-          props={{
-            title: "Danh sách gấu bông",
-            category: categories,
-            image: "http://localhost:3000/images/image 37.png",
-            product: products.slice(0, 8)
-          }}
-        />
-      )}
-
+      <ProductSlider
+        props={{
+          title: "Gấu bông yêu thích",
+          products: products.slice(0, 8),
+        }}
+      />
+      <ProductList
+        props={{
+          title: "Danh sách gấu bông",
+          category: categories,
+          image: "http://localhost:3000/images/image 37.png",
+          product: products.slice(0, 8),
+        }}
+      />
+      <ServiceSection />
     </main>
   );
 }
