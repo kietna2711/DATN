@@ -1,6 +1,5 @@
 import { Products } from "../types/productD";
 import styles from "../styles/productitem.module.css";
-import Link from "next/link";
 
 
 export default function ProductItem({ product }: { product: Products }) {
@@ -12,12 +11,12 @@ export default function ProductItem({ product }: { product: Products }) {
   return (
    <div className={styles.product}>
   <div className={styles.image_wrapper}>
-    <Link href={`/products/${product._id}`}>
+    <a href={`/products/${product._id}`}>
       <div className={styles.image_link}>
         {/* Ảnh chính và ảnh hover */}
-        <img src={`http://localhost:3000/images/${product.image}`} alt={product.name} />
+        <img src={`http://localhost:3000/images/${product.images[0]}`} alt={product.name} />
         <img
-          src= {`http://localhost:3000/images/${product.image}`}
+          src= {`http://localhost:3000/images/${product.images[1]}`}
           className={styles.image_hover}
           alt={`${product.name} Hover`}
         />
@@ -32,7 +31,7 @@ export default function ProductItem({ product }: { product: Products }) {
         {/* Tag giảm giá */}
         <div className={styles.saleTag}>30%</div>
       </div>
-    </Link>
+    </a>
 
     {/* Nút mua ngay */}
     <button className={styles.buy_now_btn}>
@@ -51,9 +50,9 @@ export default function ProductItem({ product }: { product: Products }) {
   </div>
 
   {/* Tên sản phẩm (có thể cho vào Link nếu muốn click vào tên để xem chi tiết) */}
-  <Link href={`/products/${product._id}`}>
+  <a href={`/products/${product._id}`}>
     <p className={styles.product_name}>{product.name}</p>
-  </Link>
+  </a>
 
   {/* Giá */}
   <div className={styles.prices_sale}>

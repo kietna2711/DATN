@@ -6,7 +6,7 @@ export interface Products {
   _id: string;           // id dạng string theo JSON bạn nhận
   name: string;
   description: string;
-  image: string;
+  images: string[];
   categoryId: Category;  // categoryId là một object chứ không phải number/string
   createdAt: Date;     // hoặc Date nếu bạn parse
   variants: Variant[];

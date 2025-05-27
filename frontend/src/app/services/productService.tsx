@@ -26,7 +26,7 @@ export async function getDetail(id: string): Promise<Products | null> {
       _id: typeof data._id === "string" ? data._id : (typeof data.id === "string" ? data.id : ""),
       name: typeof data.name === "string" ? data.name : "",
       description: typeof data.description === "string" ? data.description : "",
-      image: typeof data.image === "string" ? data.image : "",
+      images: Array.isArray(data.images) ? data.images : [], // ✅ Sửa đúng key và kiểm tra đúng kiểu
       categoryId: data.categoryId && typeof data.categoryId === "object" ? data.categoryId : null,
       createdAt: data.createdAt ? new Date(data.createdAt) : new Date(),
       variants: Array.isArray(data.variants) ? data.variants : [],
