@@ -79,6 +79,9 @@
   transform: scale(1);
   margin-bottom: 20px;
 }
+.product a{
+  text-decoration: none;
+}
 .product:hover {
   /* transform: scale(1.02); */
   z-index: 2;
