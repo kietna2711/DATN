@@ -10,14 +10,12 @@ import { getCategories } from "./services/categoryServie";
 import ProductSlider from "./sections/Home/ProductSlider";
 import ProductCollection from "./sections/Home/ProductCollection";
 import ServiceSection from "./sections/Home/ServiceSection";
-<<<<<<< HEAD
 import ProductNew from "./sections/Home/ProductNew";
-=======
-import ProductNew from "./sections/Home/ProductHot";
+
+// import ProductNew from "./sections/Home/ProductHot";
 import ProductHotSlider from "./sections/Home/ProductHotSlider";
 import { getProductsHot } from "./services/productService";
 
->>>>>>> tuongdt
 
 export default function HomePage() {
   const [products, setProducts] = useState<Products[]>([]);
