@@ -57,3 +57,19 @@ export const getProductsNew = async (): Promise<Products[]> => {
 
   return latestProducts;
 };
+
+export const getProductsHot = async (): Promise<Products[]> => {
+  const res = await fetch("http://localhost:3000/products");
+  if (!res.ok) throw new Error("Lỗi khi tải sản phẩm hot");
+
+  const data = await res.json();
+  const sorted = (data as Products[])
+    .map(product => ({
+      ...product,
+      createdAt: new Date(product.createdAt),
+    }))
+    .sort((a, b) => b.sold - a.sold); // sắp xếp theo sold giảm dần
+
+  const topSoldProducts = sorted.slice(0, 8);
+  return topSoldProducts;
+};
