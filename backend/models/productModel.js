@@ -9,6 +9,10 @@ const productSchema = new mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: 'categories',
     required: true
+  },
+    subcategoryId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'subcategories'
   }
 }, {
   versionKey: false,

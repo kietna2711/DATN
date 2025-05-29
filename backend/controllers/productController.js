@@ -19,7 +19,7 @@ const upload = multer({storage: storage, fileFilter: checkfile})
 const categories = require('../models/categoryModel');
 const products = require('../models/productModel');
 const variants = require('../models/variantsModel')
-
+const subcategories = require('../models/subcategoriesModel')
 const getAllProducts = async (req, res) => {
     try {
         const { name, idcate, limit, sort, page, hot } = req.query;
@@ -54,6 +54,7 @@ const getAllProducts = async (req, res) => {
         
         const arr = await products.find(query, null, options)
         .populate('categoryId', 'name description')
+        .populate('subcategoryId', 'name')
         .populate({
             path: 'variants',
             select: 'size price quantity',
