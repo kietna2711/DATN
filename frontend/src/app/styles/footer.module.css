@@ -11,15 +11,19 @@
   display: flex;
   max-width: 1200px;
   margin: 0 auto;
-  gap: 40px;
+  justify-content: space-between;
+  gap: 88px;
   flex-wrap: wrap;
 }
 
 .footer-col {
-  flex: 1 1 300px;
-  min-width: 280px;
+  flex: 1 ;
+  /* min-width: 280px; */
 }
 
+.footer-col:first-child {
+  flex: 1.5;
+}
 .footer-logo {
   max-width: 130px;
   margin: 0 auto 20px auto;

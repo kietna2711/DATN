@@ -12,12 +12,19 @@ import ProductCollection from "./sections/Home/ProductCollection";
 import ServiceSection from "./sections/Home/ServiceSection";
 import ProductNew from "./sections/Home/ProductNew";
 
+// import ProductNew from "./sections/Home/ProductHot";
+import ProductHotSlider from "./sections/Home/ProductHotSlider";
+import { getProductsHot } from "./services/productService";
+
+
 export default function HomePage() {
   const [products, setProducts] = useState<Products[]>([]);
   const [newProducts, setNewProducts] = useState<Products[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [hotProducts, setHotProducts] = useState<Products[]>([]);
+
 
   useEffect(() => {
     getProducts()
@@ -49,6 +56,16 @@ export default function HomePage() {
       .catch(err => console.error("Lỗi khi lấy danh mục:", err));
   }, []);
 
+  useEffect(() => {
+  getProductsHot()
+    .then(data => setHotProducts(data))
+    .catch(err => {
+      setError(err.message);
+      setLoading(false);
+    });
+}, []);
+
+
   return (
     <main>
       <Banner />
@@ -66,11 +83,18 @@ export default function HomePage() {
           products: products.slice(0, 8),
         }}
       />
+      <ProductHotSlider
+        props={{
+          title: "Sản phẩm hot",
+          products: hotProducts,
+        }}
+      />
+
       <ProductList
         props={{
           title: "Danh sách gấu bông",
           category: categories,
-          image: "http://localhost:3000/images/image 37.png",
+          image: "http://localhost:3000/images/image37.png",
           product: products.slice(0, 8),
         }}
       />

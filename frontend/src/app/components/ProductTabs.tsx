@@ -53,13 +53,13 @@ const ProductTabs: React.FC<Props> = ({ product }) => {
       {/* THÔNG TIN SẢN PHẨM */}
       <div
         className={`${styles.tabContent} ${tab === "info" ? styles.tabContent_active : ""}`}
-        style={{ display: tab === "info" ? "block" : "none" }}
+      
       >
         <h4 className={styles.tabTitle}>THÔNG TIN SẢN PHẨM</h4>
         <p><strong>{product.name}</strong></p>
         <img
           className={styles.productInfoImage}
-          src={product.image}
+          src={`http://localhost:3000/images/${product.images[0]}`}
           alt={product.name}
         />
 

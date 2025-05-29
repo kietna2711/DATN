@@ -8,11 +8,12 @@ import styles from "../../styles/productsDetail.module.css";
 export default async function ProductPage({
   params,
 }: {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 }) {
+  const { id } = await params;
+  if (!id) return null;
 
-  if (!params?.id) return
-  const product = await getDetail(params.id);
+  const product = await getDetail(id);
   if (!product) {
     return <div>Không tìm thấy sản phẩm</div>;
   }
@@ -20,7 +21,16 @@ export default async function ProductPage({
     <div className={styles.container_tong}>
       <div className={styles.container_content}>
         <div className={styles.container_v3}>
-          <Gallery images={product.image ? [product.image] : []} />
+          <Gallery
+        images={
+          Array.isArray(product.images)
+            ? product.images.map((img) => `http://localhost:3000//images/${img}`)
+            : []
+        }
+      />
+
+
+
           <ProductInfo product={product} />
         </div>
         <div className={styles.content_container_tong}>
