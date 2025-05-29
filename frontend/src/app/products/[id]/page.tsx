@@ -1,8 +1,8 @@
 import { getDetail } from "../../services/productService";
-import Gallery from "../../components/Gallery";
-import ProductInfo from "../../components/ProductInfo";
-import ProductTabs from "../../components/ProductTabs";
-import ReviewList from "../../components/ReviewList";
+import Gallery from "../Gallery";
+import ProductInfo from "../ProductInfo";
+import ProductTabs from "../ProductTabs";
+import ReviewList from "../ReviewList";
 import styles from "../../styles/productsDetail.module.css";
 
 export default async function ProductPage({
