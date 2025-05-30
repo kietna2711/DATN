@@ -7,7 +7,7 @@ import ProductList from "../components/ProductAll";
 import InstagramSection from "../components/InstagramSection";
 import styles from "../styles/productitem.module.css";
 import Pagination from "../components/Pagination";
-import { useSearchParams } from "next/navigation";
+
 
 const PRODUCTS_PER_PAGE = 16; // mỗi trang hiển thị 16 sp
 
@@ -26,7 +26,6 @@ export default function ProductsPage() {
   const [priceFilter, setPriceFilter] = useState<string>("Tất cả");
   const [sort, setSort] = useState<string>("Mới nhất");
   const [currentPage, setCurrentPage] = useState<number>(1);
-  const searchParams = useSearchParams();
   const searchQuery = searchParams.get("search")?.toLowerCase() || "";
 
 

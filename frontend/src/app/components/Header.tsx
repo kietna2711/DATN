@@ -145,22 +145,6 @@ const handleSearch = (e: React.FormEvent<HTMLFormElement>) => {
                   </li>
                 );
               })}
-              {categories.map((item) => (
-                <li key={item._id}>
-                  {/*  */}
-                  <a href={`/products?category=${item._id}`}>{item.name}</a>
-                  {item.subcategories && item.subcategories.length > 0 && (
-                    <ul className={styles.submenu}>
-                      {item.subcategories.map((sub) => (
-                        <li key={sub._id}>
-                          <a href={`/products?category=${sub._id}`}>{sub.name}</a>
-                          {/*  */}
-                        </li>
-                      ))}
-                    </ul>
-                  )}
-                </li>
-              ))}
             </ul>
           </div>
         </nav>
