@@ -19,6 +19,6 @@ router.post('/', addPro);
 router.patch('/:id', verifyToken, verifyAdmin, editPro);
 
 //Xóa sản phẩm
-router.delete('/:id', verifyToken, verifyAdmin, deletePro);
-
+router.delete('/:id', deletePro);
+// router.delete('/:id', verifyToken, verifyAdmin, deletePro);
 module.exports = router;
