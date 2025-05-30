@@ -152,6 +152,7 @@ export default function ProductsPage() {
           </select>
         </div>
       </div>
+      
       {/* Danh sách sản phẩm */}
       <ProductList
         props={{
@@ -159,11 +160,7 @@ export default function ProductsPage() {
           product: pagedProducts,
         }}
       />
-      {searchQuery && (
-  <p className={styles.search_result}>
-    Kết quả cho từ khóa: <strong>{searchQuery}</strong>
-  </p>
-)}
+      
 
       {/* Pagination */}
       <Pagination
