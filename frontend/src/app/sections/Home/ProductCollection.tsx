@@ -36,7 +36,7 @@ export default function ProductCollection() {
         >
           {categories.map((cat, index) => (
             <SwiperSlide key={index}>
-                <a href={`/category/${cat._id}`} className={styles.theSanPham}>
+                <a href={`products?category=${cat._id}`} className={styles.theSanPham}>
                     <img src="http://localhost:3000/images/image 26.png" alt={cat.name} />
                     <p className={styles.tenSanPham}>{cat.name}</p>
                 </a>

@@ -3,14 +3,14 @@ import { Variant } from "./variantD";
 
 
 export interface Products {
-  images(images: any): unknown;
-  _id: string;           // id dạng string theo JSON bạn nhận
+  _id: string;                         // MongoDB ObjectId ở dạng string
   name: string;
   description: string;
-  images: string[];
-  categoryId: Category;  // categoryId là một object chứ không phải number/string
-  createdAt: Date;     // hoặc Date nếu bạn parse
-  variants: Variant[];
+  price: number;
+  images: string[];                    // Mảng đường dẫn ảnh
+  categoryId: Category[];               // Sau khi populate: là 1 object
+  createdAt: Date;
+  variants: Variant[];               // Mảng biến thể đã populate
   sold: number;
-  subcategoryId?: SubCategory[];
+  subcategoryId?: SubCategory[];     // Sản có thể có hoặc không có
 }

@@ -1,8 +1,10 @@
+"use client";
+
 import { useState } from "react";
 import { Products } from "../../types/productD";
 import ProductItem from "../../components/ProductItem";
 import styles from "@/app/styles/productitem.module.css";
-import { Category } from "../../types/categoryD";
+import { Category, SubCategory } from "../../types/categoryD";
 
 export default function ProductList({
   props,
@@ -10,62 +12,99 @@ export default function ProductList({
   props: {
     title: string;
     image?: string;
-    category?: Category[];
+    category?: Category;
     product: Products[];
   };
 }) {
-  const [activeCategory, setActiveCategory] = useState<string>("all");
+  const [activeSubCategory, setActiveSubCategory] = useState<string>("all");
 
-  // Nếu có danh mục thì lọc theo activeCategory
+  const subcategories: SubCategory[] = props.category?.subcategories || [];
+
+  const categoryId = props.category?._id || "";
+
   const filteredProducts =
-    props.category && props.category.length > 0
-      ? activeCategory === "all"
-        ? props.product.slice(0, 4)
-        : props.product
-            .filter((p) => p.categoryId._id === activeCategory)
-            .slice(0, 4)
-      : props.product.slice(0, 16); // Không có category, lấy 4 sản phẩm đầu
+    activeSubCategory === "all"
+      ? props.product
+          .filter((p) => {
+            // Lọc sản phẩm theo category cha
+            if (typeof p.categoryId === "object" && p.categoryId !== null && "_id" in p.categoryId) {
+              return p.categoryId._id === categoryId;
+            }
+            return false;
+          })
+          .slice(0, 8)
+      : props.product
+          .filter((p) => {
+            // Lọc sản phẩm theo danh mục con
+            const sub = p.subcategoryId;
+            if (typeof sub === "object" && sub !== null && "_id" in sub) {
+              return sub._id === activeSubCategory;
+            }
+            return false;
+          })
+          .slice(0, 8);
 
+  const subCategoryId = activeSubCategory !== "all" ? activeSubCategory : "";
+  const productPageLink =
+    subCategoryId !== ""
+      ? `/products?subcategory=${subCategoryId}`
+      : `/products?category=${categoryId}`;
 
   return (
     <section>
       <div className={styles.container_product}>
-        <p className={styles.tieude}>{props.title}</p>
+      <p className={styles.tieude}>
+        Danh sách {props.category?.name || "sản phẩm"}
+      </p>
 
-        {/* Chỉ hiển thị nút chọn danh mục nếu có danh mục */}
-        {props.category && props.category.length > 0 && (
+        {subcategories.length > 0 && (
           <div className={styles.danhmucgau}>
             <button
-              onClick={() => setActiveCategory("all")}
-              className={activeCategory === "all" ? styles.active : ""}
+              onClick={() => setActiveSubCategory("all")}
+              className={activeSubCategory === "all" ? styles.active : ""}
             >
               Tất cả
             </button>
-            {props.category.map((ctgr) => (
+            {subcategories.map((sub) => (
               <button
-                key={ctgr._id}
-                onClick={() => setActiveCategory(ctgr._id)}
-                className={activeCategory === ctgr._id ? styles.active : ""}
+                key={sub._id}
+                onClick={() => setActiveSubCategory(sub._id)}
+                className={activeSubCategory === sub._id ? styles.active : ""}
               >
-                {ctgr.name}
+                {sub.name}
               </button>
             ))}
           </div>
         )}
 
-        {/* Ảnh nếu có */}
         {props.image && (
           <div className={styles["img_category_product"]}>
             <img src={props.image} alt="Category" />
           </div>
         )}
 
-        {/* Hiển thị sản phẩm */}
         <div className={styles.products}>
           {filteredProducts.map((p: Products) => (
             <ProductItem product={p} key={p._id} />
           ))}
         </div>
+
+        {/* Nút Xem thêm */}
+        {categoryId && (
+          <div style={{ textAlign: "center", marginTop: "1rem" }}>
+            <a
+              href={productPageLink}
+              style={{
+                textDecoration: "none",
+                color: "#E46A67",
+                fontWeight: "bold",
+                cursor: "pointer",
+              }}
+            >
+              Xem thêm &gt;&gt;
+            </a>
+          </div>
+        )}
       </div>
     </section>
   );

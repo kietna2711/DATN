@@ -176,7 +176,7 @@ body {
   left: 0;
   /* top: 70px; */
   /* background: var(--color-pink-submenu-bg); */
-  min-width: 190px;
+  min-width: 230px;
   /* border-radius: 8px; */
   /* box-shadow: 0 4px 14px var(--color-pink-shadow-submenu); */
   padding: 0;
@@ -202,6 +202,21 @@ body {
 }
 .menu ul li ul.submenu li a:hover {
   color: var(--color-pink-main);
+}
+.menu-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.icon-down {
+  font-size: 10px;
+  color: #b94490; /* hoặc màu bạn muốn */
+  margin-top: 2px;
+}
+
+.has-submenu {
+  position: relative;
 }
 
 /* MENU MOBILE SLIDE */

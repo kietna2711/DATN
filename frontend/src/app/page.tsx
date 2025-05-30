@@ -5,17 +5,13 @@ import Banner from "./sections/Home/Banner";
 import ProductList from "./sections/Home/ProductList";
 import { Products } from "./types/productD";
 import { Category } from "./types/categoryD";
-import { getProducts, getProductsNew } from "./services/productService";
+import { getProducts, getProductsNew, getProductsHot } from "./services/productService";
 import { getCategories } from "./services/categoryServie";
 import ProductSlider from "./sections/Home/ProductSlider";
 import ProductCollection from "./sections/Home/ProductCollection";
 import ServiceSection from "./sections/Home/ServiceSection";
 import ProductNew from "./sections/Home/ProductNew";
-
-// import ProductNew from "./sections/Home/ProductHot";
 import ProductHotSlider from "./sections/Home/ProductHotSlider";
-import { getProductsHot } from "./services/productService";
-
 
 export default function HomePage() {
   const [products, setProducts] = useState<Products[]>([]);
@@ -24,7 +20,6 @@ export default function HomePage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [hotProducts, setHotProducts] = useState<Products[]>([]);
-
 
   useEffect(() => {
     getProducts()
@@ -57,14 +52,13 @@ export default function HomePage() {
   }, []);
 
   useEffect(() => {
-  getProductsHot()
-    .then(data => setHotProducts(data))
-    .catch(err => {
-      setError(err.message);
-      setLoading(false);
-    });
-}, []);
-
+    getProductsHot()
+      .then(data => setHotProducts(data))
+      .catch(err => {
+        setError(err.message);
+        setLoading(false);
+      });
+  }, []);
 
   return (
     <main>
@@ -77,25 +71,32 @@ export default function HomePage() {
           products: newProducts,
         }}
       />
-      <ProductSlider
+      {/* <ProductSlider
         props={{
           title: "Gấu bông yêu thích",
           products: products.slice(0, 8),
         }}
-      />
+      /> */}
       <ProductHotSlider
         props={{
           title: "Sản phẩm hot",
           products: hotProducts,
         }}
       />
-
       <ProductList
         props={{
-          title: "Danh sách gấu bông",
-          category: categories,
-          image: "http://localhost:3000/images/image37.png",
-          product: products.slice(0, 8),
+          title: "Danh sách",
+          category: categories.find((cat) => cat._id === "6837d13c62e4059224b126af"),
+          image: "http://localhost:3000/images/bannerTeddy.jpg",
+          product: products,
+        }}
+      />
+      <ProductList
+        props={{
+          title: "Danh sách",
+          category: categories.find((cat) => cat._id === "6836bfc58bae817a54d1d17d"),
+          image: "http://localhost:3000/images/bannerTeddy.jpg",
+          product: products,
         }}
       />
       <ServiceSection />

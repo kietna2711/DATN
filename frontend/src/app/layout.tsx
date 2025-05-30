@@ -1,20 +1,26 @@
-'use client';
-
+// app/layout.tsx (Server Component)
 import "@/app/globals.css";
 import Footer from "./components/Footer";
 import Header from "./components/Header";
-import { usePathname } from "next/navigation";
+import { Category } from "./types/categoryD";
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
-  const pathname = usePathname();
-  const isAdmin = pathname.startsWith("/admin");
+async function getCategories(): Promise<Category[]> {
+  const res = await fetch("http://localhost:3000/categories", { cache: "no-store" });
+  if (!res.ok) throw new Error("Failed to fetch categories");
+  return res.json();
+}
+
+export default async function RootLayout({ children }: { children: React.ReactNode }) {
+  const categories = await getCategories();
 
   return (
     <html lang="vi">
       <body>
-        {!isAdmin && <Header />}
+        {/* Mình không thể dùng usePathname() ở đây */}
+        {/* Nếu bạn cần kiểm tra isAdmin dựa vào pathname, xử lý ở client component khác */}
+        <Header categories={categories} />
         <main>{children}</main>
-        {!isAdmin && <Footer />}
+        <Footer />
       </body>
     </html>
   );

@@ -71,8 +71,8 @@ export default function ProductsPage() {
     return list;
   }
 
-  if (loading) return <div>Đang tải sản phẩm...</div>;
-  if (!products.length) return <div>Không có sản phẩm nào.</div>;
+  // if (loading) return <div>Đang tải sản phẩm...</div>;
+  // if (!products.length) return <div>Không có sản phẩm nào.</div>;
 
   // Xử lý lọc và sắp xếp
   const filtered = sortProducts(products.filter(filterByPrice));

@@ -12,7 +12,7 @@ const productSchema = new mongoose.Schema({
   },
     subcategoryId: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'subcategories'
+    ref: 'subcategories',
   }
 }, {
   versionKey: false,
