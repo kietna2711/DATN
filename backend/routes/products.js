@@ -12,7 +12,7 @@ router.get('/', getAllProducts);
 router.get('/:id', getProductById);
 
 //Thêm sản phẩm
-router.post('/', verifyToken, verifyAdmin, addPro);
+router.post('/', addPro);
 // router.post('/',  addPro);
 
 //Sửa sản phẩm
