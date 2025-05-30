@@ -1,16 +1,25 @@
 "use client";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import styles from "../styles/productsDetail.module.css";
 import { Products } from "../types/productD";
 
 const ProductInfo = ({ product }: { product: Products }) => {
-  const [activeSize, setActiveSize] = useState<number>(0);
-  const [quantity, setQuantity] = useState<number>(1);
-
-  // Đảm bảo variants luôn là mảng
   const variants = product.variants ?? [];
+  const [activeSize, setActiveSize] = useState(0);
+  const [quantity, setQuantity] = useState(1);
 
-  // Variant đang chọn
+  useEffect(() => {
+    // Đọc tham số size từ URL nếu có
+    const params = new URLSearchParams(window.location.search);
+    const sizeParam = params.get("size");
+    if (sizeParam) {
+      const idx = variants.findIndex(v => v.size === sizeParam);
+      if (idx !== -1) setActiveSize(idx);
+    }
+    // Chỉ chạy 1 lần khi component mount
+    // eslint-disable-next-line
+  }, [variants]);
+
   const currentVariant = variants[activeSize];
 
   return (
@@ -26,7 +35,7 @@ const ProductInfo = ({ product }: { product: Products }) => {
         </div>
         <div className={styles.productSizeNote}>
           Kích thước:
-          {(variants).map((v, i) => (
+          {variants.map((v, i) => (
             <span
               key={v.size}
               className={`${styles.btnSize} ${activeSize === i ? styles.btnSize_active : ""}`}
