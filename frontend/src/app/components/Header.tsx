@@ -13,6 +13,7 @@ import {
 } from "@ant-design/icons";
 import styles from "../styles/header.module.css";
 import { Category } from "../types/categoryD";
+import { useRouter } from "next/navigation"; // nếu dùng App Router
 
 type Props = {
   categories: Category[];
@@ -21,6 +22,17 @@ type Props = {
 const Header: React.FC<Props> = ({ categories }) => {
   const [mobileMenuActive, setMobileMenuActive] = useState(false);
   const [mobileOpenIndex, setMobileOpenIndex] = useState<number | null>(null);
+  const router = useRouter();
+  const [searchValue, setSearchValue] = useState("");
+
+const handleSearch = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    if (searchValue.trim()) {
+      router.push(`/products?search=${encodeURIComponent(searchValue.trim())}`);
+      setSearchValue("");
+      setMobileMenuActive(false); // Đóng menu nếu đang mở
+    }
+  };
 
   useEffect(() => {
     document.body.style.overflow = mobileMenuActive ? "hidden" : "";
@@ -46,9 +58,21 @@ const Header: React.FC<Props> = ({ categories }) => {
             </a>
             <div className={styles.slogan}>“Hug MimiBear-Unbox Love”</div>
           </div>
-          <div className={styles["search-box"]}>
-            <input type="search" placeholder="Nhập sản phẩm cần tìm ?" />
+          <form onSubmit={handleSearch} className={styles["search-box"]}>
+            <input
+              type="search"
+              placeholder="Nhập sản phẩm cần tìm ?"
+              value={searchValue}
+              onChange={(e) => setSearchValue(e.target.value)}
+            />
             <SearchOutlined
+              onClick={() => {
+                if (searchValue.trim()) {
+                  router.push(`/products?search=${encodeURIComponent(searchValue.trim())}`);
+                  // setSearchValue("");
+                  setMobileMenuActive(false);
+                }
+              }}
               style={{
                 position: "absolute",
                 right: 14,
@@ -56,10 +80,10 @@ const Header: React.FC<Props> = ({ categories }) => {
                 transform: "translateY(-50%)",
                 color: "#e87ebd",
                 fontSize: "1.25rem",
-                pointerEvents: "none",
+                cursor: "pointer" // để hiện dấu tay khi hover
               }}
             />
-          </div>
+          </form>
           <div className={styles["header-icons"]}>
             <HeartOutlined />
             <ShoppingOutlined />
@@ -149,9 +173,22 @@ const Header: React.FC<Props> = ({ categories }) => {
         <div className={styles["mobile-account"]}>
           <UserOutlined /> Tài khoản
         </div>
-        <div className={styles["mobile-search-box"]}>
-          <input type="search" placeholder="Nhập sản phẩm cần tìm..." />
+       <div className={styles["mobile-search-box"]}>
+        <form onSubmit={handleSearch} style={{ position: "relative" }}>
+          <input
+            type="search"
+            placeholder="Nhập sản phẩm cần tìm..."
+            value={searchValue}
+            onChange={(e) => setSearchValue(e.target.value)}
+          />
           <SearchOutlined
+            onClick={() => {
+              if (searchValue.trim()) {
+                router.push(`/products?search=${encodeURIComponent(searchValue.trim())}`);
+                // Không reset searchValue để giữ nguyên chữ
+                setMobileMenuActive(false);
+              }
+            }}
             style={{
               position: "absolute",
               right: 12,
@@ -159,9 +196,11 @@ const Header: React.FC<Props> = ({ categories }) => {
               transform: "translateY(-50%)",
               color: "#b94490",
               fontSize: "1.07rem",
+              cursor: "pointer"
             }}
           />
-        </div>
+        </form>
+      </div>
         <div className={styles["mobile-menu-list"]}>
           <ul>
             {categories.map((item, idx) => {
