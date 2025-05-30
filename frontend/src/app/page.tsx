@@ -95,7 +95,7 @@ export default function HomePage() {
         props={{
           title: "Danh sách",
           category: categories.find((cat) => cat._id === "6836bfc58bae817a54d1d17d"),
-          image: "http://localhost:3000/images/bannerTeddy.jpg",
+          // image: "http://localhost:3000/images/bannerTeddy.jpg",
           product: products,
         }}
       />
