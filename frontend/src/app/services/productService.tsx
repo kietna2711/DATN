@@ -21,12 +21,12 @@ export async function getDetail(id: string): Promise<Products | null> {
     });
     if (!res.ok) return null;
     const data = await res.json();
-    console.log("Fetched data:", data);
+ 
     const product: Products = {
       _id: typeof data._id === "string" ? data._id : (typeof data.id === "string" ? data.id : ""),
       name: typeof data.name === "string" ? data.name : "",
       description: typeof data.description === "string" ? data.description : "",
-      images: Array.isArray(data.images) ? data.images : [], // ✅ Sửa đúng key và kiểm tra đúng kiểu
+      images: Array.isArray(data.images) ? data.images : [],
       categoryId: data.categoryId && typeof data.categoryId === "object" ? data.categoryId : null,
       createdAt: data.createdAt ? new Date(data.createdAt) : new Date(),
       variants: Array.isArray(data.variants) ? data.variants : [],

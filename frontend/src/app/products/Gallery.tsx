@@ -44,19 +44,23 @@ const Gallery: React.FC<Props> = ({ images }) => {
 
       {/* Ảnh nhỏ */}
       <div className={styles.thumbnail_wrapper}>
+        
         <div className={styles.product_img_thumbnails} ref={thumbnailsRef}>
-          {images.map((img, idx) => (
-            <img
-              key={img + idx}
-              ref={(el) => {
-                if (el) imageRefs.current[idx] = el;
-              }}
-              className={`${styles.thumb} ${idx === current ? styles.thumb_active : ""}`}
-              src={img}
-              alt={`Thumbnail ${idx + 1}`}
-              onClick={() => setCurrent(idx)}
-            />
-          ))}
+          {Array.isArray(images) && images.length > 1 &&
+            images.map((img, idx) => (
+              <img
+                key={img + idx}
+                ref={(el) => {
+                  if (el) imageRefs.current[idx] = el;
+                }}
+                className={`${styles.thumb} ${idx === current ? styles.thumb_active : ""}`}
+                src={img}
+                alt={`Thumbnail ${idx + 1}`}
+                onClick={() => setCurrent(idx)}
+              />
+            ))
+          }
+         
         </div>
       </div>
     </div>

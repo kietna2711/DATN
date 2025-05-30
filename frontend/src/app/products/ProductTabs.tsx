@@ -24,8 +24,8 @@ const ProductTabs: React.FC<Props> = ({ product }) => {
   const toggleExpand = () => {
     setIsExpanded((prev) => !prev);
   };
-  
-   const variants: Variant[] = product.variants ?? [];
+
+  const variants: Variant[] = product.variants ?? [];
 
   return (
     <div className={styles.productTabs}>
@@ -53,11 +53,11 @@ const ProductTabs: React.FC<Props> = ({ product }) => {
       {/* THÔNG TIN SẢN PHẨM */}
       <div
         className={`${styles.tabContent} ${tab === "info" ? styles.tabContent_active : ""}`}
-      
+
       >
         <h4 className={styles.tabTitle}>THÔNG TIN SẢN PHẨM</h4>
         <p><strong>{product.name}</strong></p>
-          <img
+        <img
           className={styles.productInfoImage}
           src={
             Array.isArray(product.images) && product.images.length > 0
@@ -66,7 +66,7 @@ const ProductTabs: React.FC<Props> = ({ product }) => {
           }
           alt={product.name}
         />
-      
+
 
         <div
           ref={contentRef}
@@ -78,10 +78,10 @@ const ProductTabs: React.FC<Props> = ({ product }) => {
           }}
         >
           <p><strong>Mã sản phẩm:</strong>{product._id}</p>
-          
-        
 
-            {variants.length > 0 && (
+
+
+          {variants.length > 0 && (
             <>
               <p><strong>Kích Thước & Giá:</strong></p>
               {variants.map((v, idx) => (
@@ -91,27 +91,25 @@ const ProductTabs: React.FC<Props> = ({ product }) => {
               ))}
             </>
           )}
-          
-    
+
+
           <p><strong>Chất liệu:</strong><br />
             Vải bên ngoài: lông thú cao cấp.<br />
             Bông nhồi bên trong: 100% bông polyester trắng đàn hồi loại 1.
           </p>
+          {Array.isArray(product.images) && product.images.length > 1 && (
             <img
-          className={styles.productInfoImage}
-          src={
-            Array.isArray(product.images) && product.images.length > 0
-              ? `http://localhost:3000/images/${product.images[1]}`
-              : ""
-          }
-          alt={product.name}
-        />
+              className={styles.productInfoImage}
+              src={`http://localhost:3000/images/${product.images[1]}`}
+              alt={product.name}
+            />
+          )}
           <p><strong>Công dụng:</strong><br />
-            Dùng làm gấu ôm, tựa lưng hoặc làm quà tặng. <br />
+
             Chơi với gấu bông không chỉ giúp tăng tính độc lập, mà còn giúp giảm thiểu căng thẳng, điều hòa huyết áp và kích thích sản sinh hormon Endorphins. Hormon này có tác dụng đem lại cảm giác vui vẻ, yêu đời, tự tin, căng tràn sức sống và kích thích sự sáng tạo.
 
           </p>
-          
+
         </div>
 
         <button className={styles.seeMore} onClick={toggleExpand}>
@@ -155,8 +153,15 @@ const ProductTabs: React.FC<Props> = ({ product }) => {
         <p>
           Chúng tôi đã có một số mẹo để bảo quản và giặt gấu bông hiệu quả mà MiMiBear muốn chia sẻ đến bạn.
         </p>
+
+        <img className={styles.productInfoImage}
+          src="https://bemori.vn/wp-content/uploads/2024/08/bao-quan-va-giat-gau-scaled.webp" alt="" />
+
+
+
+
         <p>
-          Để bảo quản gấu bông, bạn nên giữ gấu bông ở nơi khô thoáng, tránh ẩm ướt và ánh nắng trực tiếp. Khi giặt gấu bông, bạn nên giặt bằng nước lạnh, tránh giặt nước nóng và sử dụng chất tẩy mạnh. Bạn cũng nên cho gấu bông vào túi giặt trước khi giặt bằng máy giặt và chọn chế độ giặt nhẹ. 
+          Để bảo quản gấu bông, bạn nên giữ gấu bông ở nơi khô thoáng, tránh ẩm ướt và ánh nắng trực tiếp. Khi giặt gấu bông, bạn nên giặt bằng nước lạnh, tránh giặt nước nóng và sử dụng chất tẩy mạnh. Bạn cũng nên cho gấu bông vào túi giặt trước khi giặt bằng máy giặt và chọn chế độ giặt nhẹ.
         </p>
         <p><a className={styles.tabContent_a} href="#">Lưu ý tại đây</a></p>
       </div>
