@@ -95,7 +95,7 @@ export default function ProductList({
             <a
               href={productPageLink}
               style={{
-                textDecoration: "none",
+textDecoration: "none",
                 color: "#E46A67",
                 fontWeight: "bold",
                 cursor: "pointer",

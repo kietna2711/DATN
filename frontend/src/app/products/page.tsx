@@ -1,22 +1,31 @@
 "use client";
 import { useEffect, useState } from "react";
-import { getProducts } from "../services/productService";
+import { useRouter, useSearchParams } from "next/navigation";
+import { getProducts, getProductsByCategory } from "../services/productService";
 import { Products } from "../types/productD";
 import ProductList from "../components/ProductAll";
 import InstagramSection from "../components/InstagramSection";
 import styles from "../styles/productitem.module.css";
 import Pagination from "../components/Pagination";
-import { useSearchParams } from "next/navigation";
 
-const PRODUCTS_PER_PAGE = 16; //mỗi trang hiển thị 12 sp
+
+const PRODUCTS_PER_PAGE = 16; // mỗi trang hiển thị 16 sp
 
 export default function ProductsPage() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+
+  // Lấy params từ URL
+  const priceFilterParam = searchParams.get("price") || "Tất cả";
+  const sortParam = searchParams.get("sort") || "Mới nhất";
+  const pageParam = parseInt(searchParams.get("page") || "1", 10);
+
   const [products, setProducts] = useState<Products[]>([]);
   const [loading, setLoading] = useState(true);
+
   const [priceFilter, setPriceFilter] = useState<string>("Tất cả");
   const [sort, setSort] = useState<string>("Mới nhất");
   const [currentPage, setCurrentPage] = useState<number>(1);
-  const searchParams = useSearchParams();
   const searchQuery = searchParams.get("search")?.toLowerCase() || "";
 
 
@@ -26,10 +35,18 @@ export default function ProductsPage() {
   }, [searchQuery]);
 
 
+  // dm
+  const categoryId = searchParams.get("category");
+
   useEffect(() => {
     async function fetchData() {
       try {
-        const data = await getProducts();
+        let data: Products[] = [];
+        if (categoryId){
+          data = await getProductsByCategory(categoryId);
+        }else{
+          data = await getProducts();
+        }
         setProducts(data);
       } catch (error) {
         setProducts([]);
@@ -38,11 +55,11 @@ export default function ProductsPage() {
       }
     }
     fetchData();
-  }, []);
+  }, [categoryId]);
 
   function filterByPrice(product: Products) {
     const min = Math.min(...product.variants.map((v) => v.price));
-    switch (priceFilter) {
+    switch (priceFilterParam) {
       case "Dưới 300.000 đ":
         return min < 300000;
       case "Từ 300.000 đ - 500.000 đ":
@@ -66,19 +83,19 @@ export default function ProductsPage() {
 
 
   function sortProducts(list: Products[]) {
-    if (sort === "Mới nhất") {
+    if (sortParam === "Mới nhất") {
       return [...list].sort(
         (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
       );
     }
-    if (sort === "Giá : Thấp đến cao") {
+    if (sortParam === "Giá : Thấp đến cao") {
       return [...list].sort(
         (a, b) =>
           Math.min(...a.variants.map((v) => v.price)) -
           Math.min(...b.variants.map((v) => v.price))
       );
     }
-    if (sort === "Giá : Cao đến thấp") {
+    if (sortParam === "Giá : Cao đến thấp") {
       return [...list].sort(
         (a, b) =>
           Math.min(...b.variants.map((v) => v.price)) -
@@ -102,9 +119,22 @@ export default function ProductsPage() {
 
   // Lấy sản phẩm cho trang hiện tại
   const pagedProducts = filtered.slice(
-    (currentPage - 1) * PRODUCTS_PER_PAGE,
-    currentPage * PRODUCTS_PER_PAGE
+    (pageParam - 1) * PRODUCTS_PER_PAGE,
+    pageParam * PRODUCTS_PER_PAGE
   );
+
+  // Hàm cập nhật url khi chọn filter/sort/page
+  const updateQuery = (params: Record<string, string | number>) => {
+    const newParams = new URLSearchParams(searchParams.toString());
+    Object.entries(params).forEach(([key, value]) => {
+      if (value === undefined || value === null) {
+        newParams.delete(key);
+      } else {
+        newParams.set(key, String(value));
+      }
+    });
+    router.push(`?${newParams.toString()}`);
+  };
 
   return (
     <div>
@@ -119,10 +149,9 @@ export default function ProductsPage() {
           </button>
           <select
             className={styles["filter-select"]}
-            value={priceFilter}
+            value={priceFilterParam}
             onChange={(e) => {
-              setCurrentPage(1);
-              setPriceFilter(e.target.value);
+              updateQuery({ price: e.target.value, page: 1 }); // reset page về 1 khi đổi filter
             }}
           >
             <option>Tất cả</option>
@@ -137,10 +166,9 @@ export default function ProductsPage() {
           <span className={styles["product-total"]}>{filtered.length} Sản phẩm CỬA HÀNG</span>
           <select
             className={styles["filter-select"]}
-            value={sort}
+            value={sortParam}
             onChange={(e) => {
-              setCurrentPage(1);
-              setSort(e.target.value);
+              updateQuery({ sort: e.target.value, page: 1 }); // reset page về 1 khi đổi sort
             }}
           >
             <option>Mới nhất</option>
@@ -164,9 +192,9 @@ export default function ProductsPage() {
 
       {/* Pagination */}
       <Pagination
-        currentPage={currentPage}
+        currentPage={pageParam}
         totalPages={totalPages}
-        onPageChange={setCurrentPage}
+        onPageChange={(page) => updateQuery({ page })}
       />
       {/* PHẦN INSTAGRAM */}
       <InstagramSection />
