@@ -21,16 +21,18 @@ export async function getDetail(id: string): Promise<Products | null> {
     });
     if (!res.ok) return null;
     const data = await res.json();
-    console.log("Fetched data:", data);
+ 
     const product: Products = {
       _id: typeof data._id === "string" ? data._id : (typeof data.id === "string" ? data.id : ""),
       name: typeof data.name === "string" ? data.name : "",
       description: typeof data.description === "string" ? data.description : "",
-      images: Array.isArray(data.images) ? data.images : [], // ✅ Sửa đúng key và kiểm tra đúng kiểu
+      images: Array.isArray(data.images) ? data.images : [],
       categoryId: data.categoryId && typeof data.categoryId === "object" ? data.categoryId : null,
       createdAt: data.createdAt ? new Date(data.createdAt) : new Date(),
       variants: Array.isArray(data.variants) ? data.variants : [],
       sold: typeof data.sold === "number" ? data.sold : 0,
+      image: undefined,
+      price: 0
     };
     return product;
   } catch (err) {
@@ -69,4 +71,11 @@ export const getProductsHot = async (): Promise<Products[]> => {
 
   const topSoldProducts = sorted.slice(0, 8);
   return topSoldProducts;
+};
+
+// Thêm hàm mới
+export const getProductsByCategory = async (categoryId: string): Promise<Products[]> => {
+  const res = await fetch(`http://localhost:3000/products?idcate=${categoryId}`);
+  if (!res.ok) throw new Error("Lỗi khi tải sản phẩm theo danh mục");
+  return await res.json();
 };

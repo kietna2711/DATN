@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { getCategories } from "../../services/categoryServie";
+import { getCategories } from "../../services/categoryService";
 import { Category } from "../../types/categoryD";
 import { Swiper, SwiperSlide } from "swiper/react";
 import { Navigation, Autoplay } from "swiper/modules";

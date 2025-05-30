@@ -22,6 +22,7 @@ export default function ProductManagement() {
   const [products, setProducts] = useState<Product[]>([]);
   const [selectAll, setSelectAll] = useState(false);
   const [showModal, setShowModal] = useState(false);
+  const [showCreateModal, setShowCreateModal] = useState(false);
   const [editIndex, setEditIndex] = useState<number | null>(null);
   const [clock, setClock] = useState("");
   const [form, setForm] = useState<Omit<Product, "checked">>({
@@ -33,8 +34,20 @@ export default function ProductManagement() {
     quantity: 0,
     size: "",
     category: "",
-    status: "Còn hàng",
+    status: "",
   });
+  const [createForm, setCreateForm] = useState<Omit<Product, "checked">>({
+    id: "",
+    name: "",
+    image: "",
+    desc: "",
+    price: 0,
+    quantity: 0,
+    size: "",
+    category: "",
+    status: "",
+  });
+  const [categories, setCategories] = useState<any[]>([]); // Thêm state cho danh sách danh mục
 
   // Fetch sản phẩm từ backend nodejs
   useEffect(() => {
@@ -42,30 +55,31 @@ export default function ProductManagement() {
       try {
         const res = await fetch("http://localhost:3000/products");
         const data = await res.json();
+        console.log("Raw data from API:", data);
 
-        // Flatten: mỗi variant là một Product
-        const mappedProducts: Product[] = [];
-        data.forEach((prod: any) => {
-          prod.variants.forEach((variant: any) => {
-            mappedProducts.push({
-              id: prod._id + "-" + variant._id,
-              name: prod.name,
-image: prod.image.startsWith("http")
-  ? prod.image
-  : `http://localhost:3000/images/${prod.image}`,
+        // Giả sử data là mảng sản phẩm từ API
+        const products = data.map((prod: any) => ({
+          id: prod._id, // <-- chuyển từ _id sang id
+          name: prod.name,
+          image:
+            prod.images && prod.images.length > 0
+              ? `http://localhost:3000/images/${prod.images[0]}`
+              : "",
+          desc: prod.description,
+          price: prod.price,
+          size: prod.variants && prod.variants.length > 0
+            ? prod.variants.map((v: any) => v.size).join(", ")
+            : "",
+          quantity: prod.variants && prod.variants.length > 0
+            ? prod.variants.map((v: any) => v.quantity).join(", ")
+            : "",
+          category: prod.categoryId?.name || "",
+          status: prod.status || "Còn hàng",
+          checked: false,
+        }));
+        console.log("Mapped products:", products);
 
-              desc: prod.description,
-              price: variant.price,
-              quantity: variant.quantity,
-              size: variant.size,
-              category: prod.categoryId?.name || "",
-              status: variant.quantity > 0 ? "Còn hàng" : "Hết hàng",
-              checked: false,
-            });
-          });
-        });
-
-        setProducts(mappedProducts);
+        setProducts(products);
       } catch (error) {
         console.error("Lỗi khi fetch sản phẩm:", error);
       }
@@ -73,12 +87,32 @@ image: prod.image.startsWith("http")
     fetchProducts();
   }, []);
 
+  // Fetch danh mục từ backend nodejs
+  useEffect(() => {
+    async function fetchCategories() {
+      try {
+        const res = await fetch("http://localhost:3000/categories");
+        const data = await res.json();
+        setCategories(data);
+      } catch (error) {
+        console.error("Lỗi khi fetch danh mục:", error);
+      }
+    }
+    fetchCategories();
+  }, []);
+
   // Đồng hồ realtime
   useEffect(() => {
     function updateClock() {
       const today = new Date();
       const weekday = [
-        "Chủ Nhật", "Thứ Hai", "Thứ Ba", "Thứ Tư", "Thứ Năm", "Thứ Sáu", "Thứ Bảy"
+        "Chủ Nhật",
+        "Thứ Hai",
+        "Thứ Ba",
+        "Thứ Tư",
+        "Thứ Năm",
+        "Thứ Sáu",
+        "Thứ Bảy",
       ];
       const day = weekday[today.getDay()];
       let dd: string | number = today.getDate();
@@ -103,39 +137,46 @@ image: prod.image.startsWith("http")
   // Chọn tất cả
   const handleSelectAll = () => {
     setSelectAll(!selectAll);
-    setProducts(products =>
-      products.map(p => ({ ...p, checked: !selectAll }))
+    setProducts((products) =>
+      products.map((p) => ({ ...p, checked: !selectAll }))
     );
   };
 
   // Chọn từng dòng
-  const handleCheck = (idx: number) => {
-    setProducts(products =>
-      products.map((p, i) =>
-        i === idx ? { ...p, checked: !p.checked } : p
-      )
+  const handleCheck = (id: string) => {
+    setProducts((products) =>
+      products.map((p) => (p.id === id ? { ...p, checked: !p.checked } : p))
     );
   };
 
   // Xóa sản phẩm
-  const handleDelete = (idx: number) => {
+  const handleDelete = async (id: string) => {
     if (window.confirm("Bạn có chắc chắn muốn xóa sản phẩm này?")) {
-      setProducts(products => products.filter((_, i) => i !== idx));
+      // Gọi API xóa ở backend
+      await fetch(`http://localhost:3000/products/${id}`, {
+        method: "DELETE",
+        headers: {
+          Authorization: "Bearer " + localStorage.getItem("token"),
+        },
+      });
+      // Sau đó xóa ở state frontend
+      setProducts((products) => products.filter((p) => p.id !== id));
     }
   };
 
   // Xóa tất cả sản phẩm đã chọn
   const handleDeleteAll = () => {
     if (window.confirm("Bạn có chắc chắn muốn xóa các sản phẩm đã chọn?")) {
-      setProducts(products => products.filter(p => !p.checked));
+      setProducts((products) => products.filter((p) => !p.checked));
       setSelectAll(false);
     }
   };
 
   // Mở modal sửa
-  const openEditModal = (idx: number) => {
-    const p = products[idx];
-    setEditIndex(idx);
+  const openEditModal = (id: string) => {
+    const p = products.find((p) => p.id === id);
+    if (!p) return;
+    setEditIndex(products.findIndex((p) => p.id === id));
     setForm({
       id: p.id,
       name: p.name,
@@ -151,10 +192,17 @@ image: prod.image.startsWith("http")
   };
 
   // Xử lý thay đổi form
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
+  const handleChange = (
+    e: React.ChangeEvent<
+      HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement
+    >
+  ) => {
     const { name, value, type, files } = e.target as any;
     if (type === "file") {
-      setForm({ ...form, image: files[0] ? URL.createObjectURL(files[0]) : "" });
+      setForm({
+        ...form,
+        image: files[0] ? URL.createObjectURL(files[0]) : "",
+      });
     } else if (type === "number") {
       setForm({ ...form, [name]: Number(value) });
     } else {
@@ -166,10 +214,8 @@ image: prod.image.startsWith("http")
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (editIndex !== null) {
-      setProducts(products =>
-        products.map((p, i) =>
-          i === editIndex ? { ...p, ...form } : p
-        )
+      setProducts((products) =>
+        products.map((p, i) => (i === editIndex ? { ...p, ...form } : p))
       );
     }
     setShowModal(false);
@@ -179,7 +225,7 @@ image: prod.image.startsWith("http")
   const handlePrint = () => {
     const printContent = document.getElementById("sampleTable")?.outerHTML;
     if (printContent) {
-      const win = window.open('', '', 'height=700,width=700');
+      const win = window.open("", "", "height=700,width=700");
       if (win) {
         win.document.write(printContent);
         win.document.close();
@@ -199,27 +245,60 @@ image: prod.image.startsWith("http")
   const endIdx = startIdx + itemsPerPage;
   const currentProducts = products.slice(startIdx, endIdx);
 
+  // Xử lý thay đổi trang
+  const handlePageChange = (page: number) => {
+    if (page < 1 || page > totalPages) return;
+    setCurrentPage(page);
+  };
+
+useEffect(() => {
+  const maxPage = Math.ceil(products.length / itemsPerPage);
+  if (currentPage > maxPage) {
+    setCurrentPage(maxPage > 0 ? maxPage : 1);
+  }
+}, [products]);
+
+
   return (
     <div className="app-content">
       <div className="app-title">
         <ul className="app-breadcrumb breadcrumb side">
-          <li className="breadcrumb-item active"><a href="#"><b>Danh sách sản phẩm</b></a></li>
+          <li className="breadcrumb-item active">
+            <a href="#">
+              <b>Danh sách sản phẩm</b>
+            </a>
+          </li>
         </ul>
         <div id="clock">{clock}</div>
       </div>
       <div className="row element-button">
         <div className="col-sm-2">
-          <a className="btn btn-add btn-sm" href="/form-add-san-pham.html" title="Thêm">
+          <button
+            className="btn btn-add btn-sm"
+            type="button"
+            title="Thêm"
+            onClick={() => setShowCreateModal(true)}
+          >
             <i className="fas fa-plus"></i> Tạo mới sản phẩm
-          </a>
+          </button>
         </div>
         <div className="col-sm-2">
-          <button className="btn btn-delete btn-sm" type="button" title="Xóa tất cả" onClick={handleDeleteAll}>
+          <button
+            className="btn btn-delete btn-sm"
+            type="button"
+            title="Xóa tất cả"
+            onClick={handleDeleteAll}
+          >
             <i className="fas fa-trash-alt"></i> Xóa tất cả
           </button>
         </div>
         <div className="col-sm-2">
-          <button className="btn btn-delete btn-sm print-file" type="button" title="In" onClick={handlePrint}>
+          <button
+            className="btn btn-delete btn-sm print-file"
+            type="button"
+            title="In"
+            onClick={handlePrint}
+          >
             <i className="fas fa-print"></i> In dữ liệu
           </button>
         </div>
@@ -232,7 +311,11 @@ image: prod.image.startsWith("http")
                 <thead>
                   <tr>
                     <th style={{ width: "10px" }}>
-                      <input type="checkbox" checked={selectAll} onChange={handleSelectAll} />
+                      <input
+                        type="checkbox"
+                        checked={selectAll}
+                        onChange={handleSelectAll}
+                      />
                     </th>
                     <th>ID sản phẩm</th>
                     <th style={{ width: "150px" }}>Tên sản phẩm</th>
@@ -247,22 +330,29 @@ image: prod.image.startsWith("http")
                   </tr>
                 </thead>
                 <tbody>
-                  {currentProducts.map((p, idx) => (
+                  {currentProducts.filter(p => p && typeof p.price === "number").map((p, idx) => (
                     <tr key={p.id}>
                       <td>
                         <input
                           type="checkbox"
                           checked={p.checked}
-                          onChange={() => handleCheck(startIdx + idx)}
+                          onChange={() => handleCheck(p.id)}
                         />
                       </td>
                       <td>{p.id}</td>
                       <td>{p.name}</td>
                       <td>
-                        <img className="img-card-person" src={p.image} alt="" width={50} />
+                        {p.image ? (
+                          <img
+                            className="img-card-person"
+                            src={p.image}
+                            alt=""
+                            width={50}
+                          />
+                        ) : null}
                       </td>
                       <td>{p.desc}</td>
-                      <td>{p.price.toLocaleString()}đ</td>
+                      <td>{typeof p.price === "number" ? p.price.toLocaleString() + "đ" : "Không xác định"}</td>
                       <td>{p.quantity}</td>
                       <td>{p.size}</td>
                       <td>{p.category}</td>
@@ -272,7 +362,7 @@ image: prod.image.startsWith("http")
                           className="btn btn-primary btn-sm trash"
                           type="button"
                           title="Xóa"
-                          onClick={() => handleDelete(startIdx + idx)}
+                          onClick={() => handleDelete(p.id)}
                         >
                           <i className="fas fa-trash-alt"></i>
                         </button>
@@ -280,7 +370,7 @@ image: prod.image.startsWith("http")
                           className="btn btn-primary btn-sm edit"
                           type="button"
                           title="Sửa"
-                          onClick={() => openEditModal(startIdx + idx)}
+                          onClick={() => openEditModal(p.id)}
                         >
                           <i className="fas fa-edit"></i>
                         </button>
@@ -289,52 +379,308 @@ image: prod.image.startsWith("http")
                   ))}
                   {currentProducts.length === 0 && (
                     <tr>
-                      <td colSpan={11} className="text-center">Không có sản phẩm nào.</td>
+                      <td colSpan={11} className="text-center">
+                        Không có sản phẩm nào.
+                      </td>
                     </tr>
                   )}
                 </tbody>
               </table>
               {/* Modal Sửa Sản Phẩm */}
               {showModal && (
-                <div className="modal d-block" tabIndex={-1} role="dialog" style={{ background: "rgba(0,0,0,0.3)" }}>
+  <div className="modal d-block" tabIndex={-1} role="dialog" style={{ background: "rgba(0,0,0,0.3)" }}>
+    <div className="modal-dialog modal-dialog-centered" role="document">
+      <div className="modal-content">
+        <form onSubmit={handleSubmit}>
+          <div className="modal-header">
+            <h5 className="modal-title">Chỉnh sửa sản phẩm</h5>
+            <button
+              type="button"
+              className="close"
+              onClick={() => setShowModal(false)}
+            >
+              <span>&times;</span>
+            </button>
+          </div>
+          <div className="modal-body">
+            <div className="row">
+              <div className="form-group col-md-6">
+                <label className="control-label">Tên sản phẩm</label>
+                <input
+                  className="form-control"
+                  type="text"
+                  required
+                  name="name"
+                  value={form.name}
+                  onChange={handleChange}
+                />
+              </div>
+              <div className="form-group col-md-6">
+                <label className="control-label">Giá</label>
+                <input
+                  className="form-control"
+                  type="number"
+                  required
+                  name="price"
+                  value={form.price}
+                  onChange={handleChange}
+                />
+              </div>
+              <div className="form-group col-md-6">
+                <label className="control-label">Số lượng</label>
+                <input
+                  className="form-control"
+                  type="number"
+                  required
+                  name="quantity"
+                  value={form.quantity}
+                  onChange={handleChange}
+                />
+              </div>
+              <div className="form-group col-md-6">
+                <label className="control-label">Size</label>
+                <input
+                  className="form-control"
+                  type="text"
+                  required
+                  name="size"
+                  value={form.size}
+                  onChange={handleChange}
+                />
+              </div>
+              <div className="form-group col-md-6">
+                <label className="control-label">Danh mục</label>
+                <select
+                  className="form-control"
+                  name="category"
+                  value={form.category}
+                  onChange={handleChange}
+                >
+                  <option value="">--Chọn danh mục--</option>
+                  {categories.map((cat) => (
+                    <option key={cat._id} value={cat.name}>
+                      {cat.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div className="form-group col-md-6">
+                <label className="control-label">Trạng thái</label>
+                <select
+                  className="form-control"
+                  name="status"
+                  value={form.status}
+                  onChange={handleChange}
+                >
+                  <option value="">--Chọn trạng thái--</option>
+                  <option>Còn hàng</option>
+                  <option>Hết hàng</option>
+                  <option>Ngừng kinh doanh</option>
+                </select>
+              </div>
+              <div className="form-group col-md-6">
+                <label className="control-label">Ảnh</label>
+                <input
+                  className="form-control"
+                  type="file"
+                  name="image"
+                  onChange={handleChange}
+                />
+                {form.image && (
+                  <img
+                    src={form.image}
+                    alt="preview"
+                    className="mt-2"
+                    width={100}
+                  />
+                )}
+              </div>
+              <div className="form-group col-md-12">
+                <label className="control-label">Mô tả</label>
+                <textarea
+                  className="form-control"
+                  required
+                  name="desc"
+                  value={form.desc}
+                  onChange={handleChange}
+                />
+              </div>
+            </div>
+          </div>
+          <div className="modal-footer">
+            <button className="btn btn-save" type="submit">
+              Lưu thay đổi
+            </button>
+            <button
+              className="btn btn-cancel"
+              type="button"
+              onClick={() => setShowModal(false)}
+            >
+              Hủy bỏ
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+)}
+
+              {/* End Modal */}
+              {/* Modal Tạo Sản Phẩm Mới */}
+              {showCreateModal && (
+                <div
+                  className="modal d-block"
+                  tabIndex={-1}
+                  role="dialog"
+                  style={{ background: "rgba(0,0,0,0.3)" }}
+                >
                   <div className="modal-dialog modal-dialog-centered" role="document">
                     <div className="modal-content">
-                      <form onSubmit={handleSubmit}>
+                      <form
+                        onSubmit={async (e) => {
+                          e.preventDefault();
+                          try {
+                            // Nếu có upload ảnh, dùng FormData
+                            const formData = new FormData();
+                            formData.append("name", createForm.name);
+                            formData.append("description", createForm.desc);
+                            formData.append("price", String(createForm.price));
+                            formData.append("categoryId", createForm.category); // Lúc này category là _id
+                            formData.append("status", createForm.status);
+                            formData.append("quantity", String(createForm.quantity));
+                            formData.append("size", createForm.size);
+                            // Nếu có file ảnh:
+                            const imgInput = document.querySelector('input[name="img"]') as HTMLInputElement;
+                            if (imgInput?.files?.[0]) {
+                              formData.append("img", imgInput.files[0]);
+                            }
+
+                            const res = await fetch("http://localhost:3000/products", {
+                              method: "POST",
+                              body: formData,
+                              headers: {
+                                Authorization: "Bearer " + localStorage.getItem("token"), // hoặc nơi bạn lưu token
+                              },
+                            });
+
+                            if (res.ok) {
+                              alert("Tạo sản phẩm thành công!");
+                              window.location.reload(); // Tải lại trang để cập nhật danh sách sản phẩm
+                              return;
+                            } else {
+                              alert("Thêm sản phẩm thất bại!");
+                            }
+                          } catch (error) {
+                            alert("Lỗi khi thêm sản phẩm!");
+                          }
+                        }}
+                      >
                         <div className="modal-header">
-                          <h5 className="modal-title">Chỉnh sửa thông tin sản phẩm</h5>
-                          <button type="button" className="close" onClick={() => setShowModal(false)}>
+                          <h5 className="modal-title">Tạo sản phẩm mới</h5>
+                          <button
+                            type="button"
+                            className="close"
+                            onClick={() => setShowCreateModal(false)}
+                          >
                             <span aria-hidden="true">&times;</span>
                           </button>
                         </div>
                         <div className="modal-body">
                           <div className="row">
                             <div className="form-group col-md-6">
-                              <label className="control-label">ID sản phẩm</label>
-                              <input className="form-control" type="text" required value={form.id} disabled />
-                            </div>
-                            <div className="form-group col-md-6">
                               <label className="control-label">Tên sản phẩm</label>
-                              <input className="form-control" type="text" required name="name" value={form.name} onChange={handleChange} />
+                              <input
+                                className="form-control"
+                                type="text"
+                                required
+                                name="name"
+                                value={createForm.name}
+                                onChange={(e) =>
+                                  setCreateForm({
+                                    ...createForm,
+                                    name: e.target.value,
+                                  })
+                                }
+                              />
                             </div>
                             <div className="form-group col-md-6">
                               <label className="control-label">Giá</label>
-                              <input className="form-control" type="number" required name="price" value={form.price} onChange={handleChange} />
+                              <input
+                                className="form-control"
+                                type="number"
+                                required
+                                name="price"
+                                value={createForm.price}
+                                onChange={(e) =>
+                                  setCreateForm({
+                                    ...createForm,
+                                    price: Number(e.target.value),
+                                  })
+                                }
+                              />
                             </div>
                             <div className="form-group col-md-6">
                               <label className="control-label">Số lượng</label>
-                              <input className="form-control" type="number" required name="quantity" value={form.quantity} onChange={handleChange} />
+                              <input
+                                className="form-control"
+                                type="number"
+                                required
+                                name="quantity"
+                                value={createForm.quantity}
+                                onChange={(e) =>
+                                  setCreateForm({
+                                    ...createForm,
+                                    quantity: Number(e.target.value),
+                                  })
+                                }
+                              />
                             </div>
                             <div className="form-group col-md-6">
                               <label className="control-label">Size</label>
-                              <input className="form-control" type="text" required name="size" value={form.size} onChange={handleChange} />
+                              <input
+                                className="form-control"
+                                type="text"
+                                required
+                                name="size"
+                                value={createForm.size}
+                                onChange={(e) =>
+                                  setCreateForm({
+                                    ...createForm,
+                                    size: e.target.value,
+                                  })
+                                }
+                              />
                             </div>
                             <div className="form-group col-md-6">
                               <label className="control-label">Danh mục</label>
-                              <input className="form-control" type="text" required name="category" value={form.category} onChange={handleChange} />
+                              <select
+                                className="form-control"
+                                name="category"
+                                value={createForm.category}
+                                onChange={e =>
+                                  setCreateForm({ ...createForm, category: e.target.value })
+                                }
+                              >
+                                <option value="">--Chọn danh mục--</option>
+                                {categories.map(c => (
+                                  <option key={c._id} value={c._id}>{c.name}</option>
+                                ))}
+                              </select>
                             </div>
                             <div className="form-group col-md-6">
                               <label className="control-label">Trạng thái</label>
-                              <select className="form-control" name="status" value={form.status} onChange={handleChange}>
+                              <select
+                                className="form-control"
+                                name="status"
+                                value={createForm.status}
+                                onChange={(e) =>
+                                  setCreateForm({
+                                    ...createForm,
+                                    status: e.target.value,
+                                  })
+                                }
+                              >
+                                <option value="">--Chọn trạng thái--</option>
                                 <option>Còn hàng</option>
                                 <option>Hết hàng</option>
                                 <option>Ngừng kinh doanh</option>
@@ -342,21 +688,67 @@ image: prod.image.startsWith("http")
                             </div>
                             <div className="form-group col-md-6">
                               <label className="control-label">Ảnh</label>
-                              <input className="form-control" type="file" name="img" onChange={handleChange} />
-                              {form.image && (
-                                <img src={form.image} alt="Ảnh sản phẩm" width={50} className="mt-2" />
+                              <input
+                                className="form-control"
+                                type="file"
+                                name="img"
+                                onChange={(e) => {
+                                  if (e.target.files) {
+                                    const file = e.target.files[0];
+                                    setCreateForm({
+                                      ...createForm,
+                                      image: URL.createObjectURL(file),
+                                    });
+                                  }
+                                }}
+                              />
+                              {createForm.image && (
+                                <img
+                                  src={createForm.image}
+                                  alt="Ảnh sản phẩm"
+                                  width={50}
+                                  className="mt-2"
+                                />
                               )}
                             </div>
                             <div className="form-group col-md-12">
                               <label className="control-label">Mô tả</label>
-                              <textarea className="form-control" required name="desc" value={form.desc} onChange={handleChange} />
+                              <textarea
+                                className="form-control"
+                                required
+                                name="desc"
+                                value={createForm.desc}
+                                onChange={(e) =>
+                                  setCreateForm({
+                                    ...createForm,
+                                    desc: e.target.value,
+                                  })
+                                }
+                              />
                             </div>
                           </div>
-                          <a href="#" style={{ float: "right", fontWeight: 600, color: "#ea0000" }}>Chỉnh sửa nâng cao</a>
+                          <a
+                            href="#"
+                            style={{
+                              float: "right",
+                              fontWeight: 600,
+                              color: "#ea0000",
+                            }}
+                          >
+                            Thêm nâng cao
+                          </a>
                         </div>
                         <div className="modal-footer">
-                          <button className="btn btn-save" type="submit">Lưu lại</button>
-                          <button className="btn btn-cancel" type="button" onClick={() => setShowModal(false)}>Hủy bỏ</button>
+                          <button className="btn btn-save" type="submit">
+                            Tạo sản phẩm
+                          </button>
+                          <button
+                            className="btn btn-cancel"
+                            type="button"
+                            onClick={() => setShowCreateModal(false)}
+                          >
+                            Hủy bỏ
+                          </button>
                         </div>
                       </form>
                     </div>
@@ -367,12 +759,22 @@ image: prod.image.startsWith("http")
               {/* Phân trang và tổng số */}
               <div className="d-flex justify-content-between align-items-center mt-3">
                 <div>
-                  Hiện {totalItems === 0 ? 0 : startIdx + 1} đến {Math.min(endIdx, totalItems)} của {totalItems} sản phẩm
+                  Hiện{" "}
+                  {totalItems === 0 ? 0 : startIdx + 1} đến{" "}
+                  {Math.min(endIdx, totalItems)} của {totalItems} sản phẩm
                 </div>
                 <nav>
                   <ul className="pagination mb-0">
-                    <li className={`page-item${currentPage === 1 ? " disabled" : ""}`}>
-                      <button className="page-link" onClick={() => setCurrentPage(currentPage - 1)} disabled={currentPage === 1}>
+                    <li
+                      className={`page-item${
+                        currentPage === 1 ? " disabled" : ""
+                      }`}
+                    >
+                      <button
+                        className="page-link"
+                        onClick={() => handlePageChange(currentPage - 1)}
+                        disabled={currentPage === 1}
+                      >
                         Lùi
                       </button>
                     </li>
@@ -384,8 +786,16 @@ image: prod.image.startsWith("http")
                       const pages = [];
                       for (let i = start; i <= end; i++) {
                         pages.push(
-                          <li key={i} className={`page-item${currentPage === i ? " active" : ""}`}>
-                            <button className="page-link" onClick={() => setCurrentPage(i)}>
+                          <li
+                            key={i}
+                            className={`page-item${
+                              currentPage === i ? " active" : ""
+                            }`}
+                          >
+                            <button
+                              className="page-link"
+                              onClick={() => handlePageChange(i)}
+                            >
                               {i}
                             </button>
                           </li>
@@ -393,8 +803,16 @@ image: prod.image.startsWith("http")
                       }
                       return pages;
                     })()}
-                    <li className={`page-item${currentPage === totalPages ? " disabled" : ""}`}>
-                      <button className="page-link" onClick={() => setCurrentPage(currentPage + 1)} disabled={currentPage === totalPages}>
+                    <li
+                      className={`page-item${
+                        currentPage === totalPages ? " disabled" : ""
+                      }`}
+                    >
+                      <button
+                        className="page-link"
+                        onClick={() => handlePageChange(currentPage + 1)}
+                        disabled={currentPage === totalPages}
+                      >
                         Tiếp
                       </button>
                     </li>

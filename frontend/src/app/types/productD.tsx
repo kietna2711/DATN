@@ -3,7 +3,8 @@ import { Variant } from "./variantD";
 
 
 export interface Products {
-  _id: string;                         // MongoDB ObjectId ở dạng string
+  image: any;
+  _id: string;           // id dạng string theo JSON bạn nhận
   name: string;
   description: string;
   price: number;

@@ -5,8 +5,10 @@ import Banner from "./sections/Home/Banner";
 import ProductList from "./sections/Home/ProductList";
 import { Products } from "./types/productD";
 import { Category } from "./types/categoryD";
+
 import { getProducts, getProductsNew, getProductsHot } from "./services/productService";
-import { getCategories } from "./services/categoryServie";
+import { getCategories } from "./services/categoryService";
+
 import ProductSlider from "./sections/Home/ProductSlider";
 import ProductCollection from "./sections/Home/ProductCollection";
 import ServiceSection from "./sections/Home/ServiceSection";
@@ -96,7 +98,7 @@ export default function HomePage() {
         props={{
           title: "Danh sách",
           category: categories.find((cat) => cat._id === "6836bfc58bae817a54d1d17d"),
-          image: "http://localhost:3000/images/bannerTeddy.jpg",
+          // image: "http://localhost:3000/images/bannerTeddy.jpg",
           product: products,
         }}
       />

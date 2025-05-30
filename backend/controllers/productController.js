@@ -1,140 +1,185 @@
-//chèn multer để upload file
+// Chèn multer để upload file
 const multer = require('multer');
-const storage = multer.diskStorage({
-  destination: function(req, file, cb){
-    cb(null, './public/images')
-  },
-  filename: function(req, file, cb){
-    cb(null, file.originalname)
-  }
-})
-const checkfile = (req, file, cb) => {
-  if(!file.originalname.match(/\.(jpg|jpeg|png|gif|webp)$/)){
-    return cb(new Error('Bạn chỉ được upload file ảnh'))
-  }
-  return cb(null, true)
-}
-const upload = multer({storage: storage, fileFilter: checkfile})
+const path = require('path');
 
+const storage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    cb(null, './public/images');
+  },
+  filename: function (req, file, cb) {
+    cb(null, file.originalname);
+  },
+});
+
+const checkfile = (req, file, cb) => {
+  if (!file.originalname.match(/\.(jpg|jpeg|png|gif|webp)$/)) {
+    return cb(new Error('Bạn chỉ được upload file ảnh'));
+  }
+  return cb(null, true);
+};
+
+const upload = multer({ storage: storage, fileFilter: checkfile });
+
+// Models
 const categories = require('../models/categoryModel');
 const products = require('../models/productModel');
-const variants = require('../models/variantsModel')
-const subcategories = require('../models/subcategoriesModel')
+const variants = require('../models/variantsModel');
+const subcategories = require('../models/subcategoriesModel');
+
+// Lấy tất cả sản phẩm
 const getAllProducts = async (req, res) => {
-    try {
-        const { name, idcate, limit, sort, page, hot } = req.query;
+  try {
+    const { name, idcate, limit, page, hot } = req.query;
 
-        let query = {};
-        let options = {};
-        
-        if (name) {
-            query.name = new RegExp(name, 'i');
-        }
-        
-        
-        if (hot) {
-            query.hot = parseInt(hot);
-        }
-        
-        if (idcate) {
-            query.categoryId = idcate;
-        }
-        
-        if (limit) {
-            options.limit = parseInt(limit);
-        }
-        
-        if (sort) {
-            options.sort = { price: sort === 'asc' ? 1 : -1 };
-        }
-        
-        if (page && options.limit) {
-            options.skip = (parseInt(page) - 1) * options.limit;
-        }
-        
-        const arr = await products.find(query, null, options)
-        .populate('categoryId', 'name description')
-        .populate('subcategoryId', 'name')
-        .populate({
-            path: 'variants',
-            select: 'size price quantity',
-        });
-        
-        res.json(arr);
-    } catch (error) {
-        console.error(error);
-        res.status(500).json({ message: error.message });
+    let query = {};
+    let options = {};
+
+    if (name) {
+      query.name = new RegExp(name, 'i');
     }
-}
+
+    if (hot) {
+      query.hot = parseInt(hot);
+    }
+
+    if (idcate) {
+      query.categoryId = idcate;
+    }
+
+    // Phân trang
+    if (limit && !isNaN(limit)) {
+      options.limit = parseInt(limit);
+    }
+
+    if (page && options.limit && !isNaN(page)) {
+      options.skip = (parseInt(page) - 1) * options.limit;
+    }
+
+    // Thêm sắp xếp mới nhất lên đầu
+    options.sort = { createdAt: -1 };
+
+    const arr = await products
+      .find(query, null, options)
+      .populate('categoryId', 'name description')
+      .populate('subcategoryId', 'name')
+      .populate({
+        path: 'variants',
+        select: 'size price quantity',
+      });
+
+    res.json(arr);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: error.message });
+  }
+};
 
 
+// Lấy sản phẩm theo ID
 const getProductById = async (req, res) => {
-    try {
-       const product = await products.findById(req.params.id).populate('variants');
-        res.json(product);
-    } catch (error) {
-        console.error(error);
-        res.status(500).json({ message: error.message });
-    }
-}
+  try {
+    const product = await products
+      .findById(req.params.id)
+      .populate('variants');
+    res.json(product);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: error.message });
+  }
+};
 
-//Thêm sản phẩm
-const addPro =[upload.single('img'), async (req, res) => {
+// Thêm sản phẩm
+const addPro = [
+  upload.single('img'),
+  async (req, res) => {
     try {
-        //Lấy dữ liệu từ form gửi tới
-        const product= req.body;
-        //Lẩy tên ảnh từ file ảnh gửi đến
-        product.img = req.file.originalname;
-        console.log(product);
-        //Tạo 1 instance của productModel
-        const newProduct= new products(product);
-        //kiểm tra iddanh mục có tồn tại ko 
-        const category = await categories.findById(product.categoryId);
-        if(!category){
-            throw new Error('Danh mục ko tồn tại')
-        }
-        //Lưu vào database 
-        const data= await newProduct.save();
-        res.json(data);
-    } catch (error) {
-        console.error(error);
-        res.status(500).json({ message: error.message });
-    }
-}
-]
+      const product = req.body;
 
-//Sửa sản phẩm
-const editPro =[upload.single('img'), async (req, res) => {
+      // Ép kiểu price về số (Int32)
+      product.price = Number(product.price);
+      if (isNaN(product.price)) {
+        return res.status(400).json({ message: "Giá sản phẩm không hợp lệ" });
+      }
+
+      if (req.file) {
+        product.images = [req.file.originalname];
+      } else {
+        product.images = [];
+      }
+
+      product.createdAt = new Date();
+
+      const category = await categories.findById(product.categoryId);
+      if (!category) throw new Error('Danh mục không tồn tại');
+
+      const newProduct = new products(product);
+      const data = await newProduct.save();
+
+      // Thêm variant cho sản phẩm mới
+      if (req.body.size && req.body.quantity) {
+        const variant = new variants({
+          productId: data._id,
+          size: req.body.size,
+          quantity: req.body.quantity,
+          price: product.price // hoặc req.body.price nếu muốn variant có giá riêng
+        });
+        await variant.save();
+      }
+
+      res.json(data);
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({ message: error.message });
+    }
+  },
+];
+
+// Sửa sản phẩm
+const editPro = [
+  upload.single('img'),
+  async (req, res) => {
     try {
-        const product= req.body;
-        if(req.file){
-              product.img = req.file.originalname;
-        }
-        const category = await categories.findById(product.categoryId);
-        if(!category){
-            throw new Error('Danh mục ko tồn tại')
-        }
-        const data= await products.findByIdAndUpdate(
-            req.params.id,product,{new:true}
-        )
-        res.json(data);
-    } catch (error) {
-        console.error(error);
-        res.status(500).json({ message: error.message });
-    }
-}]
+      const product = req.body;
 
-//Xóa sản phẩm
+      if (req.file) {
+        product.images = [req.file.originalname]; // ✅ đúng field name
+      }
+
+      const category = await categories.findById(product.categoryId);
+      if (!category) {
+        throw new Error('Danh mục không tồn tại');
+      }
+
+      const data = await products.findByIdAndUpdate(
+        req.params.id,
+        product,
+        { new: true }
+      );
+
+      res.json(data);
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({ message: error.message });
+    }
+  },
+];
+
+// Xoá sản phẩm
 const deletePro = async (req, res) => {
-    try {
-        const data= await products.findByIdAndDelete(req.params.id);
-        res.json(data);
-    } catch (error) {
-        console.error(error);
-        res.status(500).json({ message: error.message });
-    }
-}
+  try {
+    const data = await products.findByIdAndDelete(req.params.id);
+    res.json(data);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: error.message });
+  }
+};
 
+// Xuất các hàm controller
 module.exports = {
-    getAllProducts, getProductById,addPro,editPro,deletePro
+  getAllProducts,
+  getProductById,
+  addPro,
+  editPro,
+  deletePro,
 };
