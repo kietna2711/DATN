@@ -1,13 +1,13 @@
 import { Products } from "../types/productD";
 import styles from "../styles/productitem.module.css";
 import Link from "next/link";
+import { Category } from "../types/categoryD";
 
 // Component con hiển thị từng sản phẩm
 function ProductItem({ product }: { product: Products }) {
   const prices = product.variants.map((v) => v.price);
   const minPrice = prices.length ? Math.min(...prices) : 0;
   const maxPrice = prices.length ? Math.max(...prices) : 0;
-
   return (
     <div className={styles.product}>
       <div className={styles.image_wrapper}>
@@ -15,11 +15,9 @@ function ProductItem({ product }: { product: Products }) {
           <div className={styles.image_link}>
             {/* Ảnh chính và ảnh hover */}
             <img
-              src={`http://localhost:3000/images/${product.image}`}
-              alt={product.name}
-            />
+              src={`http://localhost:3000/images/${product.images[0]}`} alt={product.name} />
             <img
-              src={`http://localhost:3000/images/${product.image}`}
+              src={`http://localhost:3000/images/${product.images[1]}`}
               className={styles.image_hover}
               alt={`${product.name} Hover`}
             />
@@ -52,7 +50,7 @@ function ProductItem({ product }: { product: Products }) {
         </button>
       </div>
 
-      {/* Tên sản phẩm */}
+      {/* Tên sản phẩm (có thể cho vào Link nếu muốn click vào tên để xem chi tiết) */}
       <Link href={`/products/${product._id}`}>
         <p className={styles.product_name}>{product.name}</p>
       </Link>
@@ -91,6 +89,7 @@ export default function ProductAll({
   props: {
     title: string;
     image?: string;
+    category?: Category[];
     product: Products[];
   };
 }) {
@@ -101,7 +100,7 @@ export default function ProductAll({
 
         {/* Ảnh nếu có */}
         {props.image && (
-          <div className={styles.img_category_product}>
+          <div className={styles["img_category_product"]}>
             <img src={props.image} alt="Category" />
           </div>
         )}

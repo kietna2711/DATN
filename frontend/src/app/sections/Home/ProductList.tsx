@@ -44,6 +44,15 @@ export default function ProductList({
           })
           .slice(0, 8);
 
+    props.category && props.category.length > 0
+      ? activeSubCategory === "all"
+        ? props.product.slice(0, 4)
+        : props.product
+            .filter((p) => p.categoryId._id === activeSubCategory)
+            .slice(0, 4)
+      : props.product.slice(0, 4); // Không có category, lấy 4 sản phẩm đầu
+
+
   const subCategoryId = activeSubCategory !== "all" ? activeSubCategory : "";
   const productPageLink =
     subCategoryId !== ""
