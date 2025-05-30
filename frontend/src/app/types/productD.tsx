@@ -1,4 +1,4 @@
-import { Category } from "./categoryD";
+import { Category, SubCategory } from "./categoryD";
 import { Variant } from "./variantD";
 
 
@@ -12,4 +12,5 @@ export interface Products {
   createdAt: Date;     // hoặc Date nếu bạn parse
   variants: Variant[];
   sold: number;
+  subcategoryId?: SubCategory[];
 }

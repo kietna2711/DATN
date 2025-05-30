@@ -17,7 +17,6 @@ import { useRouter } from "next/navigation"; // nếu dùng App Router
 
 
 const Header: React.FC = () => {
-  const [headerShrink, setHeaderShrink] = useState(false);
   const [mobileMenuActive, setMobileMenuActive] = useState(false);
   const [mobileOpenIndex, setMobileOpenIndex] = useState<number | null>(null);
   const [categories, setCategories] = useState<Category[]>([]);
@@ -32,19 +31,7 @@ const handleSearch = (e: React.FormEvent<HTMLFormElement>) => {
       setMobileMenuActive(false); // Đóng menu nếu đang mở
     }
   };
-useEffect(() => {
-  const fetchCategories = async () => {
-    try {
-      const res = await fetch("http://localhost:3000/categories");
-      const data: Category[] = await res.json();
-      setCategories(data);
-    } catch (err) {
-      console.error("Lỗi khi tải danh mục:", err);
-    }
-  };
 
-  fetchCategories();
-}, []);
 
 
 
@@ -64,7 +51,7 @@ useEffect(() => {
 
   return (
     <>
-      <header className={`${styles.header}${headerShrink ? " " + styles.shrink : ""}`} id="header">
+      <header className={`${styles.header}`} id="header">
         <div className={styles["header-row"]}>
           <div className={styles["logo-wrap"]}>
             <a href="/">
@@ -132,7 +119,7 @@ useEffect(() => {
           </div>
         </nav>
       </Affix>
-
+{/* Menu dọc cho resposive */}
       <div
         className={`${styles.overlay}${mobileMenuActive ? " " + styles.active : ""}`}
         id="overlay"

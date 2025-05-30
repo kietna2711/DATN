@@ -57,11 +57,16 @@ const ProductTabs: React.FC<Props> = ({ product }) => {
       >
         <h4 className={styles.tabTitle}>THÔNG TIN SẢN PHẨM</h4>
         <p><strong>{product.name}</strong></p>
-        <img
+          <img
           className={styles.productInfoImage}
-          src={`http://localhost:3000/images/${product.images[0]}`}
+          src={
+            Array.isArray(product.images) && product.images.length > 0
+              ? `http://localhost:3000/images/${product.images[0]}`
+              : ""
+          }
           alt={product.name}
         />
+      
 
         <div
           ref={contentRef}
@@ -73,6 +78,7 @@ const ProductTabs: React.FC<Props> = ({ product }) => {
           }}
         >
           <p><strong>Mã sản phẩm:</strong>{product._id}</p>
+          
         
 
             {variants.length > 0 && (
@@ -85,16 +91,27 @@ const ProductTabs: React.FC<Props> = ({ product }) => {
               ))}
             </>
           )}
+          
     
           <p><strong>Chất liệu:</strong><br />
             Vải bên ngoài: lông thú cao cấp.<br />
             Bông nhồi bên trong: 100% bông polyester trắng đàn hồi loại 1.
           </p>
+            <img
+          className={styles.productInfoImage}
+          src={
+            Array.isArray(product.images) && product.images.length > 0
+              ? `http://localhost:3000/images/${product.images[1]}`
+              : ""
+          }
+          alt={product.name}
+        />
           <p><strong>Công dụng:</strong><br />
             Dùng làm gấu ôm, tựa lưng hoặc làm quà tặng. <br />
             Chơi với gấu bông không chỉ giúp tăng tính độc lập, mà còn giúp giảm thiểu căng thẳng, điều hòa huyết áp và kích thích sản sinh hormon Endorphins. Hormon này có tác dụng đem lại cảm giác vui vẻ, yêu đời, tự tin, căng tràn sức sống và kích thích sự sáng tạo.
 
           </p>
+          
         </div>
 
         <button className={styles.seeMore} onClick={toggleExpand}>
