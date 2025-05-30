@@ -24,7 +24,7 @@ export default function ProductList({
         : props.product
             .filter((p) => p.categoryId._id === activeCategory)
             .slice(0, 4)
-      : props.product.slice(0, 16); // Không có category, lấy 4 sản phẩm đầu
+      : props.product.slice(0, 4); // Không có category, lấy 4 sản phẩm đầu
 
 
   return (

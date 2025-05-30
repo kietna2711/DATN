@@ -3,6 +3,7 @@ import { Variant } from "./variantD";
 
 
 export interface Products {
+  image: any;
   images(images: any): unknown;
   _id: string;           // id dạng string theo JSON bạn nhận
   name: string;
