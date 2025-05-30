@@ -34,7 +34,7 @@ export default function ProductManagement() {
     quantity: 0,
     size: "",
     category: "",
-    status: "Còn hàng",
+    status: "",
   });
   const [createForm, setCreateForm] = useState<Omit<Product, "checked">>({
     id: "",
@@ -45,7 +45,7 @@ export default function ProductManagement() {
     quantity: 0,
     size: "",
     category: "",
-    status: "Còn hàng",
+    status: "",
   });
   const [categories, setCategories] = useState<any[]>([]); // Thêm state cho danh sách danh mục
 
@@ -59,7 +59,7 @@ export default function ProductManagement() {
 
         // Giả sử data là mảng sản phẩm từ API
         const products = data.map((prod: any) => ({
-          id: prod._id,
+          id: prod._id, // <-- chuyển từ _id sang id
           name: prod.name,
           image:
             prod.images && prod.images.length > 0
@@ -150,8 +150,16 @@ export default function ProductManagement() {
   };
 
   // Xóa sản phẩm
-  const handleDelete = (id: string) => {
+  const handleDelete = async (id: string) => {
     if (window.confirm("Bạn có chắc chắn muốn xóa sản phẩm này?")) {
+      // Gọi API xóa ở backend
+      await fetch(`http://localhost:3000/products/${id}`, {
+        method: "DELETE",
+        headers: {
+          Authorization: "Bearer " + localStorage.getItem("token"),
+        },
+      });
+      // Sau đó xóa ở state frontend
       setProducts((products) => products.filter((p) => p.id !== id));
     }
   };
@@ -380,8 +388,8 @@ useEffect(() => {
               </table>
               {/* Modal Sửa Sản Phẩm */}
               {showModal && (
-  <div className="modal d-block" tabIndex={-1} role="dialog">
-    <div className="modal-dialog" role="document">
+  <div className="modal d-block" tabIndex={-1} role="dialog" style={{ background: "rgba(0,0,0,0.3)" }}>
+    <div className="modal-dialog modal-dialog-centered" role="document">
       <div className="modal-content">
         <form onSubmit={handleSubmit}>
           <div className="modal-header">
@@ -395,111 +403,120 @@ useEffect(() => {
             </button>
           </div>
           <div className="modal-body">
-            <div className="form-group">
-              <label>Tên sản phẩm</label>
-              <input
-                type="text"
-                className="form-control"
-                name="name"
-                value={form.name}
-                onChange={handleChange}
-                required
-              />
-            </div>
-            <div className="form-group">
-              <label>Mô tả</label>
-              <textarea
-                className="form-control"
-                name="desc"
-                value={form.desc}
-                onChange={handleChange}
-              />
-            </div>
-            <div className="form-group">
-              <label>Giá</label>
-              <input
-                type="number"
-                className="form-control"
-                name="price"
-                value={form.price}
-                onChange={handleChange}
-              />
-            </div>
-            <div className="form-group">
-              <label>Số lượng</label>
-              <input
-                type="number"
-                className="form-control"
-                name="quantity"
-                value={form.quantity}
-                onChange={handleChange}
-              />
-            </div>
-            <div className="form-group">
-              <label>Size</label>
-              <input
-                type="text"
-                className="form-control"
-                name="size"
-                value={form.size}
-                onChange={handleChange}
-              />
-            </div>
-            <div className="form-group">
-              <label>Danh mục</label>
-              <select
-                name="category"
-                className="form-control"
-                value={form.category}
-                onChange={handleChange}
-              >
-                {categories.map((cat) => (
-                  <option key={cat._id} value={cat.name}>
-                    {cat.name}
-                  </option>
-                ))}
-              </select>
-            </div>
-            <div className="form-group">
-              <label>Trạng thái</label>
-              <select
-                name="status"
-                className="form-control"
-                value={form.status}
-                onChange={handleChange}
-              >
-                <option value="Còn hàng">Còn hàng</option>
-                <option value="Hết hàng">Hết hàng</option>
-              </select>
-            </div>
-            <div className="form-group">
-              <label>Hình ảnh</label>
-              <input
-                type="file"
-                className="form-control"
-                name="image"
-                onChange={handleChange}
-              />
-              {form.image && (
-                <img
-                  src={form.image}
-                  alt="preview"
-                  className="mt-2"
-                  width={100}
+            <div className="row">
+              <div className="form-group col-md-6">
+                <label className="control-label">Tên sản phẩm</label>
+                <input
+                  className="form-control"
+                  type="text"
+                  required
+                  name="name"
+                  value={form.name}
+                  onChange={handleChange}
                 />
-              )}
+              </div>
+              <div className="form-group col-md-6">
+                <label className="control-label">Giá</label>
+                <input
+                  className="form-control"
+                  type="number"
+                  required
+                  name="price"
+                  value={form.price}
+                  onChange={handleChange}
+                />
+              </div>
+              <div className="form-group col-md-6">
+                <label className="control-label">Số lượng</label>
+                <input
+                  className="form-control"
+                  type="number"
+                  required
+                  name="quantity"
+                  value={form.quantity}
+                  onChange={handleChange}
+                />
+              </div>
+              <div className="form-group col-md-6">
+                <label className="control-label">Size</label>
+                <input
+                  className="form-control"
+                  type="text"
+                  required
+                  name="size"
+                  value={form.size}
+                  onChange={handleChange}
+                />
+              </div>
+              <div className="form-group col-md-6">
+                <label className="control-label">Danh mục</label>
+                <select
+                  className="form-control"
+                  name="category"
+                  value={form.category}
+                  onChange={handleChange}
+                >
+                  <option value="">--Chọn danh mục--</option>
+                  {categories.map((cat) => (
+                    <option key={cat._id} value={cat.name}>
+                      {cat.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div className="form-group col-md-6">
+                <label className="control-label">Trạng thái</label>
+                <select
+                  className="form-control"
+                  name="status"
+                  value={form.status}
+                  onChange={handleChange}
+                >
+                  <option value="">--Chọn trạng thái--</option>
+                  <option>Còn hàng</option>
+                  <option>Hết hàng</option>
+                  <option>Ngừng kinh doanh</option>
+                </select>
+              </div>
+              <div className="form-group col-md-6">
+                <label className="control-label">Ảnh</label>
+                <input
+                  className="form-control"
+                  type="file"
+                  name="image"
+                  onChange={handleChange}
+                />
+                {form.image && (
+                  <img
+                    src={form.image}
+                    alt="preview"
+                    className="mt-2"
+                    width={100}
+                  />
+                )}
+              </div>
+              <div className="form-group col-md-12">
+                <label className="control-label">Mô tả</label>
+                <textarea
+                  className="form-control"
+                  required
+                  name="desc"
+                  value={form.desc}
+                  onChange={handleChange}
+                />
+              </div>
             </div>
           </div>
           <div className="modal-footer">
-            <button type="submit" className="btn btn-primary">
+            <button className="btn btn-save" type="submit">
               Lưu thay đổi
             </button>
             <button
+              className="btn btn-cancel"
               type="button"
-              className="btn btn-secondary"
               onClick={() => setShowModal(false)}
             >
-              Đóng
+              Hủy bỏ
             </button>
           </div>
         </form>
@@ -547,39 +564,9 @@ useEffect(() => {
                             });
 
                             if (res.ok) {
-                              const newProduct = await res.json();
-                              // Map lại đúng cấu trúc
-                              const mappedProduct = {
-                                id: newProduct._id,
-                                name: newProduct.name,
-                                image: newProduct.images && newProduct.images.length > 0
-                                  ? `http://localhost:3000/images/${newProduct.images[0]}`
-                                  : "",
-                                desc: newProduct.description,
-                                price: newProduct.price,
-                                size: newProduct.variants && newProduct.variants.length > 0
-                                  ? newProduct.variants.map((v: any) => v.size).join(", ")
-                                  : "",
-                                quantity: newProduct.variants && newProduct.variants.length > 0
-                                  ? newProduct.variants.map((v: any) => v.quantity).join(", ")
-                                  : "",
-                                category: categories.find(c => c._id === newProduct.categoryId)?.name || "",
-                                status: newProduct.status || "Còn hàng",
-                                checked: false,
-                              };
-                              setProducts((prev) => [mappedProduct, ...prev]);
-                              setShowCreateModal(false);
-                              setCreateForm({
-                                id: "",
-                                name: "",
-                                image: "",
-                                desc: "",
-                                price: 0,
-                                quantity: 0,
-                                size: "",
-                                category: "",
-                                status: "Còn hàng",
-                              });
+                              alert("Tạo sản phẩm thành công!");
+                              window.location.reload(); // Tải lại trang để cập nhật danh sách sản phẩm
+                              return;
                             } else {
                               alert("Thêm sản phẩm thất bại!");
                             }
@@ -693,6 +680,7 @@ useEffect(() => {
                                   })
                                 }
                               >
+                                <option value="">--Chọn trạng thái--</option>
                                 <option>Còn hàng</option>
                                 <option>Hết hàng</option>
                                 <option>Ngừng kinh doanh</option>
