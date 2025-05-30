@@ -6,6 +6,7 @@ import ProductList from "../components/ProductAll";
 import InstagramSection from "../components/InstagramSection";
 import styles from "../styles/productitem.module.css";
 import Pagination from "../components/Pagination";
+import { useSearchParams } from "next/navigation";
 
 const PRODUCTS_PER_PAGE = 16; //mỗi trang hiển thị 12 sp
 
@@ -15,6 +16,15 @@ export default function ProductsPage() {
   const [priceFilter, setPriceFilter] = useState<string>("Tất cả");
   const [sort, setSort] = useState<string>("Mới nhất");
   const [currentPage, setCurrentPage] = useState<number>(1);
+  const searchParams = useSearchParams();
+  const searchQuery = searchParams.get("search")?.toLowerCase() || "";
+
+
+    useEffect(() => {
+    setCurrentPage(1);
+    console.log("Từ khóa tìm kiếm thay đổi:", searchQuery);
+  }, [searchQuery]);
+
 
   useEffect(() => {
     async function fetchData() {
@@ -48,6 +58,13 @@ export default function ProductsPage() {
     }
   }
 
+  function filterBySearch(product: Products) {
+    const nameMatch = product.name.toLowerCase().includes(searchQuery);
+    const descMatch = product.description?.toLowerCase().includes(searchQuery) || false;
+    return nameMatch || descMatch;
+  }
+
+
   function sortProducts(list: Products[]) {
     if (sort === "Mới nhất") {
       return [...list].sort(
@@ -75,7 +92,12 @@ export default function ProductsPage() {
   // if (!products.length) return <div>Không có sản phẩm nào.</div>;
 
   // Xử lý lọc và sắp xếp
-  const filtered = sortProducts(products.filter(filterByPrice));
+  const filtered = sortProducts(
+  products.filter(
+    (product) => filterByPrice(product) && filterBySearch(product)
+  )
+);
+
   const totalPages = Math.ceil(filtered.length / PRODUCTS_PER_PAGE);
 
   // Lấy sản phẩm cho trang hiện tại
@@ -137,6 +159,12 @@ export default function ProductsPage() {
           product: pagedProducts,
         }}
       />
+      {searchQuery && (
+  <p className={styles.search_result}>
+    Kết quả cho từ khóa: <strong>{searchQuery}</strong>
+  </p>
+)}
+
       {/* Pagination */}
       <Pagination
         currentPage={currentPage}
