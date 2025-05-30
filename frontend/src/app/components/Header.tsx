@@ -25,14 +25,18 @@ const Header: React.FC<Props> = ({ categories }) => {
   const router = useRouter();
   const [searchValue, setSearchValue] = useState("");
 
+const handleSearchAction = () => {
+  if (searchValue.trim()) {
+    router.push(`/products?search=${encodeURIComponent(searchValue.trim())}`);
+    // setSearchValue("");
+    setMobileMenuActive(false); // Đóng menu nếu đang mở
+  }
+};
+
 const handleSearch = (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    if (searchValue.trim()) {
-      router.push(`/products?search=${encodeURIComponent(searchValue.trim())}`);
-      setSearchValue("");
-      setMobileMenuActive(false); // Đóng menu nếu đang mở
-    }
-  };
+  e.preventDefault();
+  handleSearchAction();
+};
 
   useEffect(() => {
     document.body.style.overflow = mobileMenuActive ? "hidden" : "";
@@ -66,13 +70,7 @@ const handleSearch = (e: React.FormEvent<HTMLFormElement>) => {
               onChange={(e) => setSearchValue(e.target.value)}
             />
             <SearchOutlined
-              onClick={() => {
-                if (searchValue.trim()) {
-                  router.push(`/products?search=${encodeURIComponent(searchValue.trim())}`);
-                  // setSearchValue("");
-                  setMobileMenuActive(false);
-                }
-              }}
+                 onClick={handleSearchAction}
               style={{
                 position: "absolute",
                 right: 14,
@@ -182,13 +180,7 @@ const handleSearch = (e: React.FormEvent<HTMLFormElement>) => {
             onChange={(e) => setSearchValue(e.target.value)}
           />
           <SearchOutlined
-            onClick={() => {
-              if (searchValue.trim()) {
-                router.push(`/products?search=${encodeURIComponent(searchValue.trim())}`);
-                // Không reset searchValue để giữ nguyên chữ
-                setMobileMenuActive(false);
-              }
-            }}
+            onClick={handleSearchAction}
             style={{
               position: "absolute",
               right: 12,
