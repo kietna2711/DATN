@@ -13,6 +13,7 @@ import {
 } from "@ant-design/icons";
 import styles from "../styles/header.module.css"
 import { Category } from "../types/categoryD";
+import { useRouter } from "next/navigation"; // nếu dùng App Router
 
 
 const Header: React.FC = () => {
@@ -20,7 +21,17 @@ const Header: React.FC = () => {
   const [mobileMenuActive, setMobileMenuActive] = useState(false);
   const [mobileOpenIndex, setMobileOpenIndex] = useState<number | null>(null);
   const [categories, setCategories] = useState<Category[]>([]);
+  const router = useRouter();
+  const [searchValue, setSearchValue] = useState("");
 
+const handleSearch = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    if (searchValue.trim()) {
+      router.push(`/products?search=${encodeURIComponent(searchValue.trim())}`);
+      setSearchValue("");
+      setMobileMenuActive(false); // Đóng menu nếu đang mở
+    }
+  };
 useEffect(() => {
   const fetchCategories = async () => {
     try {
@@ -34,6 +45,8 @@ useEffect(() => {
 
   fetchCategories();
 }, []);
+
+
 
   useEffect(() => {
     document.body.style.overflow = mobileMenuActive ? "hidden" : "";
@@ -59,18 +72,34 @@ useEffect(() => {
             </a>
             <div className={styles.slogan}>“Hug MimiBear-Unbox Love”</div>
           </div>
-          <div className={styles["search-box"]}>
-            <input type="search" placeholder="Nhập sản phẩm cần tìm ?" />
-            <SearchOutlined style={{
-              position: "absolute",
-              right: 14,
-              top: "50%",
-              transform: "translateY(-50%)",
-              color: "#e87ebd",
-              fontSize: "1.25rem",
-              pointerEvents: "none"
-            }} />
-          </div>
+          <form onSubmit={handleSearch} className={styles["search-box"]}>
+            <input
+              type="search"
+              placeholder="Nhập sản phẩm cần tìm ?"
+              value={searchValue}
+              onChange={(e) => setSearchValue(e.target.value)}
+            />
+            <SearchOutlined
+              onClick={() => {
+                if (searchValue.trim()) {
+                  router.push(`/products?search=${encodeURIComponent(searchValue.trim())}`);
+                  // setSearchValue("");
+                  setMobileMenuActive(false);
+                }
+              }}
+              style={{
+                position: "absolute",
+                right: 14,
+                top: "50%",
+                transform: "translateY(-50%)",
+                color: "#e87ebd",
+                fontSize: "1.25rem",
+                cursor: "pointer" // để hiện dấu tay khi hover
+              }}
+            />
+          </form>
+
+
           <div className={styles["header-icons"]}>
             <HeartOutlined />
             <ShoppingOutlined />
@@ -119,17 +148,34 @@ useEffect(() => {
         <div className={styles["mobile-account"]}>
           <UserOutlined /> Tài khoản
         </div>
-        <div className={styles["mobile-search-box"]}>
-          <input type="search" placeholder="Nhập sản phẩm cần tìm..." />
-          <SearchOutlined style={{
-            position: "absolute",
-            right: 12,
-            top: "50%",
-            transform: "translateY(-50%)",
-            color: "#b94490",
-            fontSize: "1.07rem"
-          }} />
-        </div>
+       <div className={styles["mobile-search-box"]}>
+        <form onSubmit={handleSearch} style={{ position: "relative" }}>
+          <input
+            type="search"
+            placeholder="Nhập sản phẩm cần tìm..."
+            value={searchValue}
+            onChange={(e) => setSearchValue(e.target.value)}
+          />
+          <SearchOutlined
+            onClick={() => {
+              if (searchValue.trim()) {
+                router.push(`/products?search=${encodeURIComponent(searchValue.trim())}`);
+                // Không reset searchValue để giữ nguyên chữ
+                setMobileMenuActive(false);
+              }
+            }}
+            style={{
+              position: "absolute",
+              right: 12,
+              top: "50%",
+              transform: "translateY(-50%)",
+              color: "#b94490",
+              fontSize: "1.07rem",
+              cursor: "pointer"
+            }}
+          />
+        </form>
+      </div>
         <div className={styles["mobile-menu-list"]}>
           <ul>
             {categories.map((item, idx) => (
