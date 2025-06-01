@@ -6,45 +6,44 @@ import "boxicons/css/boxicons.min.css";
 import "../admin.css";
 
 type User = {
-  id: number;
+  _id: string;
   name: string;
   email: string;
   username: string;
   dob: string;
   role: string;
-  status: "Hoạt động" | "Khóa" | "Đã ẩn";
+  status: "Hoạt động" | "Khóa";
   checked: boolean;
   visible: boolean;
 };
 
-const initialUsers: User[] = [
-  {
-    id: 1,
-    name: "Nguyễn Văn A",
-    email: "nguyenvana@gmail.com",
-    username: "nguyenvana",
-    dob: "10/09/1998",
-    role: "Admin",
-    status: "Hoạt động",
-    checked: false,
-    visible: true,
-  },
-  {
-    id: 2,
-    name: "Trần Thị B",
-    email: "tranthib@gmail.com",
-    username: "tranthib",
-    dob: "02/12/1999",
-    role: "User",
-    status: "Khóa",
-    checked: false,
-    visible: false,
-  },
-  // Thêm các user khác nếu cần
-];
+// const initialUsers: User[] = [
+//   {
+//     id: 1,
+//     name: "Nguyễn Văn A",
+//     email: "nguyenvana@gmail.com",
+//     username: "nguyenvana",
+//     dob: "10/09/1998",
+//     role: "Admin",
+//     status: "Hoạt động",
+//     checked: false,
+//     visible: true,
+//   },
+//   {
+//     id: 2,
+//     name: "Trần Thị B",
+//     email: "tranthib@gmail.com",
+//     username: "tranthib",
+//     dob: "02/12/1999",
+//     role: "User",
+//     status: "Khóa",
+//     checked: false,
+//     visible: false,
+//   },
+// ];
 
 export default function UserManagement() {
-  const [users, setUsers] = useState<User[]>(initialUsers);
+  const [users, setUsers] = useState<User[]>([]);
   const [selectAll, setSelectAll] = useState(false);
   const [clock, setClock] = useState("");
 
@@ -93,23 +92,63 @@ export default function UserManagement() {
   };
 
   // Toggle ẩn/hiện user
-  const handleToggleVisibility = (idx: number) => {
+  // const handleToggleVisibility = (idx: number) => {
+  //   setUsers(users =>
+  //     users.map((u, i) =>
+  //       i === idx
+  //         ? {
+  //             ...u,
+  //             visible: !u.visible,
+  //             status: !u.visible
+  //               ? u.role === "Admin"
+  //                 ? "Hoạt động"
+  //                 : "Hoạt động"
+  //               : "Đã ẩn",
+  //           }
+  //         : u
+  //     )
+  //   );
+  // };
+
+  // Lấy danh sách user từ backend
+  useEffect(() => {
+    fetch("http://localhost:3000/users") // Sửa đúng port backend
+      .then(res => res.json())
+      .then(data => {
+        // Nếu user từ backend không có các trường checked/status/dob/username thì cần xử lý thêm
+        const mapped = data.map((u: any) => ({
+          ...u,
+          checked: false,
+          status: u.visible ? "Hoạt động" : "Khóa",
+          dob: u.dob || "",
+          username: u.username || ""
+        }));
+        setUsers(mapped);
+      });
+  }, []);
+// Giả sử users[] lấy từ backend, mỗi user có _id là ObjectId của MongoDB
+//Tonggle ẩn/hiện user
+const handleToggleVisibility = async (idx: number) => {
+  const user = users[idx];
+  try {
+    const res = await fetch(`http://localhost:3000/users/${user._id}/toggle-visibility`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' }
+    });
+    if (!res.ok) throw new Error('Cập nhật thất bại');
+    const data = await res.json();
     setUsers(users =>
       users.map((u, i) =>
         i === idx
-          ? {
-              ...u,
-              visible: !u.visible,
-              status: !u.visible
-                ? u.role === "Admin"
-                  ? "Hoạt động"
-                  : "Hoạt động"
-                : "Đã ẩn",
-            }
+          ? { ...u, visible: data.visible, status: data.status }
           : u
       )
     );
-  };
+  } catch (err) {
+    alert('Không thể cập nhật trạng thái!');
+  }
+};
+
 
   // Xóa tất cả user đã chọn
   const handleDeleteAll = () => {
@@ -161,7 +200,7 @@ export default function UserManagement() {
                 </thead>
                 <tbody>
                   {users.map((u, idx) => (
-                    <tr key={u.id}>
+                    <tr key={u._id}>
                       <td width="10">
                         <input
                           type="checkbox"
