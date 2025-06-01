@@ -1,8 +1,7 @@
+'use client';
 import React from "react";
-import Link from "next/link";
 
-export default function Sidebar({ onSelect }: { onSelect?: (section: string) => void }) {
-  // Nếu muốn dùng Link của Next.js thì sửa lại href cho đúng route
+export default function Sidebar({ currentSection }: { currentSection: string }) {
   const menu = [
     { key: "profile", label: "Hồ sơ", icon: "bx bx-user-circle" },
     { key: "dashboard", label: "Bảng điều khiển", icon: "bx bx-home-circle" },
@@ -32,12 +31,8 @@ export default function Sidebar({ onSelect }: { onSelect?: (section: string) => 
         {menu.map(item => (
           <li key={item.key}>
             <a
-              className="app-menu__item"
-              href="#"
-              onClick={e => {
-                e.preventDefault();
-                onSelect && onSelect(item.key);
-              }}
+              className={`app-menu__item ${currentSection === item.key ? 'active' : ''}`}
+              href={`#${item.key}`}
             >
               <i className={`app-menu__icon ${item.icon}`}></i>
               <span className="app-menu__label">{item.label}</span>

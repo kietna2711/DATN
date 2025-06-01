@@ -24,7 +24,7 @@ const upload = multer({ storage: storage, fileFilter: checkfile });
 const categories = require('../models/categoryModel');
 const products = require('../models/productModel');
 const variants = require('../models/variantsModel');
-const subcategories = require('../models/subcategoriesModel');
+const subcategories = require('../models/subcategoryModel');
 
 // Lấy tất cả sản phẩm
 const getAllProducts = async (req, res) => {
@@ -59,7 +59,8 @@ const getAllProducts = async (req, res) => {
       options.skip = (parseInt(page) - 1) * options.limit;
     }
 
-    // ❌ Không còn xử lý sắp xếp nữa
+    // Thêm sắp xếp mới nhất lên đầu
+    options.sort = { createdAt: -1 };
 
     const arr = await products
       .find(query, null, options)
@@ -83,6 +84,8 @@ const getProductById = async (req, res) => {
   try {
     const product = await products
       .findById(req.params.id)
+      .populate('categoryId')        
+      .populate('subcategoryId')    
       .populate('variants');
     res.json(product);
   } catch (error) {
@@ -117,6 +120,18 @@ const addPro = [
 
       const newProduct = new products(product);
       const data = await newProduct.save();
+
+      // Thêm variant cho sản phẩm mới
+      if (req.body.size && req.body.quantity) {
+        const variant = new variants({
+          productId: data._id,
+          size: req.body.size,
+          quantity: req.body.quantity,
+          price: product.price // hoặc req.body.price nếu muốn variant có giá riêng
+        });
+        await variant.save();
+      }
+
       res.json(data);
     } catch (error) {
       console.error(error);

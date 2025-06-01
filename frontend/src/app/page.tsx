@@ -8,12 +8,18 @@ import { Category } from "./types/categoryD";
 
 import { getProducts, getProductsNew, getProductsHot } from "./services/productService";
 import { getCategories } from "./services/categoryService";
-
+import LoginForm from "./login/page";
+import RegisterForm from "./register/page";
+import Forget from "./forget/page";
 import ProductSlider from "./sections/Home/ProductSlider";
 import ProductCollection from "./sections/Home/ProductCollection";
 import ServiceSection from "./sections/Home/ServiceSection";
 import ProductNew from "./sections/Home/ProductNew";
 import ProductHotSlider from "./sections/Home/ProductHotSlider";
+
+import Verify from "./verify/page";
+import BearStories from "./sections/Home/BearStories";
+
 
 export default function HomePage() {
   const [products, setProducts] = useState<Products[]>([]);
@@ -97,11 +103,18 @@ export default function HomePage() {
         props={{
           title: "Danh sách",
           category: categories.find((cat) => cat._id === "6836bfc58bae817a54d1d17d"),
-          image: "http://localhost:3000/images/bannerTeddy.jpg",
+          // image: "http://localhost:3000/images/bannerTeddy.jpg",
           product: products,
         }}
       />
       <ServiceSection />
+
+      <LoginForm />
+      <RegisterForm />
+      <Forget/>
+      <Verify />
+
+
     </main>
   );
 }
