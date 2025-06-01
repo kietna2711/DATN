@@ -29,7 +29,7 @@ const subcategories = require('../models/subcategoriesModel');
 // Lấy tất cả sản phẩm
 const getAllProducts = async (req, res) => {
   try {
-    const { name, idcate, limit, page, hot } = req.query;
+    const { name, idcate, idsubcate, limit, page, hot } = req.query;
 
     let query = {};
     let options = {};
@@ -40,6 +40,10 @@ const getAllProducts = async (req, res) => {
 
     if (hot) {
       query.hot = parseInt(hot);
+    }
+
+    if (idsubcate) {
+      query.subcategoryId = idsubcate;
     }
 
     if (idcate) {
