@@ -14,7 +14,7 @@ import {
 import styles from "../styles/header.module.css";
 import { Category } from "../types/categoryD";
 import { useRouter } from "next/navigation"; // nếu dùng App Router
-
+import Link from "next/link";
 type Props = {
   categories: Category[];
 };
@@ -87,7 +87,9 @@ const handleSearch = (e: React.FormEvent<HTMLFormElement>) => {
           <div className={styles["header-icons"]}>
             <HeartOutlined />
             <ShoppingOutlined />
-            <UserOutlined />
+            <Link href="/login">
+    <UserOutlined style={{ cursor: "pointer" }} />
+  </Link>
           </div>
           <button className={styles["menu-btn"]} id="menuBtn" onClick={openMobileMenu}>
             <MenuOutlined />

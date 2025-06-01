@@ -8,12 +8,15 @@ import { Category } from "./types/categoryD";
 
 import { getProducts, getProductsNew, getProductsHot } from "./services/productService";
 import { getCategories } from "./services/categoryService";
-
+import LoginForm from "./login/page";
+import RegisterForm from "./register/page";
+import Forget from "./forget/page";
 import ProductSlider from "./sections/Home/ProductSlider";
 import ProductCollection from "./sections/Home/ProductCollection";
 import ServiceSection from "./sections/Home/ServiceSection";
 import ProductNew from "./sections/Home/ProductNew";
 import ProductHotSlider from "./sections/Home/ProductHotSlider";
+import Verify from "./verify/page";
 
 export default function HomePage() {
   const [products, setProducts] = useState<Products[]>([]);
@@ -102,6 +105,10 @@ export default function HomePage() {
         }}
       />
       <ServiceSection />
+      <LoginForm />
+      <RegisterForm />
+      <Forget/>
+      <Verify />
     </main>
   );
 }

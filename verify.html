@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Nhập mã xác thực</title>
+
+</head>
+<body>
+  <div class="container">
+    <div class="circle circle1"></div>
+    <div class="circle circle2"></div>
+    <div class="circle circle3"></div>
+    <div class="circle circle4"></div>
+    <div class="circle circle5"></div>
+
+    <div class="login-box">
+      <div class="bear-ear left-ear"></div>
+      <div class="bear-ear right-ear"></div>
+      <h2>Nhập mã xác thực</h2>
+      <p>Vui lòng nhập mã xác thực gồm 6 số đã gửi về email của bạn.</p>
+      <form id="verify-form" autocomplete="off">
+        <div class="code-inputs">
+          <input type="text" maxlength="1" pattern="[0-9]*" inputmode="numeric" required />
+          <input type="text" maxlength="1" pattern="[0-9]*" inputmode="numeric" required />
+          <input type="text" maxlength="1" pattern="[0-9]*" inputmode="numeric" required />
+          <input type="text" maxlength="1" pattern="[0-9]*" inputmode="numeric" required />
+          <input type="text" maxlength="1" pattern="[0-9]*" inputmode="numeric" required />
+          <input type="text" maxlength="1" pattern="[0-9]*" inputmode="numeric" required />
+        </div>
+       <button type="submit">Xác nhận</button>
+        <a href="Forget.html" class="register-link">Gửi lại mã</a>
+      </form>
+    </div>
+  </div>
+  <script>
+    // Tự động chuyển focus khi nhập số
+    document.querySelectorAll('.code-inputs input').forEach((input, idx, arr) => {
+      input.addEventListener('input', function() {
+        if (this.value.length === 1 && idx < arr.length - 1) {
+          arr[idx + 1].focus();
+        }
+      });
+      input.addEventListener('keydown', function(e) {
+        if (e.key === 'Backspace' && !this.value && idx > 0) {
+          arr[idx - 1].focus();
+        }
+      });
+    });
+  </script>
+</body>
+</html>
