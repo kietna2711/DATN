@@ -109,10 +109,6 @@ export default function HomePage() {
       />
       <ServiceSection />
 
-      <LoginForm />
-      <RegisterForm />
-      <Forget/>
-      <Verify />
 
 
     </main>
