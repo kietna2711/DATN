@@ -1152,7 +1152,7 @@
   align-items: center;
   justify-content: center;
   min-width: 10px;
-  height: 22px;
+  height: 24px;
   padding: 0 10px;
   border: 2px solid #f72585;
   border-radius: 5px;
@@ -1173,14 +1173,14 @@
 }
 
 /* Trang đang active */
-.pageLink.active,
+/* .pageLink.active,
 .printer {
   background-color: #f72585 !important;
   color: #fff !important;
   border-color: #f72585 !important;
   box-shadow: 0 2px 6px rgba(247, 37, 133, 0.3);
   font-weight: 600;
-}
+} */
 
 /* Nút bị disable */
 .disabled .pageLink {
