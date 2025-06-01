@@ -173,7 +173,12 @@ const editPro = [
 // Xoá sản phẩm
 const deletePro = async (req, res) => {
   try {
+    // Xóa sản phẩm
     const data = await products.findByIdAndDelete(req.params.id);
+
+    // Xóa tất cả variants liên quan đến sản phẩm này
+    await variants.deleteMany({ productId: req.params.id });
+
     res.json(data);
   } catch (error) {
     console.error(error);
