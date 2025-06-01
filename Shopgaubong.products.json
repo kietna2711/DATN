@@ -4159,7 +4159,10 @@
     "gautn1.2.webp",
     "gautn1.3.webp",
     "gautn1.4.webp"
-  ]
+  ],
+   "subcategoryId": {
+    "$oid": "6836ce588bae817a54d1d1be"
+  }
 },
 {
   "_id": {
@@ -4203,7 +4206,10 @@
     "gautn2.2.webp",
     "gautn2.3.webp",
     "gautn2.4.webp"
-  ]
+  ],
+   "subcategoryId": {
+    "$oid": "6836ce588bae817a54d1d1be"
+  }
 },
 {
   "_id": {
@@ -4269,7 +4275,10 @@
     "gautn4.2.webp",
     "gautn4.3.webp",
     "gautn4.4.webp"
-  ]
+  ],
+  "subcategoryId": {
+    "$oid": "6836ce588bae817a54d1d1be"
+  }
 },
 {
   "_id": {
@@ -4313,7 +4322,10 @@
     "gautn5.2.webp",
     "gautn5.3.webp",
     "gautn5.4.webp"
-  ]
+  ],
+   "subcategoryId": {
+    "$oid": "6836ce588bae817a54d1d1be"
+  }
 },
 {
   "_id": {
@@ -4335,7 +4347,10 @@
     "gautn7.2.webp",
     "gautn7.3.webp",
     "gautn7.4.webp"
-  ]
+  ],
+   "subcategoryId": {
+    "$oid": "6836ce588bae817a54d1d1be"
+  }
 },
 {
   "_id": {
@@ -4353,7 +4368,10 @@
   "sold": 158,
   "images": [
     "gautn8.webp"
-  ]
+  ],
+   "subcategoryId": {
+    "$oid": "6836ce588bae817a54d1d1be"
+  }
 },
 {
   "_id": {
@@ -4419,7 +4437,10 @@
     "gautn11.2.webp",
     "gautn11.3.webp",
     "gautn11.4.webp"
-  ]
+  ],
+   "subcategoryId": {
+    "$oid": "6836ce588bae817a54d1d1be"
+  }
 },
 {
   "_id": {
@@ -4643,6 +4664,7 @@
   "subcategoryId": {
     "$oid": "6836ce588bae817a54d1d1be"
   }
+   
 },
 {
   "_id": {
@@ -4665,6 +4687,7 @@
     "gautns2.3.webp",
     "gautns2.4.webp"
   ],
+  
   "subcategoryId": {
     "$oid": "6836ce588bae817a54d1d1be"
   }
@@ -5776,12 +5799,15 @@
   },
   "sold": 158,
   "images": [
-    "teddymn4.webp",
+    "teddymns4.webp",
     "teddymn4.1.webp",
     "teddymn4.2.webp",
     "teddymn4.3.webp",
     "teddymn4.4.webp"
-  ]
+  ],
+   "subcategoryId": {
+    "$oid": "6838104f7d03734c0d44799d"
+  }
 },
 {
   "_id": {
@@ -6361,7 +6387,7 @@
   },
   "sold": 158,
   "images": [
-    "teddymn4.webp",
+    "teddymns4.webp",
     "teddymn4.1.webp",
     "teddymn4.2.webp",
     "teddymn4.3.webp",
@@ -6469,69 +6495,5 @@
   ],
   "subcategoryId": {
     "$oid": "6838104f7d03734c0d44799d"
-  }
-},
-{
-  "_id": {
-    "$oid": "68383b6c1e4958ce5ccee2b6"
-  },
-  "name": "edfrghj",
-  "description": "jkonojoju",
-  "images": [
-    "BLB3.2.webp"
-  ],
-  "createdAt": {
-    "$date": "2025-05-29T10:48:12.005Z"
-  },
-  "categoryId": {
-    "$oid": "6837d13c62e4059224b126af"
-  }
-},
-{
-  "_id": {
-    "$oid": "683843e51e4958ce5ccee3e1"
-  },
-  "name": "edfrghjô",
-  "description": "hfhgfd",
-  "images": [
-    "babythree1.webp"
-  ],
-  "createdAt": {
-    "$date": "2025-05-29T11:24:21.548Z"
-  },
-  "categoryId": {
-    "$oid": "6837d13c62e4059224b126af"
-  }
-},
-{
-  "_id": {
-    "$oid": "683845b71e4958ce5ccee418"
-  },
-  "name": "edfrghjô",
-  "description": "vjhhvkjh",
-  "images": [
-    "BLB.webp"
-  ],
-  "createdAt": {
-    "$date": "2025-05-29T11:32:07.415Z"
-  },
-  "categoryId": {
-    "$oid": "681107d831bf250910c59b83"
-  }
-},
-{
-  "_id": {
-    "$oid": "6838465d1e4958ce5ccee427"
-  },
-  "name": "edfrghjô",
-  "description": "sadsad",
-  "images": [
-    "BLB3.1.webp"
-  ],
-  "createdAt": {
-    "$date": "2025-05-29T11:34:53.534Z"
-  },
-  "categoryId": {
-    "$oid": "681107d831bf250910c59b83"
   }
 }]
