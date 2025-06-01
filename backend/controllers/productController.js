@@ -29,7 +29,7 @@ const subcategories = require('../models/subcategoryModel');
 // Lấy tất cả sản phẩm
 const getAllProducts = async (req, res) => {
   try {
-    const { name, idcate, limit, page, hot } = req.query;
+    const { name, idcate, idsubcate, limit, page, hot } = req.query;
 
     let query = {};
     let options = {};
@@ -40,6 +40,10 @@ const getAllProducts = async (req, res) => {
 
     if (hot) {
       query.hot = parseInt(hot);
+    }
+
+    if (idsubcate) {
+      query.subcategoryId = idsubcate;
     }
 
     if (idcate) {
@@ -80,6 +84,8 @@ const getProductById = async (req, res) => {
   try {
     const product = await products
       .findById(req.params.id)
+      .populate('categoryId')        
+      .populate('subcategoryId')    
       .populate('variants');
     res.json(product);
   } catch (error) {
