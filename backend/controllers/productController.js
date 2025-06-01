@@ -80,6 +80,8 @@ const getProductById = async (req, res) => {
   try {
     const product = await products
       .findById(req.params.id)
+      .populate('categoryId')        
+      .populate('subcategoryId')    
       .populate('variants');
     res.json(product);
   } catch (error) {
