@@ -24,7 +24,7 @@ const upload = multer({ storage: storage, fileFilter: checkfile });
 const categories = require('../models/categoryModel');
 const products = require('../models/productModel');
 const variants = require('../models/variantsModel');
-const subcategories = require('../models/subcategoriesModel');
+const subcategories = require('../models/subcategoryModel');
 
 // Lấy tất cả sản phẩm
 const getAllProducts = async (req, res) => {
