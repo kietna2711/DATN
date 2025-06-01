@@ -17,8 +17,6 @@ import { Category } from "../types/categoryD";
 import { useRouter } from "next/navigation"; // nếu dùng App Router
 import Link from "next/link";
 
-import { useRouter } from "next/navigation";
-
 
 type Props = {
   categories: Category[];
