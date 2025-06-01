@@ -4154,7 +4154,7 @@
   },
   "sold": 158,
   "images": [
-    "gautn1.webp",
+    "gautns1.webp",
     "gautn1.1.webp",
     "gautn1.2.webp",
     "gautn1.3.webp",
@@ -4198,7 +4198,7 @@
   },
   "sold": 158,
   "images": [
-    "gautn2.webp",
+    "gautns2.webp",
     "gautn2.1.webp",
     "gautn2.2.webp",
     "gautn2.3.webp",
@@ -4220,7 +4220,7 @@
   },
   "sold": 158,
   "images": [
-    "gausn2.webp",
+    "gausns2.webp",
     "gausn2.1.webp",
     "gausn2.2.webp",
     "gausn2.3.webp",
@@ -4242,7 +4242,7 @@
   },
   "sold": 158,
   "images": [
-    "gausn3.webp",
+    "gausns3.webp",
     "gausn3.1.webp",
     "gausn3.2.webp",
     "gausn3.3.webp",
@@ -4264,7 +4264,7 @@
   },
   "sold": 158,
   "images": [
-    "gautn4.webp",
+    "gautns4.webp",
     "gautn4.1.webp",
     "gautn4.2.webp",
     "gautn4.3.webp",
@@ -4286,7 +4286,7 @@
   },
   "sold": 158,
   "images": [
-    "gausn4.webp",
+    "gausns4.webp",
     "gausn4.1.webp",
     "gausn4.2.webp",
     "gausn4.3.webp",
@@ -4634,7 +4634,7 @@
   },
   "sold": 158,
   "images": [
-    "gautn1.webp",
+    "gautnss1.webp",
     "gautns1.1.webp",
     "gautns1.2.webp",
     "gautns1.3.webp",
@@ -5798,7 +5798,7 @@
   },
   "sold": 158,
   "images": [
-    "teddymn5.webp",
+    "teddymns5.webp",
     "teddymn5.1.webp",
     "teddymn5.2.webp",
     "teddymn5.3.webp",
@@ -5820,7 +5820,7 @@
   },
   "sold": 158,
   "images": [
-    "teddymn6.webp",
+    "teddymns6.webp",
     "teddymn6.1.webp",
     "teddymn6.2.webp",
     "teddymn6.3.webp",
@@ -5842,7 +5842,7 @@
   },
   "sold": 158,
   "images": [
-    "teddymn7.webp",
+    "teddymns7.webp",
     "teddymn7.1.webp",
     "teddymn7.2.webp",
     "teddymn7.3.webp",
@@ -5864,7 +5864,7 @@
   },
   "sold": 158,
   "images": [
-    "teddymn8.webp",
+    "teddymns8.webp",
     "teddymn8.1.webp",
     "teddymn8.2.webp",
     "teddymn8.3.webp",
@@ -6386,7 +6386,7 @@
   },
   "sold": 158,
   "images": [
-    "teddymn5.webp",
+   "teddymns5.webp",
     "teddymn5.1.webp",
     "teddymn5.2.webp",
     "teddymn5.3.webp",
@@ -6411,7 +6411,7 @@
   },
   "sold": 158,
   "images": [
-    "teddymn6.webp",
+    "teddymns6.webp",
     "teddymn6.1.webp",
     "teddymn6.2.webp",
     "teddymn6.3.webp",
@@ -6436,7 +6436,7 @@
   },
   "sold": 158,
   "images": [
-    "teddymn7.webp",
+    "teddymns7.webp",
     "teddymn7.1.webp",
     "teddymn7.2.webp",
     "teddymn7.3.webp",
@@ -6461,11 +6461,11 @@
   },
   "sold": 158,
   "images": [
-    "teddymn8.webp",
+    "teddymns8.webp",
     "teddymn8.1.webp",
     "teddymn8.2.webp",
     "teddymn8.3.webp",
-    "teddymn8.4webp"
+    "teddymn8.4.webp"
   ],
   "subcategoryId": {
     "$oid": "6838104f7d03734c0d44799d"

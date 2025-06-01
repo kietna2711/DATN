@@ -15,7 +15,9 @@ function ProductItem({ product }: { product: Products }) {
           <div className={styles.image_link}>
             {/* Ảnh chính và ảnh hover */}
             <img
-              src={`http://localhost:3000/images/${product.images[0]}`} alt={product.name} />
+              src={`http://localhost:3000/images/${product.images[0]}`}
+              alt={product.name}
+            />
             <img
               src={`http://localhost:3000/images/${product.images[1]}`}
               className={styles.image_hover}

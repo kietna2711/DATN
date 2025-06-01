@@ -5,7 +5,6 @@ import { Category } from "../types/categoryD";
 /**
  * Lấy danh sách sản phẩm
  */
-
 export const getProducts = async (): Promise<Products[]> => {
   const res = await fetch("http://localhost:3000/products");
   if (!res.ok) throw new Error("Lỗi khi tải sản phẩm");
@@ -77,5 +76,11 @@ export const getProductsHot = async (): Promise<Products[]> => {
 export const getProductsByCategory = async (categoryId: string): Promise<Products[]> => {
   const res = await fetch(`http://localhost:3000/products?idcate=${categoryId}`);
   if (!res.ok) throw new Error("Lỗi khi tải sản phẩm theo danh mục");
+  return await res.json();
+};
+//lấy sản phẩm theo danh mục con
+export const getProductsBySubCategory = async (subCategoryId: string): Promise<Products[]> => {
+  const res = await fetch(`http://localhost:3000/products?idsubcate=${subCategoryId}`);
+  if (!res.ok) throw new Error("Lỗi khi tải sản phẩm theo danh mục con");
   return await res.json();
 };
