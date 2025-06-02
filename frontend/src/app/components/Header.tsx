@@ -183,7 +183,7 @@ const Header: React.FC<Props> = ({ categories }) => {
         </div>
       </header>
 
-      <Affix>
+      <Affix style={{ zIndex: 100 }}>
         <nav className={styles.menu}>
           <div className={styles["menu-row"]}>
             <ul>

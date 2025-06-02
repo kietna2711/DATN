@@ -102,7 +102,8 @@ export default function HomePage() {
           product: products,
         }}
       />
-      <ServiceSection />
+      <ServiceSection/>
+      <BearStories/>
     </main>
   );
 }
