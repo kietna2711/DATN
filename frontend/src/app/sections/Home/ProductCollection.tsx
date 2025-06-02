@@ -17,8 +17,8 @@ const images = [
   "https://bemori.vn/wp-content/uploads/2025/05/thumb-bst-gau-bong-summer-chill.webp",
   "https://bemori.vn/wp-content/uploads/2025/05/thumb-bst-summer-chill.webp",
   "https://bemori.vn/wp-content/uploads/2025/05/thumb-bst-trai-cay.webp",
-  "https://bemori.vn/wp-content/uploads/2025/05/thumb-bst-gau-bong-summer-chill.webp"
-  // ... thêm các id và ảnh tương ứng
+  "https://bemori.vn/wp-content/uploads/2025/05/thumb-bst-gau-bong-summer-chill.webp",
+  // ... thêm các id và ảnh tương ứng nếu cần
 ];
 
 export default function ProductCollection() {
@@ -39,10 +39,10 @@ export default function ProductCollection() {
           navigation
           autoplay={{
             delay: 3000,
-            disableOnInteraction: false, // ✅ Đừng tắt autoplay khi người dùng tương tác
-            pauseOnMouseEnter: false // ✅ Không tạm dừng khi rê chuột vào
+            disableOnInteraction: false,
+            pauseOnMouseEnter: false,
           }}
-          loop={true} // ✅ Lặp vô hạn
+          loop={true}
           spaceBetween={20}
           breakpoints={{
             0: { slidesPerView: 1 },
@@ -50,14 +50,16 @@ export default function ProductCollection() {
             992: { slidesPerView: 3 },
           }}
         >
-           {categories.map((cat, index) => (
-            <SwiperSlide key={cat._id}>
+          {categories
+            .filter((cat) => !cat.hidden) // Lọc các danh mục hidden = true ra
+            .map((cat, index) => (
+              <SwiperSlide key={cat._id}>
                 <a href={`products?category=${cat._id}`} className={styles.theSanPham}>
-                    <img src={images[index % images.length]} alt={cat.name} />
-                    <p className={styles.tenSanPham}>{cat.name}</p>
+                  <img src={images[index % images.length]} alt={cat.name} />
+                  <p className={styles.tenSanPham}>{cat.name}</p>
                 </a>
-            </SwiperSlide>
-          ))}
+              </SwiperSlide>
+            ))}
         </Swiper>
       </div>
     </div>

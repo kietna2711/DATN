@@ -1,7 +1,7 @@
 "use client";
 import { useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { getProducts, getProductsByCategory } from "../services/productService";
+import { getProducts, getProductsByCategory, getProductsBySubCategory } from "../services/productService";
 import { Products } from "../types/productD";
 import ProductList from "../components/ProductAll";
 import InstagramSection from "../components/InstagramSection";
@@ -37,12 +37,15 @@ export default function ProductsPage() {
 
   // dm
   const categoryId = searchParams.get("category");
+  const subCategoryId = searchParams.get("subcategory");
 
   useEffect(() => {
     async function fetchData() {
       try {
         let data: Products[] = [];
-        if (categoryId){
+        if (subCategoryId){
+          data = await getProductsBySubCategory(subCategoryId);
+        }else if(categoryId){
           data = await getProductsByCategory(categoryId);
         }else{
           data = await getProducts();
@@ -54,8 +57,9 @@ export default function ProductsPage() {
         setLoading(false);
       }
     }
+    setLoading(true); //reset loading sau mỗi lần lọc
     fetchData();
-  }, [categoryId]);
+  }, [categoryId, subCategoryId]);
 
   function filterByPrice(product: Products) {
     const min = Math.min(...product.variants.map((v) => v.price));

@@ -24,12 +24,12 @@ const upload = multer({ storage: storage, fileFilter: checkfile });
 const categories = require('../models/categoryModel');
 const products = require('../models/productModel');
 const variants = require('../models/variantsModel');
-const subcategories = require('../models/subcategoriesModel');
+const subcategories = require('../models/subcategoryModel');
 
 // Lấy tất cả sản phẩm
 const getAllProducts = async (req, res) => {
   try {
-    const { name, idcate, limit, page, hot } = req.query;
+    const { name, idcate, idsubcate, limit, page, hot } = req.query;
 
     let query = {};
     let options = {};
@@ -40,6 +40,10 @@ const getAllProducts = async (req, res) => {
 
     if (hot) {
       query.hot = parseInt(hot);
+    }
+
+    if (idsubcate) {
+      query.subcategoryId = idsubcate;
     }
 
     if (idcate) {
@@ -80,6 +84,8 @@ const getProductById = async (req, res) => {
   try {
     const product = await products
       .findById(req.params.id)
+      .populate('categoryId')        
+      .populate('subcategoryId')    
       .populate('variants');
     res.json(product);
   } catch (error) {
@@ -167,7 +173,12 @@ const editPro = [
 // Xoá sản phẩm
 const deletePro = async (req, res) => {
   try {
+    // Xóa sản phẩm
     const data = await products.findByIdAndDelete(req.params.id);
+
+    // Xóa tất cả variants liên quan đến sản phẩm này
+    await variants.deleteMany({ productId: req.params.id });
+
     res.json(data);
   } catch (error) {
     console.error(error);

@@ -4,7 +4,12 @@
   },
   "email": "user@example.com",
   "password": "1234",
-  "role": "user"
+  "role": "user",
+  "checked": false,
+  "status": "Hoạt động",
+  "dob": "12/02/2008",
+  "username": "NguyenVanA",
+  "visible": true
 },
 {
   "_id": {
@@ -12,5 +17,10 @@
   },
   "email": "admin@gmail.com",
   "password": "admin",
-  "role": "admin"
+  "role": "admin",
+  "checked": false,
+  "status": "Hoạt động",
+  "dob": "14/03/2005",
+  "username": "Admin",
+  "visible": true
 }]
