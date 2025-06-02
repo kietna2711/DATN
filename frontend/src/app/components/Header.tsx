@@ -80,13 +80,12 @@ const Header: React.FC<Props> = ({ categories }) => {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [showSuggestions]);
 
-  const handleSearchAction = () => {
+    const handleSearchAction = () => {
     if (searchValue.trim()) {
-      router.push(`/products?search=${encodeURIComponent(searchValue.trim())}`);
-      setMobileMenuActive(false);
-      setShowSuggestions(false);
+      const searchParam = encodeURIComponent(searchValue.trim());
+      window.location.href = `/products?search=${searchParam}`; // force reload giống như video
     }
-  };
+    };
 
   const handleSearch = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -239,6 +238,7 @@ const Header: React.FC<Props> = ({ categories }) => {
               placeholder="Nhập sản phẩm cần tìm..."
               value={searchValue}
               onChange={(e) => setSearchValue(e.target.value)}
+              ref={inputRef}
             />
             <SearchOutlined
               onClick={handleSearchAction}
@@ -253,6 +253,30 @@ const Header: React.FC<Props> = ({ categories }) => {
               }}
             />
           </form>
+          {showSuggestions && suggestions.length > 0 && (
+  <div className={styles.suggestionBox} ref={suggestionBoxRef}>
+    <ul className={styles.suggestionList}>
+      {suggestions.map((prod) => (
+        <li
+          key={prod._id}
+          className={styles.suggestionItem}
+          onClick={() => handleSuggestionClick(prod._id)}
+        >
+          <img
+            src={`http://localhost:3000/images/${prod.images[0]}`}
+            alt={prod.name}
+            className={styles.suggestionImg}
+          />
+          <span>{prod.name}</span>
+        </li>
+      ))}
+    </ul>
+    <div className={styles.suggestionFooter} onClick={handleSearchAction}>
+      <span>Xem thêm</span>
+    </div>
+  </div>
+)}
+
         </div>
 
         <div className={styles["mobile-menu-list"]}>
