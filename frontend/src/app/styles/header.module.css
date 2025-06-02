@@ -380,3 +380,51 @@ body {
   }
 }
 
+
+
+.suggestionBox {
+  background: #fff;
+  position: absolute;
+  top: 110%;
+  left: 0;
+  right: 0;
+  z-index: 10050;
+  border: 1px solid #eee;
+  border-radius: 6px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+}
+.suggestionList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  max-height: 260px;
+  overflow-y: auto;
+}
+.suggestionItem {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 16px;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.suggestionItem:hover {
+  background: #f7e8f3;
+}
+.suggestionImg {
+  width: 36px;
+  height: 36px;
+  object-fit: cover;
+  border-radius: 5px;
+}
+.suggestionFooter {
+  padding: 8px 0;
+  text-align: center;
+  color: #e87ebd;
+  font-weight: 500;
+  cursor: pointer;
+  border-top: 1px solid #f3d7ef;
+}
+.suggestionFooter:hover {
+  background: #fbeaf6;
+}

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { Affix } from "antd";
 import {
   HeartOutlined,
@@ -13,9 +13,10 @@ import {
 } from "@ant-design/icons";
 import styles from "../styles/header.module.css";
 import { Category } from "../types/categoryD";
-
+import { getProducts } from "../services/productService"; // API lấy sản phẩm
 import { useRouter } from "next/navigation"; // nếu dùng App Router
 import Link from "next/link";
+import { Products } from "../types/productD";
 
 
 type Props = {
@@ -27,11 +28,63 @@ const Header: React.FC<Props> = ({ categories }) => {
   const [mobileOpenIndex, setMobileOpenIndex] = useState<number | null>(null);
   const router = useRouter();
   const [searchValue, setSearchValue] = useState("");
+  const [suggestions, setSuggestions] = useState<Products[]>([]);
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const inputRef = useRef<HTMLInputElement>(null);
+  const suggestionBoxRef = useRef<HTMLDivElement>(null);
+
+
+  
+
+  // Debounce search input
+  useEffect(() => {
+    if (!searchValue.trim()) {
+      setSuggestions([]);
+      setShowSuggestions(false);
+      return;
+    }
+    const handler = setTimeout(async () => {
+      // Gọi API hoặc filter data ở đây
+      try {
+        const allProducts = await getProducts();
+        const filtered = allProducts.filter(
+          (product: Products) =>
+            product.name.toLowerCase().includes(searchValue.toLowerCase())
+        );
+        setSuggestions(filtered.slice(0, 5)); // chỉ lấy 5 sp đầu
+        setShowSuggestions(true);
+      } catch (err) {
+        setSuggestions([]);
+        setShowSuggestions(false);
+      }
+    }, 250); // debounce 250ms
+
+    return () => clearTimeout(handler);
+  }, [searchValue]);
+
+  // Đóng suggestion khi click ngoài
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (
+        suggestionBoxRef.current &&
+        !suggestionBoxRef.current.contains(event.target as Node) &&
+        inputRef.current &&
+        !inputRef.current.contains(event.target as Node)
+      ) {
+        setShowSuggestions(false);
+      }
+    }
+    if (showSuggestions) {
+      document.addEventListener("mousedown", handleClickOutside);
+    }
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [showSuggestions]);
 
   const handleSearchAction = () => {
     if (searchValue.trim()) {
       router.push(`/products?search=${encodeURIComponent(searchValue.trim())}`);
       setMobileMenuActive(false);
+      setShowSuggestions(false);
     }
   };
 
@@ -39,6 +92,13 @@ const Header: React.FC<Props> = ({ categories }) => {
     e.preventDefault();
     handleSearchAction();
   };
+
+  const handleSuggestionClick = (id: string) => {
+    router.push(`/products/${id}`);
+    setShowSuggestions(false);
+    setSearchValue("");
+  };
+
 
   useEffect(() => {
     document.body.style.overflow = mobileMenuActive ? "hidden" : "";
@@ -84,7 +144,31 @@ const Header: React.FC<Props> = ({ categories }) => {
                 fontSize: "1.25rem",
                 cursor: "pointer",
               }}
-            />
+              />
+               {showSuggestions && suggestions.length > 0 && (
+              <div className={styles.suggestionBox} ref={suggestionBoxRef}>
+                <ul className={styles.suggestionList}>
+                  {suggestions.map((prod) => (
+                    <li
+                      key={prod._id}
+                      className={styles.suggestionItem}
+                      onClick={() => handleSuggestionClick(prod._id)}
+                    >
+                      <img
+                        src={`http://localhost:3000/images/${prod.images[0]}`}
+                        alt={prod.name}
+                        className={styles.suggestionImg}
+                      />
+                      <span>{prod.name}</span>
+                    </li>
+                  ))}
+                </ul>
+                <div className={styles.suggestionFooter}  onClick={handleSearchAction}>
+                  <span>Xem thêm</span>
+                </div>
+              </div>
+            )}
+            
           </form>
           <div className={styles["header-icons"]}>
             <HeartOutlined />

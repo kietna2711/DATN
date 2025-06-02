@@ -109,6 +109,8 @@ export default function HomePage() {
       />
       <ServiceSection />
 
+      <BearStories />
+
 
 
     </main>
