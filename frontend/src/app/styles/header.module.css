@@ -132,7 +132,6 @@ body {
   top: 0;
   left: 0;
   background-color: white !important;
-  z-index: 9999;
   width: 100%;
   background: transparent;
   display: flex;
