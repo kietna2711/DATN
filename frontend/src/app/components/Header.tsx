@@ -14,7 +14,7 @@ import {
 import styles from "../styles/header.module.css";
 import { Category } from "../types/categoryD";
 import { getProducts } from "../services/productService"; // API lấy sản phẩm
-import { useRouter } from "next/navigation"; // nếu dùng App Router
+import { useRouter, useSearchParams  } from "next/navigation"; // nếu dùng App Router
 import Link from "next/link";
 import { Products } from "../types/productD";
 
@@ -32,9 +32,13 @@ const Header: React.FC<Props> = ({ categories }) => {
   const [showSuggestions, setShowSuggestions] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
   const suggestionBoxRef = useRef<HTMLDivElement>(null);
+  const searchParams = useSearchParams();
 
 
-  
+  useEffect(() => {
+  const searchString = searchParams.get("search") || "";
+  setSearchValue(searchString);
+}, [searchParams]);
 
   // Debounce search input
   useEffect(() => {
@@ -81,12 +85,11 @@ const Header: React.FC<Props> = ({ categories }) => {
   }, [showSuggestions]);
 
   const handleSearchAction = () => {
-    if (searchValue.trim()) {
-      router.push(`/products?search=${encodeURIComponent(searchValue.trim())}`);
-      setMobileMenuActive(false);
-      setShowSuggestions(false);
-    }
-  };
+  if (searchValue.trim()) {
+    const searchParam = encodeURIComponent(searchValue.trim());
+    window.location.href = `/products?search=${searchParam}`; // force reload giống như video
+  }
+};
 
   const handleSearch = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
