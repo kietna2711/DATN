@@ -13565,7 +13565,7 @@ be a descendant of the grid when it is being dragged.
 
 @media (min-width: 768px) {
   .app-content {
-    margin-left: 126px;
+    margin-left: 82px;
     margin-top: 10px;
   }
 }
@@ -15671,4 +15671,18 @@ text-align:center;
   padding: 5px 16px;
   background-color: white;
   color: white;
+}
+/* Hiệu ứng chuyển màu mượt */
+.toggle-visibility i {
+  transition: color 0.3s ease;
+}
+
+/* Khi user đang được hiển thị (visible: true) → màu xanh */
+.toggle-visibility.visible i {
+  color: #007BFF; /* Xanh nước biển */
+}
+
+/* Khi user đang bị ẩn (visible: false) → màu đen */
+.toggle-visibility.hidden i {
+  color: #000; /* Đen */
 }

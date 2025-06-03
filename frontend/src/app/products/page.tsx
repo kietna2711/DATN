@@ -70,9 +70,9 @@ export default function ProductsPage() {
         return min >= 300000 && min <= 500000;
       case "Từ 500.000 đ - 1.000.000 đ":
         return min > 500000 && min <= 1000000;
-      case "Từ 1.00.000 đ - 2.000.000 đ":
+      case "Từ 1.000.000 đ - 2.000.000 đ":
         return min > 1000000 && min <= 2000000;
-      case "Từ 2.00.000 đ - 3.000.000 đ":
+      case "Từ 2.000.000 đ - 3.000.000 đ":
         return min > 2000000 && min <= 3000000;
       default:
         return true;
