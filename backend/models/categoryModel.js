@@ -1,24 +1,14 @@
 const mongoose = require('mongoose');
-
 const categorySchema = new mongoose.Schema({
   name: { type: String, required: true },
-  hidden: {type: Boolean, required: true},
+  hidden: { type: Boolean, required: true }
 }, {
-  versionKey: false,
   toJSON: { virtuals: true },
-  toObject: { virtuals: true },
-  id: false
+  toObject: { virtuals: true }
 });
-
-// Tạo virtual cho mảng subcategories (danh mục con)
 categorySchema.virtual('subcategories', {
-  ref: 'subcategories',         // tên model
+  ref: 'subcategories',
   localField: '_id',
-  foreignField: 'categoryId'    // trùng với trường bên subcategory
+  foreignField: 'categoryId'
 });
-
-
-// Tạo model categories
-const categories = mongoose.model('categories', categorySchema);
-
-module.exports = categories;
+module.exports = mongoose.model('categories', categorySchema);

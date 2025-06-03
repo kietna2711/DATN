@@ -7,7 +7,7 @@ const getAllCategories = async (req, res) => {
   try {
     const categoriesList = await categories.find().populate({
       path: 'subcategories',
-      select: 'name'
+      select: 'name hidden'
     });
     res.status(200).json(categoriesList);
   } catch (error) {
@@ -90,22 +90,22 @@ const editCate = async (req, res) => {
 
 
 // Xóa sản phẩm 
-const deleteCate = async (req, res) => {
-    try {
-        const data = await categories.findByIdAndDelete(req.params.id);
+// const deleteCate = async (req, res) => {
+//     try {
+//         const data = await categories.findByIdAndDelete(req.params.id);
 
-        if (!data) {
-            return res.status(404).json({ message: 'Danh mục không tồn tại' });
-        }
+//         if (!data) {
+//             return res.status(404).json({ message: 'Danh mục không tồn tại' });
+//         }
 
-        res.status(200).json({ message: 'Xóa sản phẩm thành công' });
-    } catch (error) {
-        console.error(error);
-        res.status(500).json({ message: error.message });
-    }
-};
+//         res.status(200).json({ message: 'Xóa sản phẩm thành công' });
+//     } catch (error) {
+//         console.error(error);
+//         res.status(500).json({ message: error.message });
+//     }
+// };
 
 
 
 //export ra để các file khác có thể sử dụng
-module.exports ={ getAllCategories, getCategoryById, addCate, editCate, deleteCate};
+module.exports ={ getAllCategories, getCategoryById, addCate, editCate};

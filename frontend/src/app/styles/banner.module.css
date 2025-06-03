@@ -2,6 +2,7 @@
 .Slideshow {
   width: 100%;
   position: relative;
+  z-index: 200px;
   padding-bottom: 40px;
 }
 

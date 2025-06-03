@@ -128,7 +128,6 @@ body {
 
 /* MENU NGANG */
 .menu {
-  position: sticky;
   top: 0;
   left: 0;
   background-color: white !important;
@@ -150,6 +149,7 @@ body {
   list-style: none;
   margin: 0;
   padding: 0;
+
 }
 .menu ul li {
   position: relative;
@@ -179,7 +179,7 @@ body {
   /* border-radius: 8px; */
   /* box-shadow: 0 4px 14px var(--color-pink-shadow-submenu); */
   padding: 0;
-  z-index: 1200;
+  z-index: 1000;
 }
 .menu ul li:hover > ul.submenu,
 .menu ul li:focus-within > ul.submenu {

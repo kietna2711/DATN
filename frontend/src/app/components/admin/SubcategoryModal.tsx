@@ -1,16 +1,12 @@
-import { useEffect, useState } from "react";
+import React, { useState, useEffect } from "react";
 
-type CategoryModalProps = {
+type SubcategoryModalProps = {
   onClose: () => void;
-  onSave: (data: { name: string; hidden: boolean }) => void;
-  initialName?: string;
+  onSave: (name: string) => void;
+  initialName?: string; // truyền vào khi sửa, bỏ qua hoặc "" khi thêm mới
 };
 
-export const CategoryModal = ({
-  onClose,
-  onSave,
-  initialName = "",
-}: CategoryModalProps) => {
+export const SubcategoryModal = ({ onClose, onSave, initialName = "" }: SubcategoryModalProps) => {
   const [name, setName] = useState(initialName);
 
   useEffect(() => {
@@ -20,9 +16,8 @@ export const CategoryModal = ({
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (name.trim() === "") return;
-
-    onSave({ name: name.trim(), hidden: false });
-    onClose(); // Đóng modal sau khi lưu
+    onSave(name.trim());
+    onClose();
   };
 
   return (
@@ -32,7 +27,7 @@ export const CategoryModal = ({
           <div className="modal-content">
             <div className="modal-header">
               <h5 className="modal-title">
-                {initialName ? "Chỉnh sửa danh mục" : "Thêm danh mục"}
+                {initialName ? "Chỉnh sửa danh mục con" : "Thêm danh mục con"}
               </h5>
               <button type="button" className="btn-close" onClick={onClose}></button>
             </div>
@@ -40,10 +35,10 @@ export const CategoryModal = ({
               <input
                 type="text"
                 className="form-control"
+                placeholder="Nhập tên danh mục con"
                 value={name}
-                onChange={(e) => setName(e.target.value)}
+                onChange={e => setName(e.target.value)}
                 autoFocus
-                placeholder="Nhập tên danh mục"
               />
             </div>
             <div className="modal-footer">
@@ -51,7 +46,7 @@ export const CategoryModal = ({
                 Hủy
               </button>
               <button type="submit" className="btn btn-primary">
-                Lưu
+                {initialName ? "Lưu" : "Thêm"}
               </button>
             </div>
           </div>
