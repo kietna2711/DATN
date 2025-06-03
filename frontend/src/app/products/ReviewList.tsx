@@ -1,96 +1,126 @@
 "use client";
-import React, { useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import styles from "../styles/productsDetail.module.css";
 
 interface Review {
+  productId: string;
   name: string;
   rating: number;
   comment: string;
+  createdAt?: string;
+  status?: string; 
 }
 
-const reviews: Review[] = [
-  {
-    name: "Nguyễn Văn A",
-    rating: 5,
-    comment: "Sản phẩm rất đẹp, đáng tiền!",
-  },
-  {
-    name: "Nguyễn Văn B",
-    rating: 4,
-    comment: "Đóng gói đẹp, giao hàng nhanh.",
-  },
-  {
-    name: "Nguyễn Văn A",
-    rating: 5,
-    comment: "Sản phẩm rất đẹp, đáng tiền!",
-  },
-  {
-    name: "Nguyễn Văn B",
-    rating: 4,
-    comment: "Đóng gói đẹp, giao hàng nhanh.",
-  },
-  {
-    name: "Nguyễn Văn A",
-    rating: 5,
-    comment: "Sản phẩm rất đẹp, đáng tiền!",
-  },
-  {
-    name: "Nguyễn Văn B",
-    rating: 4,
-    comment: "Đóng gói đẹp, giao hàng nhanh.",
-  },
-  {
-    name: "Nguyễn Văn A",
-    rating: 5,
-    comment: "Sản phẩm rất đẹp, đáng tiền!",
-  },
-  {
-    name: "Nguyễn Văn B",
-    rating: 4,
-    comment: "Đóng gói đẹp, giao hàng nhanh.",
-  },
-  // ... những review khác
-];
+interface ReviewListProps {
+  productId: string;
+}
+
 
 const reviewsPerPage = 7;
 
-const ReviewList: React.FC = () => {
+function formatDate(dateString?: string) {
+  if (!dateString) return "";
+  const date = new Date(dateString);
+  return `${date.getDate().toString().padStart(2, "0")}/${(date.getMonth() + 1)
+    .toString().padStart(2, "0")}/${date.getFullYear()}`;
+}
+
+const ReviewList: React.FC<ReviewListProps> = ({ productId }) => {
+  const [reviews, setReviews] = useState<Review[]>([]);
   const [page, setPage] = useState<number>(1);
+  const [loading, setLoading] = useState<boolean>(true);
+  const isFirstLoad = useRef(true);
+
+  useEffect(() => {
+    let interval: NodeJS.Timeout;
+
+    const fetchReviews = () => {
+      if (isFirstLoad.current) setLoading(true);
+      fetch('http://localhost:3000/reviews?productId=' + productId)
+        .then((res) => res.json())
+        .then((data) => {
+          setReviews(data.reviews);
+          setLoading(false);
+          isFirstLoad.current = false;
+        })
+        .catch(() => setLoading(false));
+    };
+
+    fetchReviews();
+    interval = setInterval(fetchReviews, 5000);
+
+    return () => clearInterval(interval);
+  }, [productId]);
 
   const totalPages = Math.ceil(reviews.length / reviewsPerPage);
   const reviewsToShow = reviews.slice(
     (page - 1) * reviewsPerPage,
     page * reviewsPerPage
   );
+  const totalReviews = reviews.length;
+  const avgRating = totalReviews === 0
+    ? 0
+    : reviews.reduce((sum, r) => sum + r.rating, 0) / totalReviews;
+  const avgRatingRounded = Math.round(avgRating * 10) / 10;
 
   return (
     <div className={styles.review_section}>
-      <h2>Đánh giá của khách hàng</h2>
-      <div id="review-list">
-        {reviewsToShow.map((r, i) => (
-          <div className={styles.review_item} key={i}>
-            <div className={styles.reviewHeader}>
-              <span className={styles.reviewerName}>{r.name}</span>
-              <span className={styles.reviewRating}>{"⭐".repeat(r.rating)}</span>
-            </div>
-            <div className={styles.reviewComment}>{r.comment}</div>
+
+      <div className={styles.avg_rating}>
+        <p>Trung bình:</p>
+        <span className={styles.avg_rating_number}>{avgRatingRounded}</span>
+        <span className={styles.star_icons}>
+          {Array.from({ length: 5 }).map((_, idx) => (
+            <span key={idx}>
+              {avgRatingRounded >= idx + 1
+                ? "★" 
+                : avgRatingRounded >= idx + 0.5
+                  ? "☆" // half star có thể thay bằng unicode đặc biệt hoặc SVG
+                  : "☆"} 
+            </span>
+          ))}
+        </span>
+         <h2>Đánh giá của khách hàng</h2>
+      </div>
+     
+      {loading ? (
+        <div>Đang tải đánh giá...</div>
+      ) : (
+        <>
+          <div id="review-list">
+            {reviewsToShow.length === 0 && <div>Chưa có đánh giá nào.</div>}
+            {reviewsToShow.map((r, i) => (
+              <div className={styles.review_item} key={i}>
+                <div className={styles.reviewHeader}>
+                  <span className={styles.reviewerName}>{r.name}</span>
+                  <span className={styles.reviewRating}>
+                    {"⭐".repeat(r.rating)}
+                  </span>
+                </div>
+                <div className={styles.reviewComment}>{r.comment}</div>
+                {r.createdAt && (
+                  <span className={styles.reviewDate}>
+                    {formatDate(r.createdAt)}
+                  </span>
+                )}
+              </div>
+            ))}
           </div>
-        ))}
-      </div>
-      <div id="pagination">
-        {Array.from({ length: totalPages }).map((_, idx) => (
-          <button
-            key={idx}
-            className={`${styles.paginationBtn} ${
-              page === idx + 1 ? styles.paginationBtn_active : ""
-            }`}
-            onClick={() => setPage(idx + 1)}
-            type="button"
-          >
-            {idx + 1}
-          </button>
-        ))}
-      </div>
+          <div id="pagination">
+            {Array.from({ length: totalPages }).map((_, idx) => (
+              <button
+                key={idx}
+                className={`${styles.paginationBtn} ${page === idx + 1 ? styles.paginationBtn_active : ""
+                  }`}
+                onClick={() => setPage(idx + 1)}
+                type="button"
+              >
+                {idx + 1}
+              </button>
+            ))}
+          </div>
+        </>
+      )}
     </div>
   );
 };

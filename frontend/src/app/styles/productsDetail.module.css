@@ -1064,3 +1064,28 @@
   max-height: 1000px;
   opacity: 1;
 }
+.avg_rating {
+  display: flex;
+  align-items: center;
+  font-size: 1.2rem;
+  margin-bottom: 12px;
+  gap: 8px;
+}
+
+.avg_rating_number {
+  font-weight: bold;
+  color: #f59e42; /* Màu cam kiểu sao vàng */
+  font-size: 1.5rem;
+}
+
+.star_icons {
+  color: #f7b500; /* Màu vàng sao */
+  font-size: 1.3rem;
+  letter-spacing: 2px;
+}
+
+.avg_rating_text {
+  margin-left: 4px;
+  color: #888;
+  font-size: 1rem;
+}

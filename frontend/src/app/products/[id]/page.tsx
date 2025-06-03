@@ -8,6 +8,7 @@ import styles from "../../styles/productsDetail.module.css";
 import { Products } from "../../types/productD";
 import RelatedProductsSection from '@/app/components/RelatedProductsSection';
 import InstagramSection from "@/app/components/InstagramSection";
+import ReviewForm from "../ReviewForm";
 
 export default async function ProductPage({
   params,
@@ -49,8 +50,10 @@ const relatedProducts = allProducts.filter((p) => {
         </div>
         <div className={styles.content_container_tong}>
           <ProductTabs product={product} />
-          <ReviewList />
+           <ReviewList productId={product._id} />
+           
         </div>
+        <ReviewForm productId={product._id} />
       </div>
 
       {/* --- Sản phẩm liên quan --- */}
