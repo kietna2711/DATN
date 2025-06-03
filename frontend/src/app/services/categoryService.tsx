@@ -9,6 +9,13 @@ export const getCategories = async (): Promise<Category[]> => {
   return res.json();
 };
 
+// Lấy chi tiết 1 danh mục theo ID từ backend (đã có populate)
+export const getCategoryById = async (_id: string): Promise<Category> => {
+  const res = await fetch(`${API_URL}/${_id}`);
+  if (!res.ok) throw new Error("Không tìm thấy danh mục với id: " + _id);
+  return res.json();
+};
+
 // Thêm danh mục mới (C)
 export const createCategory = async (data: Omit<Category, "_id">): Promise<Category> => {
   const res = await fetch(API_URL, {
@@ -31,17 +38,3 @@ export const updateCategory = async (_id: string, data: Partial<Category>): Prom
   return res.json();
 };
 
-// Xoá danh mục (D)
-export const deleteCategory = async (_id: string): Promise<void> => {
-  const res = await fetch(`${API_URL}/${_id}`, {
-    method: "DELETE",
-  });
-  if (!res.ok) throw new Error("Lỗi khi xoá danh mục");
-};
-
-// Lấy chi tiết 1 danh mục theo ID từ backend (đã có populate)
-export const getCategoryById = async (_id: string): Promise<Category> => {
-  const res = await fetch(`http://localhost:3000/categories/${_id}`);
-  if (!res.ok) throw new Error("Không tìm thấy danh mục với id: " + _id);
-  return res.json();
-};

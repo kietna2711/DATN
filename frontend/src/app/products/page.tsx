@@ -32,6 +32,7 @@ export default function ProductsPage() {
     useEffect(() => {
     setCurrentPage(1);
     console.log("Từ khóa tìm kiếm thay đổi:", searchQuery);
+    
   }, [searchQuery]);
 
 
@@ -162,7 +163,7 @@ export default function ProductsPage() {
             <option>Dưới 300.000 đ</option>
             <option>Từ 300.000 đ - 500.000 đ</option>
             <option>Từ 500.000 đ - 1.000.000 đ</option>
-            <option>Từ 1.00.000 đ - 2.000.000 đ</option>
+            <option>Từ 1.000.000 đ - 2.000.000 đ</option>
             <option>Từ 2.00.000 đ - 3.000.000 đ</option>
           </select>
         </div>
