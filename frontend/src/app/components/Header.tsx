@@ -18,7 +18,6 @@ import { useRouter } from "next/navigation"; // nếu dùng App Router
 import Link from "next/link";
 import { Products } from "../types/productD";
 
-
 type Props = {
   categories: Category[];
 };
@@ -80,6 +79,10 @@ const Header: React.FC<Props> = ({ categories }) => {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [showSuggestions]);
 
+  const [showUserMenu, setShowUserMenu] = useState(false);
+  const userMenuRef = useRef<HTMLDivElement>(null);
+
+
   const handleSearchAction = () => {
     if (searchValue.trim()) {
       router.push(`/products?search=${encodeURIComponent(searchValue.trim())}`);
@@ -115,6 +118,23 @@ const Header: React.FC<Props> = ({ categories }) => {
   };
 
   const visibleCategories = categories.filter((c) => !c.hidden);
+
+  // Đóng menu khi click ra ngoài
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (userMenuRef.current && !userMenuRef.current.contains(event.target as Node)) {
+        setShowUserMenu(false);
+      }
+    }
+    if (showUserMenu) {
+      document.addEventListener("mousedown", handleClickOutside);
+    } else {
+      document.removeEventListener("mousedown", handleClickOutside);
+    }
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [showUserMenu]);
 
   return (
     <>
@@ -173,9 +193,21 @@ const Header: React.FC<Props> = ({ categories }) => {
           <div className={styles["header-icons"]}>
             <HeartOutlined />
             <ShoppingOutlined />
-            <Link href="/login">
-    <UserOutlined style={{ cursor: "pointer" }} />
-  </Link>
+            <div
+              className={styles["user-menu-wrap"]}
+              onMouseEnter={() => setShowUserMenu(true)}
+              onMouseLeave={() => setShowUserMenu(false)}
+              ref={userMenuRef}
+              style={{ position: "relative", display: "inline-block" }}
+            >
+              <UserOutlined style={{ cursor: "pointer" }} />
+              {showUserMenu && (
+                <div className={styles["user-menu-dropdown"]}>
+                  <Link href="/login" className={styles["user-menu-btn"]}>Đăng nhập</Link>
+                  <Link href="/register" className={styles["user-menu-btn"]}>Đăng ký</Link>
+                </div>
+              )}
+            </div>
           </div>
           <button className={styles["menu-btn"]} onClick={openMobileMenu}>
             <MenuOutlined />

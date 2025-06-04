@@ -1,17 +1,52 @@
 "use client";
 import React, { useState } from "react";
-import "./login.css"; // Copy toàn bộ CSS của bạn vào file này
+import "./login.css";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 
 export default function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [remember, setRemember] = useState(false);
+  const [error, setError] = useState("");
+  const router = useRouter();
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Xử lý đăng nhập ở đây
-    alert(`Email: ${email}\nPassword: ${password}\nRemember: ${remember}`);
+    setError("");
+    try {
+      // Lấy danh sách user từ API
+      const res = await fetch("http://localhost:3000/users");
+      const users = await res.json();
+
+      // Tìm user khớp email và password
+      const found = users.find(
+        (u: any) => u.email === email && u.password === password
+      );
+
+      if (!found) {
+        setError("Sai tài khoản hoặc mật khẩu!");
+        return;
+      }
+
+      // Kiểm tra tài khoản bị khóa
+      if (!found.visible) {
+        setError("Tài khoản của bạn đã bị khóa. Vui lòng liên hệ quản trị viên.");
+        return;
+      }
+
+      // Lưu thông tin user vào localStorage (hoặc sessionStorage)
+      localStorage.setItem("user", JSON.stringify(found));
+      if (remember) {
+        localStorage.setItem("remember", "true");
+      } else {
+        localStorage.removeItem("remember");
+      }
+      // Chuyển hướng sang trang chủ
+      router.push("/");
+    } catch (err) {
+      setError("Lỗi kết nối máy chủ!");
+    }
   };
 
   return (
@@ -26,6 +61,7 @@ export default function Login() {
         <div className="bear-ear left-ear"></div>
         <div className="bear-ear right-ear"></div>
         <h2>Đăng Nhập</h2>
+        {error && <div style={{ color: "red", marginBottom: 10 }}>{error}</div>}
         <input
           type="email"
           placeholder="Email"
@@ -53,7 +89,13 @@ export default function Login() {
         </div>
         <button type="submit">Đăng nhập</button>
         <div className="social-login">
-          <button className="google-btn" type="button">
+          <button
+            className="google-btn"
+            type="button"
+            onClick={() =>
+              (window.location.href = "http://localhost:3000/users/auth/google")
+            }
+          >
             <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/google/google-original.svg" alt="" />
             Google
           </button>

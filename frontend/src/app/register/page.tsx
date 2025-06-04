@@ -10,8 +10,9 @@ export default function Register() {
   const [password, setPassword] = useState("");
   const [confirm, setConfirm] = useState("");
   const [agree, setAgree] = useState(false);
+  const [loading, setLoading] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!agree) {
       alert("Bạn phải đồng ý với Điều khoản!");
@@ -21,8 +22,49 @@ export default function Register() {
       alert("Mật khẩu nhập lại không khớp!");
       return;
     }
-    // Xử lý đăng ký ở đây
-    alert(`Đăng ký thành công cho ${firstName} ${lastName} (${email})`);
+    setLoading(true);
+
+    try {
+      // Thay đổi URL backend đúng với server của bạn
+      const res = await fetch("http://localhost:3000/users/register", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          email,
+          password,
+          firstName,
+          lastName,
+        }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        alert(
+          `Đăng ký thất bại: ${
+            data?.message || JSON.stringify(data) || "Lỗi server"
+          }`
+        );
+      } else {
+        alert(`Đăng ký thành công cho ${email}`);
+        // Reset form
+        setFirstName("");
+        setLastName("");
+        setEmail("");
+        setPassword("");
+        setConfirm("");
+        setAgree(false);
+        // Chuyển hướng sang trang đăng nhập
+        window.location.href = "/login";
+      }
+    } catch (error) {
+      alert("Lỗi kết nối đến server");
+      console.error(error);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -44,14 +86,14 @@ export default function Register() {
               placeholder="Tên *"
               required
               value={firstName}
-              onChange={e => setFirstName(e.target.value)}
+              onChange={(e) => setFirstName(e.target.value)}
             />
             <input
               type="text"
               placeholder="Họ *"
               required
               value={lastName}
-              onChange={e => setLastName(e.target.value)}
+              onChange={(e) => setLastName(e.target.value)}
             />
           </div>
           <input
@@ -59,45 +101,75 @@ export default function Register() {
             placeholder="Địa chỉ Email"
             required
             value={email}
-            onChange={e => setEmail(e.target.value)}
+            onChange={(e) => setEmail(e.target.value)}
+            autoComplete="new-email"
           />
           <input
             type="password"
             placeholder="Mật khẩu"
             required
             value={password}
-            onChange={e => setPassword(e.target.value)}
+            onChange={(e) => setPassword(e.target.value)}
+            autoComplete="new-password"
           />
           <input
             type="password"
             placeholder="Nhập lại mật khẩu"
             required
             value={confirm}
-            onChange={e => setConfirm(e.target.value)}
+            onChange={(e) => setConfirm(e.target.value)}
+            autoComplete="new-password"
           />
           <div className="login-options">
             <label className="remember-me">
               <input
                 type="checkbox"
-                required
                 checked={agree}
-                onChange={e => setAgree(e.target.checked)}
+                onChange={(e) => setAgree(e.target.checked)}
               />
-              Tôi đồng ý với <a href="#" style={{ color: "#d16ba5", textDecoration: "underline" }}>Điều khoản</a>
+              Tôi đồng ý với{" "}
+              <a
+                href="#"
+                style={{ color: "#d16ba5", textDecoration: "underline" }}
+              >
+                Điều khoản
+              </a>
             </label>
           </div>
-          <button type="submit">Đăng ký</button>
+          <button type="submit" disabled={loading}>
+            {loading ? "Đang đăng ký..." : "Đăng ký"}
+          </button>
           <div className="social-login">
-            <button className="google-btn" type="button">
-              <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/google/google-original.svg" alt="" />
+            <button
+              className="google-btn"
+              type="button"
+              onClick={() =>
+                (window.location.href = "http://localhost:3000/users/auth/google")
+              }
+            >
+              <img
+                src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/google/google-original.svg"
+                alt=""
+              />
               Google
             </button>
-            <button className="facebook-btn" type="button">
-              <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/facebook/facebook-original.svg" alt="" />
+            <button
+              className="facebook-btn"
+              type="button"
+              onClick={() =>
+                (window.location.href = "http://localhost:3000/users/auth/facebook")
+              }
+            >
+              <img
+                src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/facebook/facebook-original.svg"
+                alt=""
+              />
               Facebook
             </button>
           </div>
-          <Link href="/login" className="register-link">Đã có tài khoản? Đăng nhập</Link>
+          <Link href="/login" className="register-link">
+            Đã có tài khoản? Đăng nhập
+          </Link>
         </form>
       </div>
     </div>

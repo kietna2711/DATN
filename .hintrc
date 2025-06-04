@@ -8,7 +8,8 @@
       "default",
       {
         "label": "off",
-        "select-name": "off"
+        "select-name": "off",
+        "autocomplete-valid": "off"
       }
     ],
     "axe/name-role-value": [
