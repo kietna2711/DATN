@@ -36,11 +36,21 @@ const register =  async (req, res) => {
         // Tạo một instance mới của userModel
         const newUser = new userModel({
             email: req.body.email,
-            password: hashPassword
+            password: hashPassword,
+            firstName: req.body.firstName,
+            lastName: req.body.lastName,
+            username: req.body.username, 
         });
         // Lưu vào database bằng hàm save()
         const data = await newUser.save();
-        res.json(data);
+
+        // Tạo token cho user mới
+        const token = jwt.sign({ id: data._id, email: data.email, role: data.role }, 'conguoiyeuchua', {
+            expiresIn: '1h'
+        });
+
+        // Trả về cả user và token
+        res.json({ user: data, token });
     } catch (error) {
         res.status(500).json({ message: error.message });
     }
@@ -49,26 +59,22 @@ const register =  async (req, res) => {
 
 const login = [upload.single('img'), async (req, res) => {
     try {
-        // Kiểm tra email có tồn tại không
-        console.log(req.body);
         const checkUser = await userModel.findOne({
             email: req.body.email
         });
-        console.log(checkUser);
         if (!checkUser) {
             throw new Error('Email không tồn tại');
         }
-        // So sánh mật khẩu
         const isMatch = await bcrypt.compare(req.body.password, checkUser.password);
         if (!isMatch) {
             throw new Error('Mật khẩu không đúng');
         }
-        // Tạo token với mã bí mật là 'secretkey' và thời gian sống là 1 giờ
-        // token sẽ chứa thông tin user id, email, role
         const token = jwt.sign({ id: checkUser._id, email: checkUser.email, role: checkUser.role }, 'conguoiyeuchua', {
             expiresIn: '1h'
         });
-        res.json(token);
+        // Không trả về password!
+        const { password, ...userWithoutPassword } = checkUser.toObject();
+        res.json({ user: userWithoutPassword, token });
     } catch (error) {
         res.status(500).json({ message: error.message });
     }

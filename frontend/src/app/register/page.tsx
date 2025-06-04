@@ -11,6 +11,7 @@ export default function Register() {
   const [confirm, setConfirm] = useState("");
   const [agree, setAgree] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [username, setUsername] = useState("");
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -36,6 +37,7 @@ export default function Register() {
           password,
           firstName,
           lastName,
+          username,
         }),
       });
 
@@ -48,6 +50,13 @@ export default function Register() {
           }`
         );
       } else {
+        // Lưu user (chứa username, firstName, lastName, ...) vào localStorage nếu có
+        if (data.user) {
+          localStorage.setItem("user", JSON.stringify(data.user));
+        }
+        if (data.token) {
+          localStorage.setItem("token", data.token);
+        }
         alert(`Đăng ký thành công cho ${email}`);
         // Reset form
         setFirstName("");
@@ -56,6 +65,7 @@ export default function Register() {
         setPassword("");
         setConfirm("");
         setAgree(false);
+        setUsername("");
         // Chuyển hướng sang trang đăng nhập
         window.location.href = "/login";
       }
@@ -96,6 +106,13 @@ export default function Register() {
               onChange={(e) => setLastName(e.target.value)}
             />
           </div>
+          <input
+            type="text"
+            placeholder="Tên đăng nhập *"
+            required
+            value={username}
+            onChange={(e) => setUsername(e.target.value)}
+          />
           <input
             type="email"
             placeholder="Địa chỉ Email"
