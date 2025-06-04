@@ -17,6 +17,7 @@ var productsRouter = require('./routes/products');
 const variantsRouter = require('./routes/variants');
 const subcategoryRouter = require('./routes/subcategory');
 const reviewRoutes = require("./routes/review");
+const reviewController = require('./controllers/reviewController');
 
 
 var app = express();
@@ -40,6 +41,7 @@ app.use('/products', productsRouter);
 app.use('/variants', variantsRouter);
 app.use('/subcategory', subcategoryRouter);
 app.use("/reviews", reviewRoutes); 
+app.get('/admin/reviews', reviewController.getReviewsAdmin);
 
 
 

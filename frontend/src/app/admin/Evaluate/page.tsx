@@ -43,7 +43,7 @@ export default function ReviewManagement() {
     async function fetchReviews() {
       setLoading(true);
       try {
-        const res = await fetch("http://localhost:3000/reviews");
+        const res = await fetch('http://localhost:3000/admin/reviews');
         if (!res.ok) throw new Error("Lỗi mạng!");
         const data = await res.json();
         setReviews(Array.isArray(data.reviews) ? data.reviews : []);

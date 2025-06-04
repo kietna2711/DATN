@@ -1,25 +1,19 @@
 const Review = require("../models/reviewModel");
 
 // Lấy review cho khách hàng (ẩn review đã bị admin ẩn, hoặc lấy tất cả cho admin)
+
+// Route: /reviews
 exports.getReviews = async (req, res) => {
   try {
-    const { productId, search, page = 1, limit = 10, all } = req.query;
-
-    // Xây dựng query
-    const query = {};
-    if (productId) {
-      query.productId = productId;
-    }
-    if (!all) { // Nếu không phải admin, chỉ lấy review visible
-      query.status = "visible";
-    }
+    const { productId, search, page = 1, limit = 10 } = req.query;
+    const query = { status: "visible" }; 
+    if (productId) query.productId = productId;
     if (search) {
       query.$or = [
         { name: { $regex: search, $options: "i" } },
         { comment: { $regex: search, $options: "i" } }
       ];
     }
-
     const skip = (parseInt(page) - 1) * parseInt(limit);
 
     const total = await Review.countDocuments(query);
@@ -35,7 +29,36 @@ exports.getReviews = async (req, res) => {
       reviews
     });
   } catch (err) {
-    console.error("Lỗi lấy review:", err);
+    res.status(500).json({ error: "Lỗi server khi lấy review" });
+  }
+};
+// Route: /admin/reviews
+exports.getReviewsAdmin = async (req, res) => {
+  try {
+    const { productId, search, page = 1, limit = 10 } = req.query;
+    const query = {};
+    if (productId) query.productId = productId;
+    if (search) {
+      query.$or = [
+        { name: { $regex: search, $options: "i" } },
+        { comment: { $regex: search, $options: "i" } }
+      ];
+    }
+    const skip = (parseInt(page) - 1) * parseInt(limit);
+
+    const total = await Review.countDocuments(query);
+    const reviews = await Review.find(query)
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(parseInt(limit));
+
+    res.json({
+      total,
+      page: parseInt(page),
+      limit: parseInt(limit),
+      reviews
+    });
+  } catch (err) {
     res.status(500).json({ error: "Lỗi server khi lấy review" });
   }
 };
