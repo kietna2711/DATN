@@ -7,7 +7,8 @@ router.get("/", reviewController.getReviews);
 
 // POST: thêm review mới
 router.post("/", reviewController.createReview);
+
 // PATCH: đổi trạng thái review (ẩn/hiện)
-router.patch("/reviews/:id/toggle-status", reviewController.toggleReviewStatus);
+router.patch("/:id/toggle-status", reviewController.toggleReviewStatus);
 
 module.exports = router;

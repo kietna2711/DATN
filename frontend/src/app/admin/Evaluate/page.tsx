@@ -4,7 +4,8 @@ import "bootstrap/dist/css/bootstrap.min.css";
 import "@fortawesome/fontawesome-free/css/all.min.css";
 import "boxicons/css/boxicons.min.css";
 import "../admin.css";
-
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 type Review = {
   _id: string;
@@ -15,7 +16,6 @@ type Review = {
   status: "visible" | "hidden";
   createdAt: string;
 };
-
 
 function renderStars(stars: number) {
   const full = Math.floor(stars);
@@ -43,16 +43,13 @@ export default function ReviewManagement() {
     async function fetchReviews() {
       setLoading(true);
       try {
-        // Đổi URL thành endpoint thật của bạn (ví dụ: /api/reviews)
         const res = await fetch("http://localhost:3000/reviews");
         if (!res.ok) throw new Error("Lỗi mạng!");
         const data = await res.json();
-        console.log("Đánh giá:", data);
-        setReviews(data.reviews);
-        
+        setReviews(Array.isArray(data.reviews) ? data.reviews : []);
       } catch (error) {
         setReviews([]);
-        // Có thể show toast lỗi ở đây
+        toast.error("Không thể tải dữ liệu đánh giá!");
       }
       setLoading(false);
     }
@@ -86,44 +83,37 @@ export default function ReviewManagement() {
     return () => clearInterval(timer);
   }, []);
 
-  // Toggle ẩn/hiện đánh giá (bạn cần gọi API update backend thực tế)
+  // Toggle ẩn/hiện đánh giá
   const handleToggleVisibility = async (id: string) => {
-    // Gọi API PATCH/PUT để update visible trên server (nếu có)
-    // await fetch(`/api/reviews/${id}/toggle-visibility`, { method: "PATCH" });
-    const handleToggleVisibility = async (id: string) => {
-  try {
-    // Gọi API PATCH để đổi trạng thái trên backend
-    const res = await fetch(`http://localhost:3000/reviews/${id}/toggle-status`, {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-    });
-    if (!res.ok) throw new Error("Đổi trạng thái thất bại");
-    const updatedReview = await res.json();
+    try {
+      const res = await fetch(`http://localhost:3000/reviews/${id}/toggle-status`, { method: "PATCH" });
+      if (!res.ok) throw new Error("Đổi trạng thái thất bại");
+      const updatedReview = await res.json();
 
-    // Cập nhật lại state cho review vừa đổi trạng thái
-    setReviews(reviews =>
-      reviews.map(r =>
-        r._id === id ? { ...r, status: updatedReview.status } : r
-      )
-    );
-  } catch (err) {
-    alert("Không thể đổi trạng thái review!");
-  }
-};
+      setReviews(reviews =>
+        reviews.map(r =>
+          r._id === id ? { ...r, status: updatedReview.status } : r
+        )
+      );
 
-    // Update UI tạm thời (bạn nên update lại từ API sau khi call xong)
-    setReviews(reviews =>
-      reviews.map(r =>
-        r._id === id ? { ...r, status: r.status === "visible" ? "hidden" : "visible" } : r
-      )
-    );
+      toast.success(
+        updatedReview.status === "visible"
+          ? "Đánh giá đã được hiển thị!"
+          : "Đánh giá đã được ẩn!"
+      );
+    } catch (err) {
+      toast.error("Không thể đổi trạng thái review!");
+    }
   };
 
   return (
     <main className="app-content">
+      <ToastContainer position="top-right" autoClose={2000} />
       <div className="app-title">
         <ul className="app-breadcrumb breadcrumb side">
-          <li className="breadcrumb-item active"><a href="#"><b>Quản lý đánh giá</b></a></li>
+          <li className="breadcrumb-item active">
+            <a href="#"><b>Quản lý đánh giá</b></a>
+          </li>
         </ul>
         <div id="clock">{clock}</div>
       </div>

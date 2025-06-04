@@ -39,7 +39,7 @@ app.use('/categories', categoriesRouter);
 app.use('/products', productsRouter);
 app.use('/variants', variantsRouter);
 app.use('/subcategory', subcategoryRouter);
-app.use("/reviews", reviewRoutes);
+app.use("/reviews", reviewRoutes); 
 
 
 

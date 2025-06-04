@@ -1,18 +1,18 @@
 const Review = require("../models/reviewModel");
 
-// Lấy review cho khách hàng (ẩn review đã bị admin ẩn)
+// Lấy review cho khách hàng (ẩn review đã bị admin ẩn, hoặc lấy tất cả cho admin)
 exports.getReviews = async (req, res) => {
   try {
-    const { productId, search, page = 1, limit = 10 } = req.query;
+    const { productId, search, page = 1, limit = 10, all } = req.query;
 
+    // Xây dựng query
     const query = {};
-
-    // Lọc theo productId nếu có
     if (productId) {
       query.productId = productId;
     }
-
-    // Tìm kiếm theo tên người đánh giá hoặc nội dung comment
+    if (!all) { // Nếu không phải admin, chỉ lấy review visible
+      query.status = "visible";
+    }
     if (search) {
       query.$or = [
         { name: { $regex: search, $options: "i" } },
@@ -24,7 +24,7 @@ exports.getReviews = async (req, res) => {
 
     const total = await Review.countDocuments(query);
     const reviews = await Review.find(query)
-      .sort({ createdAt: -1 }) // mới nhất lên trước
+      .sort({ createdAt: -1 })
       .skip(skip)
       .limit(parseInt(limit));
 
@@ -63,7 +63,7 @@ exports.createReview = async (req, res) => {
 // Đổi trạng thái review (ẩn/hiện)
 exports.toggleReviewStatus = async (req, res) => {
   try {
-    const { id } = req.params; // id review
+    const { id } = req.params;
     const review = await Review.findById(id);
     if (!review) return res.status(404).json({ error: "Không tìm thấy review" });
     review.status = review.status === "visible" ? "hidden" : "visible";
