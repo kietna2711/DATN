@@ -80,6 +80,8 @@ const Header: React.FC<Props> = ({ categories }) => {
   }, [showSuggestions]);
 
   const [showUserMenu, setShowUserMenu] = useState(false);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [username, setUsername] = useState<string | null>(null);
   const userMenuRef = useRef<HTMLDivElement>(null);
 
 
@@ -136,6 +138,56 @@ const Header: React.FC<Props> = ({ categories }) => {
     };
   }, [showUserMenu]);
 
+  useEffect(() => {
+    setIsLoggedIn(!!localStorage.getItem("user"));
+    // Lắng nghe sự thay đổi localStorage từ các tab khác (nếu cần)
+    const handleStorage = () => setIsLoggedIn(!!localStorage.getItem("user"));
+    window.addEventListener("storage", handleStorage);
+    return () => window.removeEventListener("storage", handleStorage);
+  }, []);
+
+  useEffect(() => {
+    const userStr = localStorage.getItem("user");
+    if (userStr) {
+      try {
+        const userObj = JSON.parse(userStr);
+        setUsername(userObj.username || userObj.firstName || null);
+      } catch {
+        setUsername(null);
+      }
+    } else {
+      setUsername(null);
+    }
+    // Lắng nghe sự thay đổi user
+    const handleStorage = () => {
+      const userStr = localStorage.getItem("user");
+      if (userStr) {
+        try {
+          const userObj = JSON.parse(userStr);
+          setUsername(userObj.username || userObj.firstName || null);
+        } catch {
+          setUsername(null);
+        }
+      } else {
+        setUsername(null);
+      }
+    };
+    window.addEventListener("storage", handleStorage);
+    window.addEventListener("userChanged", handleStorage);
+    return () => {
+      window.removeEventListener("storage", handleStorage);
+      window.removeEventListener("userChanged", handleStorage);
+    };
+  }, []);
+
+  const handleLogout = () => {
+    localStorage.removeItem("user");
+    localStorage.removeItem("token");
+    setIsLoggedIn(false);
+    setShowUserMenu(false);
+    window.location.reload();
+  };
+
   return (
     <>
       <header className={styles.header}>
@@ -191,21 +243,62 @@ const Header: React.FC<Props> = ({ categories }) => {
             
           </form>
           <div className={styles["header-icons"]}>
+           
             <HeartOutlined />
             <ShoppingOutlined />
-            <div
+             <div
               className={styles["user-menu-wrap"]}
               onMouseEnter={() => setShowUserMenu(true)}
               onMouseLeave={() => setShowUserMenu(false)}
               ref={userMenuRef}
-              style={{ position: "relative", display: "inline-block" }}
+              style={{ position: "relative", display: "inline-block", marginLeft: 8 }}
             >
-              <UserOutlined style={{ cursor: "pointer" }} />
-              {showUserMenu && (
-                <div className={styles["user-menu-dropdown"]}>
-                  <Link href="/login" className={styles["user-menu-btn"]}>Đăng nhập</Link>
-                  <Link href="/register" className={styles["user-menu-btn"]}>Đăng ký</Link>
-                </div>
+              {isLoggedIn && username ? (
+                <>
+                  <span
+                    style={{
+                      fontWeight: 500,
+                      color: "#b94490",
+                      cursor: "pointer",
+                      padding: "4px 12px",
+                      borderRadius: "16px",
+                      background: "#fff",
+                    }}
+                  >
+                    Xin chào, {username}
+                  </span>
+                  {showUserMenu && (
+                    <div className={styles["user-menu-dropdown"]}>
+                      <button
+                        className={styles["user-menu-btn"]}
+                        onClick={handleLogout}
+                        style={{
+                          width: "100%",
+                          textAlign: "left",
+                          background: "none",
+                          border: "none",
+                          cursor: "pointer",
+                        }}
+                      >
+                        Đăng xuất
+                      </button>
+                    </div>
+                  )}
+                </>
+              ) : (
+                <>
+                  <UserOutlined style={{ cursor: "pointer", fontSize: 22 }} />
+                  {showUserMenu && (
+                    <div className={styles["user-menu-dropdown"]}>
+                      <Link href="/login" className={styles["user-menu-btn"]}>
+                        Đăng nhập
+                      </Link>
+                      <Link href="/register" className={styles["user-menu-btn"]}>
+                        Đăng ký
+                      </Link>
+                    </div>
+                  )}
+                </>
               )}
             </div>
           </div>

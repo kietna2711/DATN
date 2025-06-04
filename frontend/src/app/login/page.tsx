@@ -15,35 +15,36 @@ export default function Login() {
     e.preventDefault();
     setError("");
     try {
-      // Lấy danh sách user từ API
-      const res = await fetch("http://localhost:3000/users");
-      const users = await res.json();
+      const res = await fetch("http://localhost:3000/users/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password }),
+      });
+      const data = await res.json();
 
-      // Tìm user khớp email và password
-      const found = users.find(
-        (u: any) => u.email === email && u.password === password
-      );
-
-      if (!found) {
-        setError("Sai tài khoản hoặc mật khẩu!");
+      if (!res.ok) {
+        setError(data.message || "Sai tài khoản hoặc mật khẩu!");
         return;
       }
 
-      // Kiểm tra tài khoản bị khóa
-      if (!found.visible) {
+      // Kiểm tra tài khoản bị khóa (nếu backend trả về)
+      if (data.user && data.user.visible === false) {
         setError("Tài khoản của bạn đã bị khóa. Vui lòng liên hệ quản trị viên.");
         return;
       }
 
-      // Lưu thông tin user vào localStorage (hoặc sessionStorage)
-      localStorage.setItem("user", JSON.stringify(found));
-      if (remember) {
-        localStorage.setItem("remember", "true");
+      // Lưu user và token vào localStorage
+      localStorage.setItem("user", JSON.stringify(data.user));
+      localStorage.setItem("token", data.token);
+      // Thông báo cho các component khác biết đã đăng nhập
+      window.dispatchEvent(new Event("userChanged"));
+
+      // Chuyển hướng theo role
+      if (data.user.role === "admin") {
+        router.push("/admin");
       } else {
-        localStorage.removeItem("remember");
+        router.push("/");
       }
-      // Chuyển hướng sang trang chủ
-      router.push("/");
     } catch (err) {
       setError("Lỗi kết nối máy chủ!");
     }
