@@ -23,13 +23,13 @@
 body {
   margin: 0;
   padding: 0;
-  font-family: 'Baloo 2', cursive, sans-serif;
+  box-sizing: border-box;
+  font-family: 'Baloo 2', cursive, sans-serif !important;
   /* background: linear-gradient(90deg, #ffd6f4 0%, #ffe6fa 100%); */
 }
 
 .header {
   position: relative;
-  z-index: 10010; /* Đảm bảo lớn hơn .menu */
   width: 100%;
   /* background: linear-gradient(90deg, var(--color-bg-gradient-from) 0%, var(--color-bg-gradient-to) 100%); */
   /* box-shadow: 0 1px 8px var(--color-pink-shadow); */

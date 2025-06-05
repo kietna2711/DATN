@@ -6,6 +6,10 @@
   color: #222;
 } */
 /* danh mục sản phẩm */
+:where(.css-dev-only-do-not-override-mc1tut).ant-app,
+:where(.css-dev-only-do-not-override-mc1tut).ant-app * {
+  font-family: 'Baloo 2', cursive, sans-serif !important;
+}
 .categories {
   display: flex;
   justify-content: center;
@@ -1228,5 +1232,9 @@
     font-size: 14px;
     padding: 0 4px;
   }
+}
+
+.tittleyt{
+  color: #f72585;
 }
 
