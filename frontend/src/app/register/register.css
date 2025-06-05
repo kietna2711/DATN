@@ -11,12 +11,12 @@
     .container {
       position: relative;
       width: 100%;
-      min-height: calc(100vh - 20px); /* 180px là tổng chiều cao header + footer, chỉnh lại cho phù hợp thực tế */
+      min-height: calc(100vh - 20px);
       display: flex;
       align-items: center;
       justify-content: center;
       perspective: 1000px;
-      padding-top: 32px;
+      padding-top: 82px;
       padding-bottom: 32px;
     }
     .circle {
