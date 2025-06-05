@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useRef } from "react";
-import { Affix } from "antd";
+import { Affix, Badge } from "antd";
 import {
   HeartOutlined,
   ShoppingOutlined,
@@ -13,11 +13,12 @@ import {
 } from "@ant-design/icons";
 import styles from "../styles/header.module.css";
 import { Category } from "../types/categoryD";
-import { getProducts } from "../services/productService"; // API lấy sản phẩm
-import { useRouter } from "next/navigation"; // nếu dùng App Router
-import Link from "next/link";
+import { getProducts } from "../services/productService";
+import { useRouter } from "next/navigation";
 import { Products } from "../types/productD";
 import useFavoriteCount from "../hooks/useFavoriteCount";
+import { useAppSelector } from "../store/store";
+import Link from "next/link";
 
 type Props = {
   categories: Category[];
@@ -34,9 +35,8 @@ const Header: React.FC<Props> = ({ categories }) => {
   const suggestionBoxRef = useRef<HTMLDivElement>(null);
   const favoriteCount = useFavoriteCount();
 
-
-  
-
+// Lấy số sản phẩm khác nhau trong giỏ hàng (không phải tổng quantity)
+const cartCount = useAppSelector((state) => state.cart.items.length);
   // Debounce search input
   useEffect(() => {
     if (!searchValue.trim()) {
@@ -45,20 +45,19 @@ const Header: React.FC<Props> = ({ categories }) => {
       return;
     }
     const handler = setTimeout(async () => {
-      // Gọi API hoặc filter data ở đây
       try {
         const allProducts = await getProducts();
         const filtered = allProducts.filter(
           (product: Products) =>
             product.name.toLowerCase().includes(searchValue.toLowerCase())
         );
-        setSuggestions(filtered.slice(0, 5)); // chỉ lấy 5 sp đầu
+        setSuggestions(filtered.slice(0, 5));
         setShowSuggestions(true);
       } catch (err) {
         setSuggestions([]);
         setShowSuggestions(false);
       }
-    }, 250); // debounce 250ms
+    }, 250);
 
     return () => clearTimeout(handler);
   }, [searchValue]);
@@ -105,7 +104,6 @@ const Header: React.FC<Props> = ({ categories }) => {
     setShowSuggestions(false);
     setSearchValue("");
   };
-
 
   useEffect(() => {
     document.body.style.overflow = mobileMenuActive ? "hidden" : "";
@@ -206,6 +204,7 @@ const Header: React.FC<Props> = ({ categories }) => {
               placeholder="Nhập sản phẩm cần tìm ?"
               value={searchValue}
               onChange={(e) => setSearchValue(e.target.value)}
+              ref={inputRef}
             />
             <SearchOutlined
               onClick={handleSearchAction}
@@ -218,8 +217,8 @@ const Header: React.FC<Props> = ({ categories }) => {
                 fontSize: "1.25rem",
                 cursor: "pointer",
               }}
-              />
-               {showSuggestions && suggestions.length > 0 && (
+            />
+            {showSuggestions && suggestions.length > 0 && (
               <div className={styles.suggestionBox} ref={suggestionBoxRef}>
                 <ul className={styles.suggestionList}>
                   {suggestions.map((prod) => (
@@ -237,12 +236,11 @@ const Header: React.FC<Props> = ({ categories }) => {
                     </li>
                   ))}
                 </ul>
-                <div className={styles.suggestionFooter}  onClick={handleSearchAction}>
+                <div className={styles.suggestionFooter} onClick={handleSearchAction}>
                   <span>Xem thêm</span>
                 </div>
               </div>
             )}
-            
           </form>
           <div className={styles["header-icons"]}>
 
@@ -252,7 +250,38 @@ const Header: React.FC<Props> = ({ categories }) => {
               <span className={styles.favoriteBadge}>{favoriteCount}</span>
             )}
           </Link> 
-            <ShoppingOutlined />
+            <a href="/cart">
+              {cartCount > 0 ? (
+                <Badge
+                  count={cartCount}
+                  color="#e87ebd"
+                  style={{
+                    fontWeight: "bold",
+                    backgroundColor: "#e87ebd",
+                    boxShadow: "0 0 0 2px #fff",
+                  }}
+                >
+                  <ShoppingOutlined
+                    style={{
+                      fontSize: "1.5rem",
+                      cursor: "pointer",
+                      color: "#e87ebd",
+                    }}
+                  />
+                </Badge>
+              ) : (
+                <ShoppingOutlined
+                  style={{
+                    fontSize: "1.5rem",
+                    cursor: "pointer",
+                    color: "#e87ebd",
+                  }}
+                />
+              )}
+            </a>
+            <a href="/login">
+              <UserOutlined style={{ cursor: "pointer" }} />
+            </a>
              <div
               className={styles["user-menu-wrap"]}
               onMouseEnter={() => setShowUserMenu(true)}
@@ -308,6 +337,7 @@ const Header: React.FC<Props> = ({ categories }) => {
                 </>
               )}
             </div>
+
           </div>
           <button className={styles["menu-btn"]} onClick={openMobileMenu}>
             <MenuOutlined />
@@ -319,9 +349,16 @@ const Header: React.FC<Props> = ({ categories }) => {
         <nav className={styles.menu}>
           <div className={styles["menu-row"]}>
             <ul>
-              <li><div className={styles["menu-item"]}><a href="/">Trang chủ</a></div></li>
-              <li><div className={styles["menu-item"]}><a href="/products">Sản phẩm</a></div></li>
-
+              <li>
+                <div className={styles["menu-item"]}>
+                  <a href="/">Trang chủ</a>
+                </div>
+              </li>
+              <li>
+                <div className={styles["menu-item"]}>
+                  <a href="/products">Sản phẩm</a>
+                </div>
+              </li>
               {visibleCategories.map((item) => {
                 const visibleSub = item.subcategories?.filter((sub) => !sub.hidden) || [];
                 const hasSub = visibleSub.length > 0;
@@ -332,7 +369,6 @@ const Header: React.FC<Props> = ({ categories }) => {
                       <a href={`/products?category=${item._id}`}>{item.name}</a>
                       {hasSub && <span className={styles["icon-down"]}><DownOutlined /></span>}
                     </div>
-
                     {hasSub && (
                       <ul className={styles.submenu}>
                         {visibleSub.map((sub) => (
@@ -386,28 +422,28 @@ const Header: React.FC<Props> = ({ categories }) => {
             />
           </form>
           {showSuggestions && suggestions.length > 0 && (
-              <div className={styles.suggestionBox} ref={suggestionBoxRef}>
-                <ul className={styles.suggestionList}>
-                  {suggestions.map((prod) => (
-                    <li
-                      key={prod._id}
-                      className={styles.suggestionItem}
-                      onClick={() => handleSuggestionClick(prod._id)}
-                    >
-                      <img
-                        src={`http://localhost:3000/images/${prod.images[0]}`}
-                        alt={prod.name}
-                        className={styles.suggestionImg}
-                      />
-                      <span>{prod.name}</span>
-                    </li>
-                  ))}
-                </ul>
-                <div className={styles.suggestionFooter}  onClick={handleSearchAction}>
-                  <span>Xem thêm</span>
-                </div>
+            <div className={styles.suggestionBox} ref={suggestionBoxRef}>
+              <ul className={styles.suggestionList}>
+                {suggestions.map((prod) => (
+                  <li
+                    key={prod._id}
+                    className={styles.suggestionItem}
+                    onClick={() => handleSuggestionClick(prod._id)}
+                  >
+                    <img
+                      src={`http://localhost:3000/images/${prod.images[0]}`}
+                      alt={prod.name}
+                      className={styles.suggestionImg}
+                    />
+                    <span>{prod.name}</span>
+                  </li>
+                ))}
+              </ul>
+              <div className={styles.suggestionFooter} onClick={handleSearchAction}>
+                <span>Xem thêm</span>
               </div>
-            )}
+            </div>
+          )}
         </div>
 
         <div className={styles["mobile-menu-list"]}>
