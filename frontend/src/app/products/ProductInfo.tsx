@@ -3,6 +3,7 @@ import React, { useState, useEffect } from "react";
 import styles from "../styles/productsDetail.module.css";
 import { Products } from "../types/productD";
 import { HeartOutlined, HeartFilled } from "@ant-design/icons";
+import { addFavorite, removeFavorite } from "../services/favoritesService";
 
 
 const ProductInfo = ({ product }: { product: Products }) => {
@@ -12,12 +13,34 @@ const ProductInfo = ({ product }: { product: Products }) => {
   const [isFavorite, setIsFavorite] = useState(false);
   const productId = (product._id ?? product.id)?.toString();
 
- useEffect(() => {
-    const favorites = JSON.parse(localStorage.getItem("favorites") || "[]");
-    // Ép kiểu sang string để so sánh chắc chắn
-    const exists = favorites.some((item: Products) => ((item._id ?? item.id)?.toString() === productId));
-    setIsFavorite(exists);
-  }, [productId]);
+   const userStr = typeof window !== "undefined" ? localStorage.getItem("user") : null;
+  const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
+  let userId: string | null = null;
+  if (userStr) {
+    try {
+      const userObj = JSON.parse(userStr);
+      userId = userObj._id || userObj.id;
+    } catch {}
+  }
+  const isLoggedIn = !!userId && !!token;
+
+  useEffect(() => {
+    if (isLoggedIn && userId && token) {
+      // Kiểm tra từ backend
+      fetch(`http://localhost:3000/favorites?userId=${userId}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      })
+        .then(res => res.ok ? res.json() : [])
+        .then((favList) => {
+          setIsFavorite(favList.some((item: Products) => ((item._id ?? item.id)?.toString() === productId)));
+        });
+    } else {
+      const favorites = JSON.parse(localStorage.getItem("favorites") || "[]");
+      const exists = favorites.some((item: Products) => ((item._id ?? item.id)?.toString() === productId));
+      setIsFavorite(exists);
+    }
+  }, [productId, isLoggedIn, userId, token]);
+
 
 
 
@@ -33,21 +56,31 @@ const ProductInfo = ({ product }: { product: Products }) => {
     // eslint-disable-next-line
   }, [variants]);
 
-  const toggleFavorite = () => {
-  const favorites = JSON.parse(localStorage.getItem("favorites") || "[]");
-  const exists = favorites.some((item: Products) => ((item._id ?? item.id)?.toString() === productId));
-  let updatedFavorites;
-  if (exists) {
-    updatedFavorites = favorites.filter((item: Products) => ((item._id ?? item.id)?.toString() !== productId));
-  } else {
-    updatedFavorites = [...favorites, product];
-  }
-  localStorage.setItem("favorites", JSON.stringify(updatedFavorites));
-  setIsFavorite(!exists);
-
-  // Thêm dòng này để thông báo cho Header cập nhật lại số:
-  window.dispatchEvent(new Event("favoriteChanged"));
-};
+ const toggleFavorite = async () => {
+    if (isLoggedIn && userId && token) {
+      if (isFavorite) {
+        await removeFavorite(productId, userId, token);
+        setIsFavorite(false);
+      } else {
+        await addFavorite(productId, userId, token);
+        setIsFavorite(true);
+      }
+      window.dispatchEvent(new Event("favoriteChanged"));
+    } else {
+      const favorites = JSON.parse(localStorage.getItem("favorites") || "[]");
+      const exists = favorites.some((item: Products) => ((item._id ?? item.id)?.toString() === productId));
+      let updatedFavorites;
+      if (exists) {
+        updatedFavorites = favorites.filter((item: Products) => ((item._id ?? item.id)?.toString() !== productId));
+        setIsFavorite(false);
+      } else {
+        updatedFavorites = [...favorites, product];
+        setIsFavorite(true);
+      }
+      localStorage.setItem("favorites", JSON.stringify(updatedFavorites));
+      window.dispatchEvent(new Event("favoriteChanged"));
+    }
+  };
   const currentVariant = variants[activeSize];
 
   return (

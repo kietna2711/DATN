@@ -246,12 +246,17 @@ const Header: React.FC<Props> = ({ categories }) => {
           </form>
           <div className={styles["header-icons"]}>
 
-           <Link href="/favorites" title="Xem danh sách yêu thích" className={styles.favoriteIconWrap}>
-            <HeartOutlined style={{ fontSize: 22, color: "#ff4d4f", position: "relative" }} />
-            {favoriteCount > 0 && (
-              <span className={styles.favoriteBadge}>{favoriteCount}</span>
-            )}
-          </Link> 
+            <a
+              href="/favorites"
+              title="Xem danh sách yêu thích"
+              className={styles.favoriteIconWrap}
+            >
+              <HeartOutlined style={{ fontSize: 22, color: "#ff4d4f", position: "relative" }} />
+              {favoriteCount > 0 && (
+                <span className={styles.favoriteBadge}>{favoriteCount}</span>
+              )}
+            </a>
+
             <ShoppingOutlined />
              <div
               className={styles["user-menu-wrap"]}
