@@ -1,8 +1,10 @@
 'use client';
+import React, { useState } from 'react';
 import { CartItem as CartItemType } from '@/app/types/cartD';
 import styles from '@/app/styles/cart.module.css';
 import { useAppDispatch } from "../store/store";
 import { updateQuantity, removeFromCart, updateVariant } from "../store/features/cartSlice";
+import { Popconfirm, Button } from 'antd';
 
 interface CartItemProps {
   item: CartItemType;
@@ -13,6 +15,7 @@ export default function CartItem({ item }: CartItemProps) {
   const { product, quantity, selectedVariant } = item;
   const hasVariants = Array.isArray(product.variants) && product.variants.length > 0;
   const currentSize = selectedVariant?.size || '';
+  const [showPop, setShowPop] = useState(false);
 
   const handleSizeChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const newSize = e.target.value;
@@ -51,15 +54,30 @@ export default function CartItem({ item }: CartItemProps) {
       </td>
       <td className={styles.quantity}>
         <div className={styles.quantityControls}>
-          <button
-            onClick={() => {
-              if (quantity > 1) {
-                dispatch(updateQuantity({ _id: product._id, quantity: quantity - 1, size: currentSize }));
-              } else {
-                dispatch(removeFromCart({ _id: product._id, size: currentSize }));
+          {quantity > 1 ? (
+            <button
+              onClick={() =>
+                dispatch(updateQuantity({ _id: product._id, quantity: quantity - 1, size: currentSize }))
               }
-            }}
-          >-</button>
+            >-</button>
+          ) : (
+            <Popconfirm
+              title="Xóa sản phẩm"
+              description="Bạn có chắc chắn muốn xóa sản phẩm này khỏi giỏ hàng không?"
+              okText="Xóa"
+              cancelText="Hủy"
+              onConfirm={() => dispatch(removeFromCart({ _id: product._id, size: currentSize }))}
+              onCancel={() => setShowPop(false)}
+              open={showPop}
+              onOpenChange={(visible) => setShowPop(visible)}
+              okButtonProps={{ style: { background: "#ea4c89", borderColor: "#ea4c89" } }}
+              cancelButtonProps={{ style: { color: "#ea4c89", borderColor: "#ea4c89", background: "#fff0fa" } }}
+            >
+              <button
+                onClick={() => setShowPop(true)}
+              >-</button>
+            </Popconfirm>
+          )}
           <input type="text" value={quantity} readOnly />
           <button onClick={() => dispatch(updateQuantity({ _id: product._id, quantity: quantity + 1, size: currentSize }))}>+</button>
         </div>
