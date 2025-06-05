@@ -5,14 +5,15 @@ import { Variant } from "../types/variantD";
 import styles from "../styles/productitem.module.css";
 import { useAppDispatch } from "../store/store";
 import { addToCart } from "../store/features/cartSlice";
-import { App } from "antd";
 import { useRouter } from "next/navigation";
+import { useShowMessage } from "../utils/useShowMessage";
+
 
 export default function ProductItem({ product }: { product: Products }) {
   const hasVariants = Array.isArray(product.variants) && product.variants.length > 0;
   const [selectedIdx, setSelectedIdx] = useState(0);
   const dispatch = useAppDispatch();
-  const { message } = App.useApp();
+  const { success } = useShowMessage();
   const router = useRouter();
 
   const prices = hasVariants
@@ -31,7 +32,7 @@ export default function ProductItem({ product }: { product: Products }) {
       updatedAt: product.updatedAt ? new Date(product.updatedAt).toISOString() : undefined,
     };
     dispatch(addToCart({ product: safeProduct, selectedVariant }));
-    message.success("Đã thêm vào giỏ hàng!");
+    success("Đã thêm vào giỏ hàng!");
     setTimeout(() => {
       router.push('/cart');
     }, 350);
