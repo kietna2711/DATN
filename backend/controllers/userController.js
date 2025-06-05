@@ -52,8 +52,7 @@ const login = [upload.single('img'), async (req, res) => {
         // Kiểm tra email có tồn tại không
         console.log(req.body);
         const checkUser = await userModel.findOne({
-            email: req.body.email,
-            userName: req.body.userName
+            email: req.body.email
         });
         console.log(checkUser);
         if (!checkUser) {
@@ -78,18 +77,27 @@ const login = [upload.single('img'), async (req, res) => {
 
 //Bảo mật token
 const verifyToken = (req, res, next) => {
-    const authHeader = req.headers.authorization;
-    const token = authHeader && authHeader.startsWith('Bearer ') ? authHeader.slice(7) : null;
+    // Lấy token từ header
+    const token = req.headers.authorization.slice(7);
+    console.log(token);
     if (!token) {
         return res.status(403).json({ message: 'Không có token' });
     }
+    // Xác thực token với mã bí mật
     jwt.verify(token, 'conguoiyeuchua', (err, decoded) => {
-        if (err) return res.status(401).json({ message: 'Token lỗi' });
-        req.user = decoded; // decoded sẽ có userName
+        if (err) {
+            if (err.name === 'TokenExpiredError') {
+                return res.status(401).json({ message: 'Token đã hết hạn' });
+            } else if (err.name === 'JsonWebTokenError') {
+                return res.status(401).json({ message: 'Token không hợp lệ' });
+            }
+            return res.status(401).json({ message: 'Lỗi xác thực token' });
+        }
+        // decoded chứa thông tin user đã mã hóa trong token và lưu vào req
+        req.userId = decoded.id; 
         next();
     });
-};
-
+}
 
 //lấy thông tin user khi có token
 const getUser = async (req, res) => {
