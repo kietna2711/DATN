@@ -138,14 +138,8 @@ const cartCount = useAppSelector((state) => state.cart.items.length);
     };
   }, [showUserMenu]);
 
-  useEffect(() => {
-    setIsLoggedIn(!!localStorage.getItem("user"));
-    // Lắng nghe sự thay đổi localStorage từ các tab khác (nếu cần)
-    const handleStorage = () => setIsLoggedIn(!!localStorage.getItem("user"));
-    window.addEventListener("storage", handleStorage);
-    return () => window.removeEventListener("storage", handleStorage);
-  }, []);
 
+  // Lấy thông tin user từ localStorage khi component mount
   useEffect(() => {
     const userStr = localStorage.getItem("user");
     if (userStr) {
@@ -180,6 +174,41 @@ const cartCount = useAppSelector((state) => state.cart.items.length);
     };
   }, []);
 
+  useEffect(() => {
+    const updateUser = () => {
+      const userStr = localStorage.getItem("user");
+      if (userStr) {
+        try {
+          const userObj = JSON.parse(userStr);
+          setUsername(
+            userObj.username ||
+            userObj.firstName ||
+            userObj.name ||
+            userObj.displayName ||
+            userObj.email ||
+            null
+          );
+          setIsLoggedIn(true);
+        } catch {
+          setUsername(null);
+          setIsLoggedIn(false);
+        }
+      } else {
+        setUsername(null);
+        setIsLoggedIn(false);
+      }
+    };
+
+    updateUser();
+    window.addEventListener("userChanged", updateUser);
+    window.addEventListener("storage", updateUser);
+
+    return () => {
+      window.removeEventListener("userChanged", updateUser);
+      window.removeEventListener("storage", updateUser);
+    };
+  }, []);
+//Đăng xuất xóa thông tin người dùng và token ra khỏi localStorage
   const handleLogout = () => {
     localStorage.removeItem("user");
     localStorage.removeItem("token");
