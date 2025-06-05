@@ -9,6 +9,7 @@ import { useAppDispatch } from "../store/store";
 import { addToCart } from "../store/features/cartSlice";
 import { App } from "antd";
 import { useRouter } from "next/navigation";
+import { useShowMessage } from "../utils/useShowMessage";
 
 const ProductInfo = ({ product }: { product: Products }) => {
   const variants = product.variants ?? [];
@@ -16,6 +17,7 @@ const ProductInfo = ({ product }: { product: Products }) => {
   const [quantity, setQuantity] = useState(1);
   const [isFavorite, setIsFavorite] = useState(false);
   const productId = (product._id ?? product._id)?.toString();
+  const { success } = useShowMessage();
 
  useEffect(() => {
     const favorites = JSON.parse(localStorage.getItem("favorites") || "[]");
@@ -71,7 +73,7 @@ const ProductInfo = ({ product }: { product: Products }) => {
     for (let i = 0; i < quantity; ++i) {
       dispatch(addToCart({ product: safeProduct, selectedVariant: currentVariant }));
     }
-    message.success("Đã thêm vào giỏ hàng!");
+    success("Đã thêm vào giỏ hàng!");
     if (redirectToCart) {
       setTimeout(() => {
         router.push("/cart");
