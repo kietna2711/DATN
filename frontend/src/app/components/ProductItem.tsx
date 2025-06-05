@@ -8,7 +8,6 @@ import { addToCart } from "../store/features/cartSlice";
 import { useRouter } from "next/navigation";
 import { useShowMessage } from "../utils/useShowMessage";
 
-
 export default function ProductItem({ product }: { product: Products }) {
   const hasVariants = Array.isArray(product.variants) && product.variants.length > 0;
   const [selectedIdx, setSelectedIdx] = useState(0);
@@ -23,9 +22,13 @@ export default function ProductItem({ product }: { product: Products }) {
   const minPrice = Math.min(...prices);
   const maxPrice = Math.max(...prices);
 
+  // NEW: Lấy giá của variant đã chọn (nếu có)
+  const selectedPrice = hasVariants
+    ? Number(product.variants[selectedIdx]?.price) || 0
+    : Number(product.price) || 0;
+
   const handleAddToCart = () => {
     const selectedVariant = hasVariants ? product.variants[selectedIdx] : undefined;
-    // Ép ngày về string
     const safeProduct = {
       ...product,
       createdAt: new Date(product.createdAt).toISOString(),
@@ -79,9 +82,10 @@ export default function ProductItem({ product }: { product: Products }) {
 
       <div className={styles.prices_sale}>
         <div className={styles.price}>
-          {minPrice.toLocaleString("vi-VN")} đ
+          {selectedPrice.toLocaleString("vi-VN")} đ
         </div>
-        {minPrice !== maxPrice && (
+        {/* Nếu có nhiều biến thể và giá khác nhau thì hiển thị giá cũ */}
+        {hasVariants && minPrice !== maxPrice && (
           <div className={styles.price_sale}>
             {maxPrice.toLocaleString("vi-VN")} đ
           </div>
