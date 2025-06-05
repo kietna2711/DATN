@@ -1,8 +1,19 @@
+'use client';
+import React, { useState } from "react";
 import { Products } from "../types/productD";
+import { Variant } from "../types/variantD";
 import styles from "../styles/productitem.module.css";
+import { useAppDispatch } from "../store/store";
+import { addToCart } from "../store/features/cartSlice";
+import { App } from "antd";
+import { useRouter } from "next/navigation";
 
 export default function ProductItem({ product }: { product: Products }) {
   const hasVariants = Array.isArray(product.variants) && product.variants.length > 0;
+  const [selectedIdx, setSelectedIdx] = useState(0);
+  const dispatch = useAppDispatch();
+  const { message } = App.useApp();
+  const router = useRouter();
 
   const prices = hasVariants
     ? product.variants.map((v) => Number(v.price) || 0)
@@ -10,6 +21,21 @@ export default function ProductItem({ product }: { product: Products }) {
 
   const minPrice = Math.min(...prices);
   const maxPrice = Math.max(...prices);
+
+  const handleAddToCart = () => {
+    const selectedVariant = hasVariants ? product.variants[selectedIdx] : undefined;
+    // Ép ngày về string
+    const safeProduct = {
+      ...product,
+      createdAt: new Date(product.createdAt).toISOString(),
+      updatedAt: product.updatedAt ? new Date(product.updatedAt).toISOString() : undefined,
+    };
+    dispatch(addToCart({ product: safeProduct, selectedVariant }));
+    message.success("Đã thêm vào giỏ hàng!");
+    setTimeout(() => {
+      router.push('/cart');
+    }, 350);
+  };
 
   return (
     <div className={styles.product}>
@@ -31,7 +57,7 @@ export default function ProductItem({ product }: { product: Products }) {
           </div>
         </a>
 
-        <button className={styles.buy_now_btn}>
+        <button className={styles.buy_now_btn} onClick={handleAddToCart}>
           <img
             src="http://localhost:3000/images/button.png"
             className={styles.bear_left}
@@ -58,16 +84,17 @@ export default function ProductItem({ product }: { product: Products }) {
           <div className={styles.price_sale}>
             {maxPrice.toLocaleString("vi-VN")} đ
           </div>
-        )}
+        )}  
       </div>
 
       {/* Size chỉ hiển thị nếu có variants */}
       {hasVariants && (
         <div className={styles.sizes}>
-          {product.variants.map((variant, index) => (
+          {product.variants.map((variant, idx) => (
             <span
-              key={`${variant.size}-${index}`}
-              className={`${styles.size_box} ${index === 0 ? styles.active : ""}`}
+              key={variant.size}
+              className={`${styles.size_box} ${idx === selectedIdx ? styles.active : ""}`}
+              onClick={() => setSelectedIdx(idx)}
             >
               {variant.size}
             </span>

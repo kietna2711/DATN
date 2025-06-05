@@ -1,16 +1,16 @@
 import { Category, SubCategory } from "./categoryD";
 import { Variant } from "./variantD";
 
-
 export interface Products {
-  _id: string;           // id dạng string theo JSON bạn nhận
+  _id: string;                         // id dạng string theo JSON bạn nhận
   name: string;
   description: string;
   price: number;
-  images: [];                    // Mảng đường dẫn ảnh
-  categoryId: Category;               // Sau khi populate: là 1 object
-  createdAt: Date;
-  variants: Variant[];               // Mảng biến thể đã populate
+  images: string[];                    // Mảng đường dẫn ảnh
+  categoryId: Category;                // Sau khi populate: là 1 object
+  createdAt: string | Date;            // Có thể là string (ISO) hoặc Date object
+  updatedAt?: string | Date;           // Nên thêm nếu có cập nhật
+  variants: Variant[];                 // Mảng biến thể đã populate
   sold: number;
-  subcategoryId?: SubCategory[];     // Sản có thể có hoặc không có
+  subcategoryId?: SubCategory[];       // Sản phẩm có thể có hoặc không có
 }
