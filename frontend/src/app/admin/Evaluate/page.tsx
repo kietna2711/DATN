@@ -7,6 +7,7 @@ import "../admin.css";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
+// Type cho 1 review
 type Review = {
   username: any;
   _id: string;
@@ -17,6 +18,9 @@ type Review = {
   status: "visible" | "hidden";
   createdAt: string;
 };
+
+// Type cho 1 bình luận chi tiết (có thể giống Review, nhưng để tách biệt)
+type ReviewDetail = Review;
 
 function renderStars(stars: number) {
   const full = Math.floor(stars);
@@ -34,17 +38,146 @@ function renderStars(stars: number) {
   );
 }
 
+// Modal/component chi tiết review sản phẩm
+function ReviewDetailModal({
+  productId,
+  onClose,
+}: {
+  productId: string;
+  onClose: () => void;
+}) {
+  const [details, setDetails] = useState<ReviewDetail[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    async function fetchDetails() {
+      setLoading(true);
+      try {
+        const res = await fetch(`http://localhost:3000/admin/reviews?productId=${productId}`);
+        if (!res.ok) throw new Error("Lỗi mạng!");
+        const data = await res.json();
+        setDetails(Array.isArray(data.reviews) ? data.reviews : []);
+      } catch (err) {
+        setDetails([]);
+        toast.error("Không thể tải chi tiết đánh giá!");
+      }
+      setLoading(false);
+    }
+    fetchDetails();
+  }, [productId]);
+
+  // Ẩn/hiện từng review
+  const handleToggleVisibility = async (reviewId: string) => {
+    try {
+      const res = await fetch(`http://localhost:3000/reviews/${reviewId}/toggle-status`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: "Bearer " + (localStorage.getItem("token") || ""),
+        }
+      });
+      const updatedReview = await res.json();
+
+      setDetails(reviews =>
+        reviews.map(r =>
+          r._id === reviewId ? { ...r, status: updatedReview.status } : r
+        )
+      );
+
+      toast.success(
+        updatedReview.status === "visible"
+          ? "Đánh giá đã được hiển thị!"
+          : "Đánh giá đã được ẩn!"
+      );
+    } catch (err) {
+      toast.error("Không thể đổi trạng thái review!");
+    }
+  };
+
+  return (
+    <div className="modal show" style={{
+      display: "block",
+      background: "rgba(0,0,0,0.3)"
+    }}>
+      <div className="modal-dialog modal-lg">
+        <div className="modal-content">
+          <div className="modal-header">
+            <h5 className="modal-title">Chi tiết đánh giá sản phẩm: {productId}</h5>
+            <button type="button" className="btn-close" onClick={onClose}></button>
+          </div>
+          <div className="modal-body">
+            {loading ? (
+              <div>Đang tải chi tiết...</div>
+            ) : (
+              <table className="table table-hover table-bordered">
+                <thead>
+                  <tr>
+                    <th>ID đánh giá</th>
+                    <th>Tên người dùng</th>
+                    <th>Số sao</th>
+                    <th>Bình luận</th>
+                    <th>Ngày đăng</th>
+                    <th>Trạng thái</th>
+                    <th>Hoạt động</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {details.map(review => (
+                    <tr key={review._id}>
+                      <td>{review._id}</td>
+                      <td>{review.username ? review.username : review.name || "Ẩn danh"}</td>
+                      <td>{renderStars(review.rating)}</td>
+                      <td>{review.comment}</td>
+                      <td>{review.createdAt}</td>
+                      <td>
+                        <span className={`badge ${review.status === "visible" ? "bg-success" : "bg-secondary"}`}>
+                          {review.status === "visible" ? "Hiển thị" : "Đã ẩn"}
+                        </span>
+                      </td>
+                      <td>
+                        <button
+                          className="btn btn-light btn-sm toggle-visibility"
+                          type="button"
+                          title="Ẩn/Hiện"
+                          onClick={() => handleToggleVisibility(review._id)}
+                        >
+                          <i className={`fas ${review.status === "visible" ? "fa-eye" : "fa-eye-slash"}`}></i>
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                  {details.length === 0 && (
+                    <tr>
+                      <td colSpan={7} className="text-center">Không có đánh giá nào.</td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            )}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function ReviewManagement() {
   const [reviews, setReviews] = useState<Review[]>([]);
   const [loading, setLoading] = useState(true);
   const [clock, setClock] = useState("");
+  const [selectedProductId, setSelectedProductId] = useState<string | null>(null);
 
-  // Lấy dữ liệu từ API
+  // Lấy dữ liệu: chỉ bình luận mới nhất mỗi sản phẩm
   useEffect(() => {
     async function fetchReviews() {
       setLoading(true);
       try {
-        const res = await fetch('http://localhost:3000/admin/reviews');
+        const res = await fetch('http://localhost:3000/reviews/admin/reviews-latest', {
+          headers: {
+            Authorization: 'Bearer ' + (localStorage.getItem('token') || ''),
+            "Content-Type": "application/json"
+          }
+        });
         if (!res.ok) throw new Error("Lỗi mạng!");
         const data = await res.json();
         setReviews(Array.isArray(data.reviews) ? data.reviews : []);
@@ -84,32 +217,9 @@ export default function ReviewManagement() {
     return () => clearInterval(timer);
   }, []);
 
-  // Toggle ẩn/hiện đánh giá
-  const handleToggleVisibility = async (id: string) => {
-    try {
-      const res = await fetch(`http://localhost:3000/reviews/${id}/toggle-status`, {
-        method: "PATCH",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: "Bearer " + (localStorage.getItem("token") || ""),
-        }
-      });
-      const updatedReview = await res.json();
-
-      setReviews(reviews =>
-        reviews.map(r =>
-          r._id === id ? { ...r, status: updatedReview.status } : r
-        )
-      );
-
-      toast.success(
-        updatedReview.status === "visible"
-          ? "Đánh giá đã được hiển thị!"
-          : "Đánh giá đã được ẩn!"
-      );
-    } catch (err) {
-      toast.error("Không thể đổi trạng thái review!");
-    }
+  // Xem chi tiết bình luận sản phẩm
+  const handleShowDetail = (productId: string) => {
+    setSelectedProductId(productId);
   };
 
   return (
@@ -135,11 +245,11 @@ export default function ReviewManagement() {
                     <tr>
                       <th>ID đánh giá</th>
                       <th>Tên người dùng</th>
-                      <th>Tên sản phẩm</th>
+                      <th>Mã sản phẩm</th>
                       <th>Số sao</th>
-                      <th>Bình luận</th>
+                      <th>Bình luận mới nhất</th>
                       <th>Ngày đăng</th>
-                      <th>Trạng thái</th>
+                    
                       <th>Hoạt động</th>
                     </tr>
                   </thead>
@@ -152,19 +262,15 @@ export default function ReviewManagement() {
                         <td>{renderStars(review.rating)}</td>
                         <td>{review.comment}</td>
                         <td>{review.createdAt}</td>
-                        <td>
-                          <span className={`badge ${review.status === "visible" ? "bg-success" : "bg-secondary"}`}>
-                            {review.status === "visible" ? "Hiển thị" : "Đã ẩn"}
-                          </span>
-                        </td>
+                       
                         <td>
                           <button
-                            className="btn btn-light btn-sm toggle-visibility"
+                            className="btn btn-info btn-sm"
                             type="button"
-                            title="Ẩn/Hiện"
-                            onClick={() => handleToggleVisibility(review._id)}
+                            title="Xem chi tiết"
+                            onClick={() => handleShowDetail(review.productId)}
                           >
-                            <i className={`fas ${review.status === "visible" ? "fa-eye" : "fa-eye-slash"}`}></i>
+                            <i className="fas fa-list"></i> Chi tiết
                           </button>
                         </td>
                       </tr>
@@ -181,6 +287,13 @@ export default function ReviewManagement() {
           </div>
         </div>
       </div>
+      {/* Modal xem chi tiết review */}
+      {selectedProductId && (
+        <ReviewDetailModal
+          productId={selectedProductId}
+          onClose={() => setSelectedProductId(null)}
+        />
+      )}
     </main>
   );
 }

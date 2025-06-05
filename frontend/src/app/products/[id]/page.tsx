@@ -51,8 +51,8 @@ const relatedProducts = allProducts.filter((p) => {
         <div className={styles.content_container_tong}>
            <ProductTabs product={product} />
            <ReviewList productId={product._id} />
-           <ReviewForm productId={product._id} />
         </div>
+           <ReviewForm productId={product._id} />
         
       </div>
 

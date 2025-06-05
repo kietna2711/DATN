@@ -98,4 +98,22 @@ exports.toggleReviewStatus = async (req, res) => {
     res.status(500).json({ error: "Lỗi server" });
   }
 };
-// PATCH /reviews/:id/toggle-status
+// Lấy review mới nhất cho mỗi sản phẩm
+exports.getLatestReviewPerProduct = async (req, res) => {
+  try {
+    // Group by productId, lấy review mới nhất
+    const latestReviews = await Review.aggregate([
+      { $sort: { createdAt: -1 } },
+      {
+        $group: {
+          _id: "$productId",
+          doc: { $first: "$$ROOT" }
+        }
+      },
+      { $replaceRoot: { newRoot: "$doc" } }
+    ]);
+    res.json({ reviews: latestReviews });
+  } catch (err) {
+    res.status(500).json({ error: "Lỗi server khi lấy review mới nhất theo sản phẩm" });
+  }
+};
