@@ -23,7 +23,8 @@
 body {
   margin: 0;
   padding: 0;
-  font-family: 'Baloo 2', cursive, sans-serif;
+  box-sizing: border-box;
+  font-family: 'Baloo 2', cursive, sans-serif !important;
   /* background: linear-gradient(90deg, #ffd6f4 0%, #ffe6fa 100%); */
 }
 
