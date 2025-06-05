@@ -283,15 +283,6 @@ const cartCount = useAppSelector((state) => state.cart.items.length);
                 <span className={styles.favoriteBadge}>{favoriteCount}</span>
               )}
             </a>
-
-            <ShoppingOutlined />
-
-           <Link href="/favorites" title="Xem danh sách yêu thích" className={styles.favoriteIconWrap}>
-            <HeartOutlined style={{ fontSize: 22, color: "#ff4d4f", position: "relative" }} />
-            {favoriteCount > 0 && (
-              <span className={styles.favoriteBadge}>{favoriteCount}</span>
-            )}
-          </Link> 
             <a href="/cart">
               {cartCount > 0 ? (
                 <Badge

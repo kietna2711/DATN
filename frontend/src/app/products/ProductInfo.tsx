@@ -18,7 +18,7 @@ const ProductInfo = ({ product }: { product: Products }) => {
   const [quantity, setQuantity] = useState(1);
   const [isFavorite, setIsFavorite] = useState(false);
   const productId = (product._id ?? product._id)?.toString();
-  const { success } = useShowMessage();
+  const { error, success } = useShowMessage();
 
    const userStr = typeof window !== "undefined" ? localStorage.getItem("user") : null;
   const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
@@ -72,9 +72,11 @@ const ProductInfo = ({ product }: { product: Products }) => {
       if (isFavorite) {
         await removeFavorite(productId, userId, token);
         setIsFavorite(false);
+        error("Đã xóa khỏi yêu thích");
       } else {
         await addFavorite(productId, userId, token);
         setIsFavorite(true);
+        success('Đã thêm vào yêu thích')
       }
       window.dispatchEvent(new Event("favoriteChanged"));
     } else {
@@ -84,9 +86,11 @@ const ProductInfo = ({ product }: { product: Products }) => {
       if (exists) {
         updatedFavorites = favorites.filter((item: Products) => ((item._id ?? item.id)?.toString() !== productId));
         setIsFavorite(false);
+        error("Đã xóa khỏi yêu thích");
       } else {
         updatedFavorites = [...favorites, product];
         setIsFavorite(true);
+        success('Đã thêm vào yêu thích')
       }
       localStorage.setItem("favorites", JSON.stringify(updatedFavorites));
       window.dispatchEvent(new Event("favoriteChanged"));
