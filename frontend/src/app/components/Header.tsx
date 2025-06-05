@@ -279,9 +279,6 @@ const cartCount = useAppSelector((state) => state.cart.items.length);
                 />
               )}
             </a>
-            <a href="/login">
-              <UserOutlined style={{ cursor: "pointer" }} />
-            </a>
              <div
               className={styles["user-menu-wrap"]}
               onMouseEnter={() => setShowUserMenu(true)}
