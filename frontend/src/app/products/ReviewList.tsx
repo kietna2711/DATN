@@ -8,7 +8,7 @@ interface Review {
   rating: number;
   comment: string;
   createdAt?: string;
-  status?: string; 
+  status?: string;
 }
 
 interface ReviewListProps {
@@ -32,11 +32,16 @@ const ReviewList: React.FC<ReviewListProps> = ({ productId }) => {
   const isFirstLoad = useRef(true);
 
   useEffect(() => {
-    let interval: NodeJS.Timeout;
+    let interval;
 
     const fetchReviews = () => {
       if (isFirstLoad.current) setLoading(true);
-      fetch('http://localhost:3000/reviews?productId=' + productId)
+
+      fetch('http://localhost:3000/reviews?productId=' + productId, {
+        headers: {
+          Authorization: 'Bearer ' + localStorage.getItem('token')
+        }
+      })
         .then((res) => res.json())
         .then((data) => {
           setReviews(data.reviews);
@@ -73,16 +78,16 @@ const ReviewList: React.FC<ReviewListProps> = ({ productId }) => {
           {Array.from({ length: 5 }).map((_, idx) => (
             <span key={idx}>
               {avgRatingRounded >= idx + 1
-                ? "★" 
+                ? "★"
                 : avgRatingRounded >= idx + 0.5
                   ? "☆" // half star có thể thay bằng unicode đặc biệt hoặc SVG
-                  : "☆"} 
+                  : "☆"}
             </span>
           ))}
         </span>
-         <h2>Đánh giá của khách hàng</h2>
+        <h2>Đánh giá của khách hàng</h2>
       </div>
-     
+
       {loading ? (
         <div>Đang tải đánh giá...</div>
       ) : (

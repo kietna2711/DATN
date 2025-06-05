@@ -23,6 +23,8 @@ const variantsRouter = require('./routes/variants');
 const subcategoryRouter = require('./routes/subcategory');
 const reviewRoutes = require("./routes/review");
 const reviewController = require('./controllers/reviewController');
+const authenticateToken = require('./middleware/auth');
+
 
 
 var app = express();
@@ -93,6 +95,8 @@ app.use('/variants', variantsRouter);
 app.use('/subcategory', subcategoryRouter);
 app.use("/reviews", reviewRoutes); 
 app.get('/admin/reviews', reviewController.getReviewsAdmin);
+app.use('/reviews', reviewRoutes);
+app.use(authenticateToken); // Bảo vệ các route sau khi xác thực token
 
 
 
