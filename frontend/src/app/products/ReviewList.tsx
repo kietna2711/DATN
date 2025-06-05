@@ -5,6 +5,7 @@ import styles from "../styles/productsDetail.module.css";
 interface Review {
   productId: string;
   name: string;
+  username?: string; // <-- thêm trường này
   rating: number;
   comment: string;
   createdAt?: string;
@@ -15,8 +16,7 @@ interface ReviewListProps {
   productId: string;
 }
 
-
-const reviewsPerPage = 7;
+const reviewsPerPage = 5;
 
 function formatDate(dateString?: string) {
   if (!dateString) return "";
@@ -32,7 +32,7 @@ const ReviewList: React.FC<ReviewListProps> = ({ productId }) => {
   const isFirstLoad = useRef(true);
 
   useEffect(() => {
-    let interval;
+    let interval: NodeJS.Timeout;
 
     const fetchReviews = () => {
       if (isFirstLoad.current) setLoading(true);
@@ -70,9 +70,8 @@ const ReviewList: React.FC<ReviewListProps> = ({ productId }) => {
 
   return (
     <div className={styles.review_section}>
-
       <div className={styles.avg_rating}>
-        <p>Trung bình:</p>
+        <p>Điêm đánh giá trung bình :</p>
         <span className={styles.avg_rating_number}>{avgRatingRounded}</span>
         <span className={styles.star_icons}>
           {Array.from({ length: 5 }).map((_, idx) => (
@@ -80,13 +79,14 @@ const ReviewList: React.FC<ReviewListProps> = ({ productId }) => {
               {avgRatingRounded >= idx + 1
                 ? "★"
                 : avgRatingRounded >= idx + 0.5
-                  ? "☆" // half star có thể thay bằng unicode đặc biệt hoặc SVG
+                  ? "☆"
                   : "☆"}
             </span>
           ))}
         </span>
-        <h2>Đánh giá của khách hàng</h2>
+       
       </div>
+       <h2>Đánh giá của khách hàng</h2>
 
       {loading ? (
         <div>Đang tải đánh giá...</div>
@@ -97,7 +97,9 @@ const ReviewList: React.FC<ReviewListProps> = ({ productId }) => {
             {reviewsToShow.map((r, i) => (
               <div className={styles.review_item} key={i}>
                 <div className={styles.reviewHeader}>
-                  <span className={styles.reviewerName}>{r.name}</span>
+                  <span className={styles.reviewerName}>
+                    {r.username ? r.username : r.name}
+                  </span>
                   <span className={styles.reviewRating}>
                     {"⭐".repeat(r.rating)}
                   </span>

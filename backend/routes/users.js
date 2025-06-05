@@ -2,8 +2,9 @@ var express = require('express');
 var router = express.Router();
 
 const { register, login ,verifyToken, getUser} = require('../controllers/userController');
-const User = require('../models/userModel'); // Thêm dòng này
+const User = require('../models/userModel');
 const passport = require('passport');
+const reviewController = require('../controllers/reviewController');
 const jwt = require('jsonwebtoken');
 
 //Đăng ký
@@ -25,6 +26,9 @@ router.get('/', async (req, res) => {
     res.status(500).send(err.message);
   }
 });
+// thêm 
+router.post('/reviews', verifyToken, reviewController.createReview);
+
 // Toggle visible
 router.patch('/:id/toggle-visibility', async (req, res) => {
   console.log("PATCH request for: ", req.params.id); //xem thông báo ở terminal

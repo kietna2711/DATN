@@ -2,6 +2,7 @@ const mongoose = require("mongoose");
 const reviewSchema = new mongoose.Schema({
   productId: String,
   name: String,
+  username: String, 
   rating: Number,
   comment: String,
   status: { type: String, enum: ["visible", "hidden"], default: "visible" },
