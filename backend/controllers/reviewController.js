@@ -6,7 +6,7 @@ const Review = require("../models/reviewModel");
 exports.getReviews = async (req, res) => {
   try {
     const { productId, search, page = 1, limit = 10 } = req.query;
-    const query = { status: "visible" }; 
+    const query = { status: "visible" };
     if (productId) query.productId = productId;
     if (search) {
       query.$or = [
@@ -22,11 +22,17 @@ exports.getReviews = async (req, res) => {
       .skip(skip)
       .limit(parseInt(limit));
 
+    const userName = req.user?.userName || null;
+
     res.json({
+      userName,
       total,
       page: parseInt(page),
       limit: parseInt(limit),
-      reviews
+      reviews: reviews.map(r => ({
+        ...r.toObject(),
+        commenterName: r.name // <-- lấy tên người bình luận
+      }))
     });
   } catch (err) {
     res.status(500).json({ error: "Lỗi server khi lấy review" });
