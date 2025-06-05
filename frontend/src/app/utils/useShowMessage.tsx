@@ -1,7 +1,7 @@
 'use client';
 import { App } from 'antd';
 
-export function useShowMessage() {
+export function useShowMessage(p0: string, p1: string) {
   const { message } = App.useApp();
 
   return {

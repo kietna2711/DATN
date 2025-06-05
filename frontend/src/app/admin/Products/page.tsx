@@ -4,6 +4,7 @@ import "bootstrap/dist/css/bootstrap.min.css";
 import "@fortawesome/fontawesome-free/css/all.min.css";
 import "boxicons/css/boxicons.min.css";
 import "../admin.css";
+import { useShowMessage } from "../../utils/useShowMessage";
 
 type Product = {
   id: string;
@@ -48,42 +49,46 @@ export default function ProductManagement() {
     status: "",
   });
   const [categories, setCategories] = useState<any[]>([]); // Thêm state cho danh sách danh mục
+  const [deleteId, setDeleteId] = useState<string | null>(null);
+
+  const showMessage = useShowMessage("success", "error");
 
   // Fetch sản phẩm từ backend nodejs
-  useEffect(() => {
-    async function fetchProducts() {
-      try {
-        const res = await fetch("http://localhost:3000/products");
-        const data = await res.json();
-        console.log("Raw data from API:", data);
+  const fetchProducts = async () => {
+    try {
+      const res = await fetch("http://localhost:3000/products");
+      const data = await res.json();
+      console.log("Raw data from API:", data);
 
-        // Giả sử data là mảng sản phẩm từ API
-        const products = data.map((prod: any) => ({
-          id: prod._id, // <-- chuyển từ _id sang id
-          name: prod.name,
-          image:
-            prod.images && prod.images.length > 0
-              ? `http://localhost:3000/images/${prod.images[0]}`
-              : "",
-          desc: prod.description,
-          price: prod.price,
-          size: prod.variants && prod.variants.length > 0
-            ? prod.variants.map((v: any) => v.size).join(", ")
+      // Giả sử data là mảng sản phẩm từ API
+      const products = data.map((prod: any) => ({
+        id: prod._id, // <-- chuyển từ _id sang id
+        name: prod.name,
+        image:
+          prod.images && prod.images.length > 0
+            ? `http://localhost:3000/images/${prod.images[0]}`
             : "",
-          quantity: prod.variants && prod.variants.length > 0
-            ? prod.variants.map((v: any) => v.quantity).join(", ")
-            : "",
-          category: prod.categoryId?.name || "",
-          status: prod.status || "Còn hàng",
-          checked: false,
-        }));
-        console.log("Mapped products:", products);
+        desc: prod.description,
+        price: prod.price,
+        size: prod.variants && prod.variants.length > 0
+          ? prod.variants.map((v: any) => v.size).join(", ")
+          : "",
+        quantity: prod.variants && prod.variants.length > 0
+          ? prod.variants.map((v: any) => v.quantity).join(", ")
+          : "",
+        category: prod.categoryId?.name || "",
+        status: prod.status || "Còn hàng",
+        checked: false,
+      }));
+      console.log("Mapped products:", products);
 
-        setProducts(products);
-      } catch (error) {
-        console.error("Lỗi khi fetch sản phẩm:", error);
-      }
+      setProducts(products);
+    } catch (error) {
+      console.error("Lỗi khi fetch sản phẩm:", error);
     }
+  };
+
+  useEffect(() => {
     fetchProducts();
   }, []);
 
@@ -152,25 +157,26 @@ export default function ProductManagement() {
   // Xóa sản phẩm
   const handleDelete = async (id: string) => {
     if (window.confirm("Bạn có chắc chắn muốn xóa sản phẩm này?")) {
-      // Gọi API xóa ở backend
-      await fetch(`http://localhost:3000/products/${id}`, {
-        method: "DELETE",
-        headers: {
-          Authorization: "Bearer " + localStorage.getItem("token"),
-        },
-      });
-      // Sau đó xóa ở state frontend
-      setProducts((products) => products.filter((p) => p.id !== id));
+      try {
+        const res = await fetch(`http://localhost:3000/products/${id}`, {
+          method: "DELETE",
+          headers: {
+            Authorization: "Bearer " + localStorage.getItem("token"),
+          },
+        });
+        if (res.ok) {
+          setProducts((products) => products.filter((p) => p.id !== id));
+          showMessage.success("Xóa sản phẩm thành công!");
+        } else {
+          showMessage.error("Xóa sản phẩm thất bại!");
+        }
+      } catch (error) {
+        showMessage.error("Lỗi khi xóa sản phẩm!");
+      }
     }
   };
 
-  // Xóa tất cả sản phẩm đã chọn
-  const handleDeleteAll = () => {
-    if (window.confirm("Bạn có chắc chắn muốn xóa các sản phẩm đã chọn?")) {
-      setProducts((products) => products.filter((p) => !p.checked));
-      setSelectAll(false);
-    }
-  };
+ 
 
   // Mở modal sửa
   const openEditModal = (id: string) => {
@@ -217,6 +223,7 @@ export default function ProductManagement() {
       setProducts((products) =>
         products.map((p, i) => (i === editIndex ? { ...p, ...form } : p))
       );
+      showMessage.success("Cập nhật sản phẩm thành công!");
     }
     setShowModal(false);
   };
@@ -282,16 +289,7 @@ useEffect(() => {
             <i className="fas fa-plus"></i> Tạo mới sản phẩm
           </button>
         </div>
-        <div className="col-sm-2">
-          <button
-            className="btn btn-delete btn-sm"
-            type="button"
-            title="Xóa tất cả"
-            onClick={handleDeleteAll}
-          >
-            <i className="fas fa-trash-alt"></i> Xóa tất cả
-          </button>
-        </div>
+
         <div className="col-sm-2">
           <button
             className="btn btn-delete btn-sm print-file"
@@ -362,7 +360,7 @@ useEffect(() => {
                           className="btn btn-primary btn-sm trash"
                           type="button"
                           title="Xóa"
-                          onClick={() => handleDelete(p.id)}
+                          onClick={() => setDeleteId(p.id)}
                         >
                           <i className="fas fa-trash-alt"></i>
                         </button>
@@ -564,14 +562,15 @@ useEffect(() => {
                             });
 
                             if (res.ok) {
-                              alert("Tạo sản phẩm thành công!");
-                              window.location.reload(); // Tải lại trang để cập nhật danh sách sản phẩm
+                              showMessage.success("Tạo sản phẩm thành công!");
+                              setShowCreateModal(false);
+                              await fetchProducts(); // cập nhật lại danh sách sản phẩm
                               return;
                             } else {
-                              alert("Thêm sản phẩm thất bại!");
+                              showMessage.error("Thêm sản phẩm thất bại!");
                             }
                           } catch (error) {
-                            alert("Lỗi khi thêm sản phẩm!");
+                            showMessage.error("Lỗi khi thêm sản phẩm!");
                           }
                         }}
                       >
@@ -823,6 +822,50 @@ useEffect(() => {
           </div>
         </div>
       </div>
+      {/* Modal xác nhận xóa */}
+      {deleteId && (
+        <div className="modal d-block" tabIndex={-1} style={{ background: "rgba(0,0,0,0.3)" }}>
+          <div className="modal-dialog modal-dialog-centered">
+            <div className="modal-content">
+              <div className="modal-header">
+                <h5 className="modal-title">Xác nhận xóa</h5>
+                <button type="button" className="close" onClick={() => setDeleteId(null)}>
+                  <span>&times;</span>
+                </button>
+              </div>
+              <div className="modal-body">
+                <p>Bạn chắc chắn muốn xóa sản phẩm này?</p>
+              </div>
+              <div className="modal-footer">
+                <button className="btn btn-danger" onClick={async () => {
+                  try {
+                    const res = await fetch(`http://localhost:3000/products/${deleteId}`, {
+                      method: "DELETE",
+                      headers: {
+                        Authorization: "Bearer " + localStorage.getItem("token"),
+                      },
+                    });
+                    if (res.ok) {
+                      setProducts((products) => products.filter((p) => p.id !== deleteId));
+                      showMessage.success("Đã xóa sản phẩm!");
+                    } else {
+                      showMessage.error("Xóa sản phẩm thất bại!");
+                    }
+                  } catch (error) {
+                    showMessage.error("Lỗi khi xóa sản phẩm!");
+                  }
+                  setDeleteId(null);
+                }}>
+                  Xóa
+                </button>
+                <button className="btn btn-secondary" onClick={() => setDeleteId(null)}>
+                  Hủy
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
