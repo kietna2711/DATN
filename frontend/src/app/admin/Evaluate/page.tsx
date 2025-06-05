@@ -53,7 +53,7 @@ function ReviewDetailModal({
     async function fetchDetails() {
       setLoading(true);
       try {
-        const res = await fetch(`http://localhost:3000/admin/reviews?productId=${productId}`);
+      const res = await fetch(`http://localhost:3000/reviews/admin?productId=${productId}`);
         if (!res.ok) throw new Error("Lỗi mạng!");
         const data = await res.json();
         setDetails(Array.isArray(data.reviews) ? data.reviews : []);
@@ -117,7 +117,7 @@ function ReviewDetailModal({
                     <th>Số sao</th>
                     <th>Bình luận</th>
                     <th>Ngày đăng</th>
-                    <th>Trạng thái</th>
+                   
                     <th>Hoạt động</th>
                   </tr>
                 </thead>
@@ -129,11 +129,7 @@ function ReviewDetailModal({
                       <td>{renderStars(review.rating)}</td>
                       <td>{review.comment}</td>
                       <td>{review.createdAt}</td>
-                      <td>
-                        <span className={`badge ${review.status === "visible" ? "bg-success" : "bg-secondary"}`}>
-                          {review.status === "visible" ? "Hiển thị" : "Đã ẩn"}
-                        </span>
-                      </td>
+                    
                       <td>
                         <button
                           className="btn btn-light btn-sm toggle-visibility"
@@ -172,12 +168,7 @@ export default function ReviewManagement() {
     async function fetchReviews() {
       setLoading(true);
       try {
-        const res = await fetch('http://localhost:3000/reviews/admin/reviews-latest', {
-          headers: {
-            Authorization: 'Bearer ' + (localStorage.getItem('token') || ''),
-            "Content-Type": "application/json"
-          }
-        });
+        const res = await fetch('http://localhost:3000/reviews/admin/reviews-latest');
         if (!res.ok) throw new Error("Lỗi mạng!");
         const data = await res.json();
         setReviews(Array.isArray(data.reviews) ? data.reviews : []);
@@ -262,7 +253,7 @@ export default function ReviewManagement() {
                         <td>{renderStars(review.rating)}</td>
                         <td>{review.comment}</td>
                         <td>{review.createdAt}</td>
-                       
+                     
                         <td>
                           <button
                             className="btn btn-info btn-sm"

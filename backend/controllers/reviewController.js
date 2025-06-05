@@ -1,7 +1,6 @@
 const Review = require("../models/reviewModel");
 
 // Lấy review cho khách hàng (ẩn review đã bị admin ẩn, hoặc lấy tất cả cho admin)
-
 // Route: /reviews
 exports.getReviews = async (req, res) => {
   try {
@@ -38,6 +37,7 @@ exports.getReviews = async (req, res) => {
     res.status(500).json({ error: "Lỗi server khi lấy review" });
   }
 };
+
 // Route: /admin/reviews
 exports.getReviewsAdmin = async (req, res) => {
   try {
@@ -73,8 +73,8 @@ exports.getReviewsAdmin = async (req, res) => {
 exports.createReview = async (req, res) => {
   try {
     const { productId, rating, comment } = req.body;
-  const username = req.user?.username || "Ẩn danh";
-  const review = await Review.create({ productId, rating, comment, username, status: "visible" });
+    const username = req.user?.username || "Ẩn danh";
+    const review = await Review.create({ productId, rating, comment, username, status: "visible" });
     res.status(201).json(review);
   } catch (err) {
     res.status(500).json({ error: "Lỗi server" });
@@ -98,6 +98,7 @@ exports.toggleReviewStatus = async (req, res) => {
     res.status(500).json({ error: "Lỗi server" });
   }
 };
+
 // Lấy review mới nhất cho mỗi sản phẩm
 exports.getLatestReviewPerProduct = async (req, res) => {
   try {
