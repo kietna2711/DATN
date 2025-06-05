@@ -2,7 +2,7 @@ var express = require('express');
 var router = express.Router();
 
 const { register, login ,verifyToken, getUser} = require('../controllers/userController');
-const User = require('../models/userModel'); // Thêm dòng này
+const User = require('../models/userModel');
 const passport = require('passport');
 const reviewController = require('../controllers/reviewController');
 const jwt = require('jsonwebtoken');
