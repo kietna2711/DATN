@@ -2,11 +2,24 @@
 import React, { useState, useEffect } from "react";
 import styles from "../styles/productsDetail.module.css";
 import { Products } from "../types/productD";
+import { HeartOutlined, HeartFilled } from "@ant-design/icons";
+
 
 const ProductInfo = ({ product }: { product: Products }) => {
   const variants = product.variants ?? [];
   const [activeSize, setActiveSize] = useState(0);
   const [quantity, setQuantity] = useState(1);
+  const [isFavorite, setIsFavorite] = useState(false);
+  const productId = (product._id ?? product.id)?.toString();
+
+ useEffect(() => {
+    const favorites = JSON.parse(localStorage.getItem("favorites") || "[]");
+    // Ép kiểu sang string để so sánh chắc chắn
+    const exists = favorites.some((item: Products) => ((item._id ?? item.id)?.toString() === productId));
+    setIsFavorite(exists);
+  }, [productId]);
+
+
 
   useEffect(() => {
     // Đọc tham số size từ URL nếu có
@@ -20,12 +33,34 @@ const ProductInfo = ({ product }: { product: Products }) => {
     // eslint-disable-next-line
   }, [variants]);
 
+  const toggleFavorite = () => {
+  const favorites = JSON.parse(localStorage.getItem("favorites") || "[]");
+  const exists = favorites.some((item: Products) => ((item._id ?? item.id)?.toString() === productId));
+  let updatedFavorites;
+  if (exists) {
+    updatedFavorites = favorites.filter((item: Products) => ((item._id ?? item.id)?.toString() !== productId));
+  } else {
+    updatedFavorites = [...favorites, product];
+  }
+  localStorage.setItem("favorites", JSON.stringify(updatedFavorites));
+  setIsFavorite(!exists);
+
+  // Thêm dòng này để thông báo cho Header cập nhật lại số:
+  window.dispatchEvent(new Event("favoriteChanged"));
+};
   const currentVariant = variants[activeSize];
 
   return (
     <div className={styles.productInfo_v3_noCard}>
       <div className={styles.productDetail_innerWrap}>
         <div className={styles.titleRow}>
+          <span
+            className={styles.heartIcon}
+            title={isFavorite ? "Xóa khỏi yêu thích" : "Thêm vào yêu thích"}
+            onClick={toggleFavorite}
+          >
+            {isFavorite ? <HeartFilled style={{ color: "red" }} /> : <HeartOutlined />}
+          </span>
           <span className={styles.productTitle}>{product.name}</span>
         </div>
         <div className={styles.productPrice}>
