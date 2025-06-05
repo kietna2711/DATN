@@ -17,6 +17,7 @@ import { getProducts } from "../services/productService"; // API lấy sản ph�
 import { useRouter } from "next/navigation"; // nếu dùng App Router
 import Link from "next/link";
 import { Products } from "../types/productD";
+import useFavoriteCount from "../hooks/useFavoriteCount";
 
 
 type Props = {
@@ -32,6 +33,7 @@ const Header: React.FC<Props> = ({ categories }) => {
   const [showSuggestions, setShowSuggestions] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
   const suggestionBoxRef = useRef<HTMLDivElement>(null);
+  const favoriteCount = useFavoriteCount();
 
 
   
@@ -171,7 +173,12 @@ const Header: React.FC<Props> = ({ categories }) => {
             
           </form>
           <div className={styles["header-icons"]}>
-            <HeartOutlined />
+           <Link href="/favorites" title="Xem danh sách yêu thích" className={styles.favoriteIconWrap}>
+            <HeartOutlined style={{ fontSize: 22, color: "#ff4d4f", position: "relative" }} />
+            {favoriteCount > 0 && (
+              <span className={styles.favoriteBadge}>{favoriteCount}</span>
+            )}
+          </Link>
             <ShoppingOutlined />
             <Link href="/login">
     <UserOutlined style={{ cursor: "pointer" }} />

@@ -1064,3 +1064,33 @@
   max-height: 1000px;
   opacity: 1;
 }
+
+
+
+.heartIcon {
+  position: absolute;
+  top: 20%;
+  right: 11%;
+  font-size: 22px;
+  margin-left: 10px;
+  border-radius: 50%;
+  padding: 6px;
+  background-color: white;
+  border: 2px solid #e87ebd; /* màu hồng nhạt nổi bật */
+  color: #6d2d85;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  transition: all 0.3s ease;
+  cursor: pointer;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+  z-index: 1;
+}
+
+.heartIcon:hover {
+  background-color: #ffb6c1; /* màu hồng nhẹ */
+  color: white;
+  transform: scale(1.1);
+  box-shadow: 0 0 10px rgba(255, 182, 193, 0.6);
+  border: 2px solid #ffb6c1;
+}
