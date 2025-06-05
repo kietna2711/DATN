@@ -22,16 +22,16 @@ exports.getReviews = async (req, res) => {
       .skip(skip)
       .limit(parseInt(limit));
 
-    const userName = req.user?.userName || null;
+    const username = req.user?.username || null;
 
     res.json({
-      userName,
+      username,
       total,
       page: parseInt(page),
       limit: parseInt(limit),
       reviews: reviews.map(r => ({
         ...r.toObject(),
-        commenterName: r.name // <-- lấy tên người bình luận
+        commenterName: r.username 
       }))
     });
   } catch (err) {
@@ -72,21 +72,14 @@ exports.getReviewsAdmin = async (req, res) => {
 // Thêm review mới
 exports.createReview = async (req, res) => {
   try {
-    const { productId, name, rating, comment } = req.body;
-    if (!productId || !rating || !comment) {
-      return res.status(400).json({ error: "Thiếu thông tin" });
-    }
-    const review = await Review.create({
-      productId,
-      name: name || "Khách",
-      rating,
-      comment,
-      status: "visible" // Mặc định khi tạo mới là "visible"
-    });
+    const { productId, rating, comment } = req.body;
+  const username = req.user?.username || "Ẩn danh";
+  const review = await Review.create({ productId, rating, comment, username, status: "visible" });
     res.status(201).json(review);
   } catch (err) {
     res.status(500).json({ error: "Lỗi server" });
   }
+  console.log('req.user:', req.user);
 };
 
 // Đổi trạng thái review (ẩn/hiện)
@@ -94,11 +87,14 @@ exports.toggleReviewStatus = async (req, res) => {
   try {
     const { id } = req.params;
     const review = await Review.findById(id);
+    console.log("Review found:", review);
     if (!review) return res.status(404).json({ error: "Không tìm thấy review" });
     review.status = review.status === "visible" ? "hidden" : "visible";
     await review.save();
+    console.log("Review after save:", review);
     res.json(review);
   } catch (err) {
+    console.error("Toggle status error:", err);
     res.status(500).json({ error: "Lỗi server" });
   }
 };

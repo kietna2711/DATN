@@ -1,27 +1,27 @@
 //chèn multer để upload file
 const multer = require('multer');
 const storage = multer.diskStorage({
-  destination: function(req, file, cb){
-    cb(null, './public/images')
-  },
-  filename: function(req, file, cb){
-    cb(null, file.originalname)
-  }
+    destination: function (req, file, cb) {
+        cb(null, './public/images')
+    },
+    filename: function (req, file, cb) {
+        cb(null, file.originalname)
+    }
 })
 const checkfile = (req, file, cb) => {
-  if(!file.originalname.match(/\.(jpg|jpeg|png|gif|webp)$/)){
-    return cb(new Error('Bạn chỉ được upload file ảnh'))
-  }
-  return cb(null, true)
+    if (!file.originalname.match(/\.(jpg|jpeg|png|gif|webp)$/)) {
+        return cb(new Error('Bạn chỉ được upload file ảnh'))
+    }
+    return cb(null, true)
 }
-const upload = multer({storage: storage, fileFilter: checkfile})
+const upload = multer({ storage: storage, fileFilter: checkfile })
 
 ////////////////////////////
 const userModel = require('../models/userModel');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 
-const register =  async (req, res) => {
+const register = async (req, res) => {
     try {
         // Kiểm tra email đã tồn tại chưa bằng hàm findOne()
         const checkUser = await userModel.findOne({
@@ -39,15 +39,19 @@ const register =  async (req, res) => {
             password: hashPassword,
             firstName: req.body.firstName,
             lastName: req.body.lastName,
-            username: req.body.username, 
+            username: req.body.username,
         });
         // Lưu vào database bằng hàm save()
         const data = await newUser.save();
 
         // Tạo token cho user mới
-        const token = jwt.sign({ id: data._id, email: data.email, role: data.role }, 'conguoiyeuchua', {
-            expiresIn: '1h'
-        });
+        // Tạo token cho user mới (register)
+        const token = jwt.sign({
+            id: data._id,
+            email: data.email,
+            role: data.role,
+            username: data.username // <-- thêm dòng này, đồng nhất với login
+        }, 'conguoiyeuchua', { expiresIn: '1h' });
 
         // Trả về cả user và token
         res.json({ user: data, token });
@@ -69,7 +73,7 @@ const login = [upload.single('img'), async (req, res) => {
         if (!isMatch) {
             throw new Error('Mật khẩu không đúng');
         }
-        const token = jwt.sign({ id: checkUser._id, email: checkUser.email, role: checkUser.role }, 'conguoiyeuchua', {
+        const token = jwt.sign({ id: checkUser._id, email: checkUser.email, role: checkUser.role, username: checkUser.username }, 'conguoiyeuchua', {
             expiresIn: '1h'
         });
         // Không trả về password!
@@ -83,13 +87,10 @@ const login = [upload.single('img'), async (req, res) => {
 
 //Bảo mật token
 const verifyToken = (req, res, next) => {
-    // Lấy token từ header
-    const token = req.headers.authorization.slice(7);
-    console.log(token);
+    const token = req.headers.authorization?.slice(7);
     if (!token) {
         return res.status(403).json({ message: 'Không có token' });
     }
-    // Xác thực token với mã bí mật
     jwt.verify(token, 'conguoiyeuchua', (err, decoded) => {
         if (err) {
             if (err.name === 'TokenExpiredError') {
@@ -99,11 +100,11 @@ const verifyToken = (req, res, next) => {
             }
             return res.status(401).json({ message: 'Lỗi xác thực token' });
         }
-        // decoded chứa thông tin user đã mã hóa trong token và lưu vào req
-        req.userId = decoded.id; 
+        req.user = decoded; // Đúng chuẩn
         next();
     });
-}
+};
+
 
 //lấy thông tin user khi có token
 const getUser = async (req, res) => {
@@ -122,7 +123,7 @@ const getUser = async (req, res) => {
 const verifyAdmin = async (req, res, next) => {
     try {
         // Lấy thông tin user từ id lưu trong req khi đã xác thực token
-        const user= await userModel.findById(req.userId);
+        const user = await userModel.findById(req.userId);
         console.log(user);
         console.log(user.role);
         if (!user) {
@@ -138,4 +139,4 @@ const verifyAdmin = async (req, res, next) => {
     }
 }
 
-module.exports = { register , login , getUser, verifyToken, verifyAdmin};
+module.exports = { register, login, getUser, verifyToken, verifyAdmin };

@@ -1,6 +1,7 @@
 const express = require("express");
 const router = express.Router();
 const reviewController = require("../controllers/reviewController");
+const authenticateToken = require("../middleware/auth"); // Đảm bảo đúng đường dẫn!
 
 // GET: lấy review theo productId (chỉ visible)
 router.get("/", reviewController.getReviews);
@@ -8,10 +9,10 @@ router.get("/", reviewController.getReviews);
 // GET: lấy toàn bộ review cho admin (cả visible & hidden)
 router.get("/admin", reviewController.getReviewsAdmin);
 
-// POST: thêm review mới
-router.post("/", reviewController.createReview);
+// POST: thêm review mới (PHẢI CÓ MIDDLEWARE XÁC THỰC)
+router.post("/", authenticateToken, reviewController.createReview);
 
 // PATCH: đổi trạng thái review (ẩn/hiện)
-router.patch("/:id/toggle-status", reviewController.toggleReviewStatus);
+router.patch("/:id/toggle-status", authenticateToken, reviewController.toggleReviewStatus);
 
 module.exports = router;

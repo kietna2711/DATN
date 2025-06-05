@@ -8,6 +8,7 @@ import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
 type Review = {
+  username: any;
   _id: string;
   productId: string;
   name: string;
@@ -86,8 +87,13 @@ export default function ReviewManagement() {
   // Toggle ẩn/hiện đánh giá
   const handleToggleVisibility = async (id: string) => {
     try {
-      const res = await fetch(`http://localhost:3000/reviews/${id}/toggle-status`, { method: "PATCH" });
-      if (!res.ok) throw new Error("Đổi trạng thái thất bại");
+      const res = await fetch(`http://localhost:3000/reviews/${id}/toggle-status`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: "Bearer " + (localStorage.getItem("token") || ""),
+        }
+      });
       const updatedReview = await res.json();
 
       setReviews(reviews =>
@@ -141,7 +147,7 @@ export default function ReviewManagement() {
                     {reviews.map(review => (
                       <tr key={review._id}>
                         <td>{review._id}</td>
-                        <td>{review.name}</td>
+                        <td>{review.username ? review.username : review.name || "Ẩn danh"}</td>
                         <td>{review.productId}</td>
                         <td>{renderStars(review.rating)}</td>
                         <td>{review.comment}</td>
