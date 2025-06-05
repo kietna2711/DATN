@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useRef } from "react";
-import { Affix } from "antd";
+import { Affix, Badge } from "antd";
 import {
   HeartOutlined,
   ShoppingOutlined,
@@ -13,11 +13,12 @@ import {
 } from "@ant-design/icons";
 import styles from "../styles/header.module.css";
 import { Category } from "../types/categoryD";
-import { getProducts } from "../services/productService"; // API lấy sản phẩm
-import { useRouter } from "next/navigation"; // nếu dùng App Router
-import Link from "next/link";
+import { getProducts } from "../services/productService";
+import { useRouter } from "next/navigation";
 import { Products } from "../types/productD";
-
+import useFavoriteCount from "../hooks/useFavoriteCount";
+import { useAppSelector } from "../store/store";
+import Link from "next/link";
 
 type Props = {
   categories: Category[];
@@ -32,10 +33,10 @@ const Header: React.FC<Props> = ({ categories }) => {
   const [showSuggestions, setShowSuggestions] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
   const suggestionBoxRef = useRef<HTMLDivElement>(null);
+  const favoriteCount = useFavoriteCount();
 
-
-  
-
+// Lấy số sản phẩm khác nhau trong giỏ hàng (không phải tổng quantity)
+const cartCount = useAppSelector((state) => state.cart.items.length);
   // Debounce search input
   useEffect(() => {
     if (!searchValue.trim()) {
@@ -44,20 +45,19 @@ const Header: React.FC<Props> = ({ categories }) => {
       return;
     }
     const handler = setTimeout(async () => {
-      // Gọi API hoặc filter data ở đây
       try {
         const allProducts = await getProducts();
         const filtered = allProducts.filter(
           (product: Products) =>
             product.name.toLowerCase().includes(searchValue.toLowerCase())
         );
-        setSuggestions(filtered.slice(0, 5)); // chỉ lấy 5 sp đầu
+        setSuggestions(filtered.slice(0, 5));
         setShowSuggestions(true);
       } catch (err) {
         setSuggestions([]);
         setShowSuggestions(false);
       }
-    }, 250); // debounce 250ms
+    }, 250);
 
     return () => clearTimeout(handler);
   }, [searchValue]);
@@ -80,6 +80,12 @@ const Header: React.FC<Props> = ({ categories }) => {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [showSuggestions]);
 
+  const [showUserMenu, setShowUserMenu] = useState(false);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [username, setUsername] = useState<string | null>(null);
+  const userMenuRef = useRef<HTMLDivElement>(null);
+
+
   const handleSearchAction = () => {
     if (searchValue.trim()) {
       router.push(`/products?search=${encodeURIComponent(searchValue.trim())}`);
@@ -99,7 +105,6 @@ const Header: React.FC<Props> = ({ categories }) => {
     setSearchValue("");
   };
 
-
   useEffect(() => {
     document.body.style.overflow = mobileMenuActive ? "hidden" : "";
   }, [mobileMenuActive]);
@@ -115,6 +120,102 @@ const Header: React.FC<Props> = ({ categories }) => {
   };
 
   const visibleCategories = categories.filter((c) => !c.hidden);
+
+  // Đóng menu khi click ra ngoài
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (userMenuRef.current && !userMenuRef.current.contains(event.target as Node)) {
+        setShowUserMenu(false);
+      }
+    }
+    if (showUserMenu) {
+      document.addEventListener("mousedown", handleClickOutside);
+    } else {
+      document.removeEventListener("mousedown", handleClickOutside);
+    }
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [showUserMenu]);
+
+
+  // Lấy thông tin user từ localStorage khi component mount
+  useEffect(() => {
+    const userStr = localStorage.getItem("user");
+    if (userStr) {
+      try {
+        const userObj = JSON.parse(userStr);
+        setUsername(userObj.username || userObj.firstName || null);
+      } catch {
+        setUsername(null);
+      }
+    } else {
+      setUsername(null);
+    }
+    // Lắng nghe sự thay đổi user
+    const handleStorage = () => {
+      const userStr = localStorage.getItem("user");
+      if (userStr) {
+        try {
+          const userObj = JSON.parse(userStr);
+          setUsername(userObj.username || userObj.firstName || null);
+        } catch {
+          setUsername(null);
+        }
+      } else {
+        setUsername(null);
+      }
+    };
+    window.addEventListener("storage", handleStorage);
+    window.addEventListener("userChanged", handleStorage);
+    return () => {
+      window.removeEventListener("storage", handleStorage);
+      window.removeEventListener("userChanged", handleStorage);
+    };
+  }, []);
+
+  useEffect(() => {
+    const updateUser = () => {
+      const userStr = localStorage.getItem("user");
+      if (userStr) {
+        try {
+          const userObj = JSON.parse(userStr);
+          setUsername(
+            userObj.username ||
+            userObj.firstName ||
+            userObj.name ||
+            userObj.displayName ||
+            userObj.email ||
+            null
+          );
+          setIsLoggedIn(true);
+        } catch {
+          setUsername(null);
+          setIsLoggedIn(false);
+        }
+      } else {
+        setUsername(null);
+        setIsLoggedIn(false);
+      }
+    };
+
+    updateUser();
+    window.addEventListener("userChanged", updateUser);
+    window.addEventListener("storage", updateUser);
+
+    return () => {
+      window.removeEventListener("userChanged", updateUser);
+      window.removeEventListener("storage", updateUser);
+    };
+  }, []);
+//Đăng xuất xóa thông tin người dùng và token ra khỏi localStorage
+  const handleLogout = () => {
+    localStorage.removeItem("user");
+    localStorage.removeItem("token");
+    setIsLoggedIn(false);
+    setShowUserMenu(false);
+    window.location.reload();
+  };
 
   return (
     <>
@@ -132,6 +233,7 @@ const Header: React.FC<Props> = ({ categories }) => {
               placeholder="Nhập sản phẩm cần tìm ?"
               value={searchValue}
               onChange={(e) => setSearchValue(e.target.value)}
+              ref={inputRef}
             />
             <SearchOutlined
               onClick={handleSearchAction}
@@ -144,8 +246,8 @@ const Header: React.FC<Props> = ({ categories }) => {
                 fontSize: "1.25rem",
                 cursor: "pointer",
               }}
-              />
-               {showSuggestions && suggestions.length > 0 && (
+            />
+            {showSuggestions && suggestions.length > 0 && (
               <div className={styles.suggestionBox} ref={suggestionBoxRef}>
                 <ul className={styles.suggestionList}>
                   {suggestions.map((prod) => (
@@ -163,19 +265,105 @@ const Header: React.FC<Props> = ({ categories }) => {
                     </li>
                   ))}
                 </ul>
-                <div className={styles.suggestionFooter}  onClick={handleSearchAction}>
+                <div className={styles.suggestionFooter} onClick={handleSearchAction}>
                   <span>Xem thêm</span>
                 </div>
               </div>
             )}
-            
           </form>
           <div className={styles["header-icons"]}>
-            <HeartOutlined />
-            <ShoppingOutlined />
-            <Link href="/login">
-    <UserOutlined style={{ cursor: "pointer" }} />
-  </Link>
+
+           <Link href="/favorites" title="Xem danh sách yêu thích" className={styles.favoriteIconWrap}>
+            <HeartOutlined style={{ fontSize: 22, color: "#ff4d4f", position: "relative" }} />
+            {favoriteCount > 0 && (
+              <span className={styles.favoriteBadge}>{favoriteCount}</span>
+            )}
+          </Link> 
+            <a href="/cart">
+              {cartCount > 0 ? (
+                <Badge
+                  count={cartCount}
+                  color="#e87ebd"
+                  style={{
+                    fontWeight: "bold",
+                    backgroundColor: "#e87ebd",
+                    boxShadow: "0 0 0 2px #fff",
+                  }}
+                >
+                  <ShoppingOutlined
+                    style={{
+                      fontSize: "1.5rem",
+                      cursor: "pointer",
+                      color: "#e87ebd",
+                    }}
+                  />
+                </Badge>
+              ) : (
+                <ShoppingOutlined
+                  style={{
+                    fontSize: "1.5rem",
+                    cursor: "pointer",
+                    color: "#e87ebd",
+                  }}
+                />
+              )}
+            </a>
+             <div
+              className={styles["user-menu-wrap"]}
+              onMouseEnter={() => setShowUserMenu(true)}
+              onMouseLeave={() => setShowUserMenu(false)}
+              ref={userMenuRef}
+              style={{ position: "relative", display: "inline-block", marginLeft: 8 }}
+            >
+              {isLoggedIn && username ? (
+                <>
+                  <span
+                    style={{
+                      fontWeight: 500,
+                      color: "#b94490",
+                      cursor: "pointer",
+                      padding: "4px 12px",
+                      borderRadius: "16px",
+                      background: "#fff",
+                    }}
+                  >
+                    Xin chào, {username}
+                  </span>
+                  {showUserMenu && (
+                    <div className={styles["user-menu-dropdown"]}>
+                      <button
+                        className={styles["user-menu-btn"]}
+                        onClick={handleLogout}
+                        style={{
+                          width: "100%",
+                          textAlign: "left",
+                          background: "none",
+                          border: "none",
+                          cursor: "pointer",
+                        }}
+                      >
+                        Đăng xuất
+                      </button>
+                    </div>
+                  )}
+                </>
+              ) : (
+                <>
+                  <UserOutlined style={{ cursor: "pointer", fontSize: 22 }} />
+                  {showUserMenu && (
+                    <div className={styles["user-menu-dropdown"]}>
+                      <Link href="/login" className={styles["user-menu-btn"]}>
+                        Đăng nhập
+                      </Link>
+                      <Link href="/register" className={styles["user-menu-btn"]}>
+                        Đăng ký
+                      </Link>
+                    </div>
+                  )}
+                </>
+              )}
+            </div>
+
           </div>
           <button className={styles["menu-btn"]} onClick={openMobileMenu}>
             <MenuOutlined />
@@ -187,9 +375,16 @@ const Header: React.FC<Props> = ({ categories }) => {
         <nav className={styles.menu}>
           <div className={styles["menu-row"]}>
             <ul>
-              <li><div className={styles["menu-item"]}><a href="/">Trang chủ</a></div></li>
-              <li><div className={styles["menu-item"]}><a href="/products">Sản phẩm</a></div></li>
-
+              <li>
+                <div className={styles["menu-item"]}>
+                  <a href="/">Trang chủ</a>
+                </div>
+              </li>
+              <li>
+                <div className={styles["menu-item"]}>
+                  <a href="/products">Sản phẩm</a>
+                </div>
+              </li>
               {visibleCategories.map((item) => {
                 const visibleSub = item.subcategories?.filter((sub) => !sub.hidden) || [];
                 const hasSub = visibleSub.length > 0;
@@ -200,7 +395,6 @@ const Header: React.FC<Props> = ({ categories }) => {
                       <a href={`/products?category=${item._id}`}>{item.name}</a>
                       {hasSub && <span className={styles["icon-down"]}><DownOutlined /></span>}
                     </div>
-
                     {hasSub && (
                       <ul className={styles.submenu}>
                         {visibleSub.map((sub) => (
@@ -254,28 +448,28 @@ const Header: React.FC<Props> = ({ categories }) => {
             />
           </form>
           {showSuggestions && suggestions.length > 0 && (
-              <div className={styles.suggestionBox} ref={suggestionBoxRef}>
-                <ul className={styles.suggestionList}>
-                  {suggestions.map((prod) => (
-                    <li
-                      key={prod._id}
-                      className={styles.suggestionItem}
-                      onClick={() => handleSuggestionClick(prod._id)}
-                    >
-                      <img
-                        src={`http://localhost:3000/images/${prod.images[0]}`}
-                        alt={prod.name}
-                        className={styles.suggestionImg}
-                      />
-                      <span>{prod.name}</span>
-                    </li>
-                  ))}
-                </ul>
-                <div className={styles.suggestionFooter}  onClick={handleSearchAction}>
-                  <span>Xem thêm</span>
-                </div>
+            <div className={styles.suggestionBox} ref={suggestionBoxRef}>
+              <ul className={styles.suggestionList}>
+                {suggestions.map((prod) => (
+                  <li
+                    key={prod._id}
+                    className={styles.suggestionItem}
+                    onClick={() => handleSuggestionClick(prod._id)}
+                  >
+                    <img
+                      src={`http://localhost:3000/images/${prod.images[0]}`}
+                      alt={prod.name}
+                      className={styles.suggestionImg}
+                    />
+                    <span>{prod.name}</span>
+                  </li>
+                ))}
+              </ul>
+              <div className={styles.suggestionFooter} onClick={handleSearchAction}>
+                <span>Xem thêm</span>
               </div>
-            )}
+            </div>
+          )}
         </div>
 
         <div className={styles["mobile-menu-list"]}>

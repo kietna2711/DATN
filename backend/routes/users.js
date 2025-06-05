@@ -3,6 +3,8 @@ var router = express.Router();
 
 const { register, login ,verifyToken, getUser} = require('../controllers/userController');
 const User = require('../models/userModel'); // Thêm dòng này
+const passport = require('passport');
+const jwt = require('jsonwebtoken');
 
 //Đăng ký
 router.post('/register', register);
@@ -39,5 +41,24 @@ router.patch('/:id/toggle-visibility', async (req, res) => {
     res.status(500).send(err.message);
   }
 });
+
+// Đăng ký Google OAuth
+router.get('/auth/google', passport.authenticate('google', { scope: ['profile', 'email'] }));
+
+router.get('/auth/google/callback',
+  passport.authenticate('google', { failureRedirect: '/login' }),
+  (req, res) => {
+    // Tạo token
+    const token = jwt.sign(
+      { id: req.user._id, email: req.user.email, role: req.user.role },
+      process.env.JWT_SECRET,
+      { expiresIn: '1h' }
+    );
+    // Truyền user và token về frontend qua query string
+    res.redirect(
+      `http://localhost:3007/oauth-success?user=${encodeURIComponent(JSON.stringify(req.user))}&token=${token}`
+    );
+  }
+);
 
 module.exports = router;

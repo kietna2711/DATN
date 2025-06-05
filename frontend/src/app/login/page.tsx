@@ -1,17 +1,53 @@
 "use client";
 import React, { useState } from "react";
-import "./login.css"; // Copy toàn bộ CSS của bạn vào file này
+import "./login.css";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 
 export default function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [remember, setRemember] = useState(false);
+  const [error, setError] = useState("");
+  const router = useRouter();
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Xử lý đăng nhập ở đây
-    alert(`Email: ${email}\nPassword: ${password}\nRemember: ${remember}`);
+    setError("");
+    try {
+      const res = await fetch("http://localhost:3000/users/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password }),
+      });
+      const data = await res.json();
+
+      if (!res.ok) {
+        setError(data.message || "Sai tài khoản hoặc mật khẩu!");
+        return;
+      }
+
+      // Kiểm tra tài khoản bị khóa (nếu backend trả về)
+      if (data.user && data.user.visible === false) {
+        setError("Tài khoản của bạn đã bị khóa. Vui lòng liên hệ quản trị viên.");
+        return;
+      }
+
+      // Lưu user và token vào localStorage
+      localStorage.setItem("user", JSON.stringify(data.user));
+      localStorage.setItem("token", data.token);
+      // Thông báo cho các component khác biết đã đăng nhập
+      window.dispatchEvent(new Event("userChanged"));
+
+      // Chuyển hướng theo role
+      if (data.user.role === "admin") {
+        router.push("/admin");
+      } else {
+        router.push("/");
+      }
+    } catch (err) {
+      setError("Lỗi kết nối máy chủ!");
+    }
   };
 
   return (
@@ -26,6 +62,7 @@ export default function Login() {
         <div className="bear-ear left-ear"></div>
         <div className="bear-ear right-ear"></div>
         <h2>Đăng Nhập</h2>
+        {error && <div style={{ color: "red", marginBottom: 10 }}>{error}</div>}
         <input
           type="email"
           placeholder="Email"
@@ -53,7 +90,13 @@ export default function Login() {
         </div>
         <button type="submit">Đăng nhập</button>
         <div className="social-login">
-          <button className="google-btn" type="button">
+          <button
+            className="google-btn"
+            type="button"
+            onClick={() =>
+              (window.location.href = "http://localhost:3000/users/auth/google")
+            }
+          >
             <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/google/google-original.svg" alt="" />
             Google
           </button>
