@@ -1,10 +1,10 @@
-'use client';
-
+'use client'
 import { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
 import Header from "./components/Header";
 import Footer from "./components/Footer";
 import { Category } from "./types/categoryD";
+import { Providers } from "./providers";
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   const [categories, setCategories] = useState<Category[]>([]);
@@ -29,9 +29,11 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="vi">
       <body>
-        {!isAdmin && <Header categories={categories} />}
-        <main>{children}</main>
-        {!isAdmin && <Footer />}
+        <Providers>
+          {!isAdmin && <Header categories={categories} />}
+          <main>{children}</main>
+          {!isAdmin && <Footer />}
+        </Providers>
       </body>
     </html>
   );
