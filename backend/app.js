@@ -22,7 +22,7 @@ var productsRouter = require('./routes/products');
 const variantsRouter = require('./routes/variants');
 const subcategoryRouter = require('./routes/subcategory');
 const authenticateToken = require('./middleware/auth');
-
+const reviewRoutes = require('./routes/review');
 const favoriteRouter = require('./routes/favorites');
 
 
@@ -94,6 +94,8 @@ app.use('/variants', variantsRouter);
 app.use('/subcategory', subcategoryRouter);
 app.use(authenticateToken); // Bảo vệ các route sau khi xác thực token
 app.use('/favorites', favoriteRouter);
+app.use("/reviews", reviewRoutes);
+app.use("/reviews", require("./routes/review"));
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
