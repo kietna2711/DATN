@@ -1,4 +1,5 @@
 const Review = require("../models/reviewModel");
+const Product = require("../models/productModel");
 
 // Lấy review cho khách hàng (ẩn review đã bị admin ẩn, hoặc lấy tất cả cho admin)
 // Route: /reviews
@@ -111,8 +112,33 @@ exports.getLatestReviewPerProduct = async (req, res) => {
           doc: { $first: "$$ROOT" }
         }
       },
-      { $replaceRoot: { newRoot: "$doc" } }
+      { $replaceRoot: { newRoot: "$doc" } },
+      {
+        $addFields: {
+          productIdObj: { $toObjectId: "$productId" } // Nếu productId là string, convert sang ObjectId
+        }
+      },
+      {
+        $lookup: {
+          from: "products",
+          localField: "productIdObj",
+          foreignField: "_id",
+          as: "productInfo"
+        }
+      },
+      {
+        $addFields: {
+          productName: { $arrayElemAt: ["$productInfo.name", 0] }
+        }
+      },
+      {
+        $project: {
+          productInfo: 0,
+          productIdObj: 0
+        }
+      }
     ]);
+
     res.json({ reviews: latestReviews });
   } catch (err) {
     res.status(500).json({ error: "Lỗi server khi lấy review mới nhất theo sản phẩm" });

@@ -15,7 +15,7 @@
   display: flex;
   flex-wrap: wrap;
   max-width: 1250px;
-  margin: 0 auto;
+  margin: 80px auto;
   gap: 36px;
   align-items: flex-start;
   padding: 12px 0 0 0;
