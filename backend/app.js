@@ -18,6 +18,7 @@ const variantsRouter = require('./routes/variants');
 const subcategoryRouter = require('./routes/subcategory');
 const favoriteRouter = require('./routes/favorites');
 const reviewRoutes = require('./routes/review');
+const usersProfileRoutes = require('./routes/userprofile');
 
 
 
@@ -44,6 +45,8 @@ app.use('/subcategory', subcategoryRouter);
 app.use('/favorites', favoriteRouter);
 app.use("/reviews", reviewRoutes);
 app.use("/reviews", require("./routes/review"));
+
+app.use('/api', usersProfileRoutes);
 
 
 
