@@ -46,7 +46,7 @@ app.use('/favorites', favoriteRouter);
 app.use("/reviews", reviewRoutes);
 app.use("/reviews", require("./routes/review"));
 
-app.use('/api', usersProfileRoutes);
+app.use('/api/usersProfile', usersProfileRoutes);
 
 
 

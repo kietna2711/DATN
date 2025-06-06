@@ -42,22 +42,23 @@ const UserProfile: React.FC = () => {
     setUser(prev => prev ? { ...prev, [name]: value } : prev);
   };
 
-  const handleSave = () => {
-    if (!user) return;
+ const handleSave = () => {
+  if (!user) return;
 
-    fetch(`http://localhost:3000/api/usersProfile/${user.username}`, {
-      method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(user),
+  fetch(`http://localhost:3000/api/usersProfile/${user._id}`, { //  sửa ở đây
+    method: 'PUT',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(user),
+  })
+    .then(res => {
+      if (!res.ok) throw new Error('Lỗi khi cập nhật dữ liệu');
+      alert('Cập nhật thành công!');
     })
-      .then(res => {
-        if (!res.ok) throw new Error('Lỗi khi cập nhật dữ liệu');
-        alert('Cập nhật thành công!');
-      })
-      .catch(err => console.error('Lỗi khi cập nhật:', err));
-  };
+    .catch(err => console.error('Lỗi khi cập nhật:', err));
+};
+
 
   const handleLogout = () => {
     localStorage.removeItem('user');
@@ -89,6 +90,9 @@ const UserProfile: React.FC = () => {
           </div>
           <div className="menu-item">
             <span className="menu-icon">📦</span> Đơn hàng
+          </div>
+          <div className="menu-item">
+            <span className="menu-icon">🔒</span> Quên mật khẩu
           </div>
           <div className="menu-item" onClick={() => setShowLogoutConfirm(true)}>
             <span className="menu-icon">➡️</span> Đăng xuất
