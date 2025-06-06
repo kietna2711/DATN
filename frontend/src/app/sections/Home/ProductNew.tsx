@@ -10,6 +10,8 @@ import "swiper/css/autoplay";
 import styles from "@/app/styles/producthot.module.css";
 import { Products } from "@/app/types/productD";
 import ProductItem from "@/app/components/ProductItem";
+import { useRouter } from "next/navigation"; // Thêm dòng này
+import router from "next/router";
 
 type ProductHotProps = {
   props: {
@@ -19,9 +21,16 @@ type ProductHotProps = {
   };
 };
 
+  // Hàm chuyển hướng tới trang sản phẩm mới
+  const handleFindNewProduct = () => {
+    router.push("/products?new=true");
+  };
+
+
 export default function ProductNew({ props }: ProductHotProps) {
   const { title, description, products } = props;
   const swiperRef = useRef<any>(null);
+  const router = useRouter(); // Thêm dòng này
 
   return (
     <div className={styles.section}>
@@ -73,7 +82,11 @@ export default function ProductNew({ props }: ProductHotProps) {
         </h2>
         <p>{description}</p>
         <div className={styles.storyActions}>
-          <button className={styles.btnMain}>TÌM HIỂU THÊM &nbsp;→</button>
+        {/*  */}
+          <button className={styles.btnMain} onClick={() => router.push("/products?new=true")}>
+            TÌM HIỂU THÊM &nbsp;→
+          </button>
+        {/*  */}
         </div>
       </div>
     </div>
