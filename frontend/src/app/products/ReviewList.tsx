@@ -93,7 +93,11 @@ const ReviewList: React.FC<ReviewListProps> = ({ productId }) => {
       ) : (
         <>
           <div id="review-list">
-            {reviewsToShow.length === 0 && <div>Chưa có đánh giá nào.</div>}
+            {reviewsToShow.length === 0 && 
+            <div style={{ margin:"auto", textAlign: "center" }}>
+              <img src="http://localhost:3000/images/binhluan.jpg" alt="" width={400}  />
+              <p>Chưa có đánh giá nào.</p>
+            </div>}
             {reviewsToShow.map((r, i) => (
               <div className={styles.review_item} key={i}>
                 <div className={styles.reviewHeader}>
