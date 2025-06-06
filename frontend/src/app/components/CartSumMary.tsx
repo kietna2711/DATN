@@ -1,6 +1,7 @@
 'use client';
 import styles from "@/app/styles/cart.module.css";
 import { CartItem as CartItemType } from "../types/cartD";
+import { useRouter } from "next/navigation"; // Thêm dòng này
 
 interface CartSummaryProps {
   productList: CartItemType[];
@@ -8,6 +9,8 @@ interface CartSummaryProps {
 }
 
 export default function CartSummary({ productList, onClear }: CartSummaryProps) {
+  const router = useRouter(); // Thêm dòng này
+
   if (!productList.length) return null;
 
   const total = productList.reduce(
@@ -26,7 +29,7 @@ export default function CartSummary({ productList, onClear }: CartSummaryProps) 
       {/* <button onClick={onClear} className={styles.clearCartBtn}>
         Xóa tất cả
       </button> */}
-      <button className={styles.buyBtn}>
+      <button className={styles.buyBtn} onClick={() => router.push("/checkout")}>
         Thanh toán
       </button>
     </div>

@@ -24,7 +24,7 @@ body {
 }
 
 .column {
-  border-bottom: 2px solid pink;
+  border-bottom: 4px solid pink;
   max-width: 375px;
   padding: 15px;
   background-color: #fff;
@@ -125,7 +125,7 @@ textarea {
 }
 
 .right {
-  border-bottom: 2px solid pink;
+  border-bottom: 4px solid pink;
   margin-left: auto;
   width: 345px;
   height: auto;
@@ -147,8 +147,7 @@ textarea {
   font-size: 14px;
 }
 .spTT{
-  padding-bottom: 20px;
-  height: 80px;
+  height: 60px;
   justify-content: space-between;
   align-items: center;
   display: flex;
@@ -171,11 +170,9 @@ textarea {
 .soSP .siso{
   align-items: center;
   text-align: center;
-  top: 0;
-  right: 0;
   color: white;
-  height: 15px;
-  width: 15px;
+  height: 18px;
+  width: 18px;
   border-radius: 10px;
   background-color: #e87ebd;
   position: absolute;

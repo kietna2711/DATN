@@ -1,10 +1,12 @@
 "use client";
 import React, { useState } from "react";
 import "./checkout.css";
+import { useAppSelector } from "../store/store"; // THÊM DÒNG NÀY
 
 const provinces = ["Tỉnh thành", "TP.Hồ Chí Minh"];
 const districts = ["Quận huyện", "Quận 1", "Quận 2"];
 const wards = ["Phường xã", "Quang Trung"];
+const SHIPPING_FEE = 30000; // Phí vận chuyển
 
 export const CheckoutPage: React.FC = () => {
   const [fullName, setFullName] = useState("");
@@ -16,10 +18,22 @@ export const CheckoutPage: React.FC = () => {
   const [note, setNote] = useState("");
   const [payment, setPayment] = useState("");
   const [coupon, setCoupon] = useState("");
+  const cartItems = useAppSelector((state) => state.cart.items); //thêm dòng
 
   const handlePaymentChange = (value: string) => {
     setPayment(value);
   };
+
+  // TÍNH TỔNG TIỀN
+  const total = cartItems.reduce(
+    (sum, item) => {
+      const price = item.selectedVariant ? item.selectedVariant.price : item.product.price;
+      return sum + price * item.quantity;
+    },
+    0
+  );
+  const totalWithShipping = total + SHIPPING_FEE;
+
 
   return (
     <div className="container">
@@ -111,9 +125,10 @@ export const CheckoutPage: React.FC = () => {
             />
             <label>Thanh toán khi giao hàng</label>
             <div className="cod">
-              <img
+              <img 
                 src="http://localhost:3000/images/icon-tien.png"
                 alt="cod"
+                style={{ filter: "invert(71%) sepia(94%) saturate(600%) hue-rotate(85deg) brightness(90%) contrast(90%)" }} 
               />
             </div>
           </div>
@@ -178,24 +193,33 @@ export const CheckoutPage: React.FC = () => {
       </div>
       {/* Right: Order summary */}
       <div className="right">
-        <h3>Đơn hàng (1 sản phẩm)</h3>
+        <h3>Đơn hàng ({cartItems.length} sản phẩm)</h3>
         <div className="order-summary">
-          <div className="spTT">
-            <div className="soSP" style={{ position: "relative" }}>
-              <img
-                className="anhGH"
-                src="assets/images/nhaOng/section2-1.jpg"
-                alt=""
-              />
-              <span className="siso" style={{
-                position: "absolute",
-                top: 0,
-                right: 0
-              }}>1</span>
+          {/* HIỂN THỊ DANH SÁCH SẢN PHẨM */}
+          {cartItems.map((item, idx) => (
+            <div className="spTT" key={item.product._id + (item.selectedVariant?.size || '') + idx}>
+              <div className="soSP" style={{ position: "relative" }}>
+                <img
+                  className="anhGH"
+                  src={`http://localhost:3000/images/${item.product.images[0]}`}
+                  alt={item.product.name}
+                />
+                <span className="siso"
+                  style={{
+                    position: "absolute",
+                    top: -6,
+                    right: -12
+                  }}>{item.quantity}</span>
+              </div>
+              <span>
+                {item.product.name}
+                {item.selectedVariant?.size ? ` - Size: ${item.selectedVariant.size}` : ""}
+              </span>
+              <p>
+                {(item.selectedVariant ? item.selectedVariant.price : item.product.price).toLocaleString('vi-VN')} ₫
+              </p>
             </div>
-            <span>Nhấn giữ Vòng tay bạc khi đến địa chỉ T.Tỉnh, Quận Xxxx</span>
-            <p>5438000 ₫</p>
-          </div>
+          ))}
           <div className="saleTT">
             <input
               type="text"
@@ -208,19 +232,19 @@ export const CheckoutPage: React.FC = () => {
           <div className="tinhTien">
             <div className="tTien">
               <p>Tạm tính</p>
-              <p>5438000 ₫</p>
+              <p>{total.toLocaleString('vi-VN')} ₫</p>
             </div>
             <div className="tTien">
               <p>Phí vận chuyển</p>
-              <p>--</p>
+              <span>{SHIPPING_FEE.toLocaleString('vi-VN')} ₫</span>
             </div>
           </div>
           <div className="total">
             <p>Tổng cộng</p>
-            <span>5438000 ₫</span>
+            <span>{totalWithShipping.toLocaleString('vi-VN')} ₫</span>
           </div>
           <div className="actions">
-            <button className="back">◀ Quay về giỏ hàng</button>
+            <button className="back" onClick={() => window.history.back()}>◀ Quay về giỏ hàng</button>
             <button className="submit">ĐẶT HÀNG</button>
           </div>
         </div>
@@ -229,4 +253,4 @@ export const CheckoutPage: React.FC = () => {
   );
 };
 
-  export default CheckoutPage;
+export default CheckoutPage;
