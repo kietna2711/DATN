@@ -12,13 +12,11 @@ router.get('/', getAllProducts);
 router.get('/:id', getProductById);
 
 //Thêm sản phẩm
-router.post('/', addPro);
-// router.post('/',  addPro);
+router.post('/', verifyToken, verifyAdmin, addPro);
 
 //Sửa sản phẩm
 router.patch('/:id', verifyToken, verifyAdmin, editPro);
 
 //Xóa sản phẩm
-router.delete('/:id', deletePro);
-// router.delete('/:id', verifyToken, verifyAdmin, deletePro);
+router.delete('/:id', verifyToken, verifyAdmin, deletePro);
 module.exports = router;

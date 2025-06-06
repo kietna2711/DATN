@@ -87,7 +87,8 @@ const getProductById = async (req, res) => {
       .populate('categoryId')        
       .populate('subcategoryId')    
       .populate('variants');
-    res.json(product);
+    if (!product) return res.status(404).json({ message: "Không tìm thấy sản phẩm" });
+    res.json(product); // phải trả về đầy đủ trường images
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: error.message });
@@ -96,7 +97,10 @@ const getProductById = async (req, res) => {
 
 // Thêm sản phẩm
 const addPro = [
-  upload.single('img'),
+  upload.fields([
+    { name: 'img', maxCount: 1 },
+    { name: 'thumbnails', maxCount: 10 }
+  ]),
   async (req, res) => {
     try {
       const product = req.body;
@@ -107,10 +111,10 @@ const addPro = [
         return res.status(400).json({ message: "Giá sản phẩm không hợp lệ" });
       }
 
-      if (req.file) {
-        product.images = [req.file.originalname];
-      } else {
-        product.images = [];
+      product.images = [];
+      if (req.files['img']) product.images.push(req.files['img'][0].originalname);
+      if (req.files['thumbnails']) {
+        product.images = product.images.concat(req.files['thumbnails'].map(f => f.originalname));
       }
 
       product.createdAt = new Date();
@@ -142,25 +146,91 @@ const addPro = [
 
 // Sửa sản phẩm
 const editPro = [
-  upload.single('img'),
+  upload.fields([
+    { name: 'img', maxCount: 1 },
+    { name: 'thumbnails', maxCount: 10 }
+  ]),
   async (req, res) => {
     try {
       const product = req.body;
 
-      if (req.file) {
-        product.images = [req.file.originalname]; // ✅ đúng field name
+      // Parse oldThumbnails từ frontend
+      let oldThumbnails = [];
+      if (req.body.oldThumbnails) {
+        try {
+          oldThumbnails = JSON.parse(req.body.oldThumbnails);
+        } catch (e) {
+          oldThumbnails = [];
+        }
       }
 
-      const category = await categories.findById(product.categoryId);
-      if (!category) {
-        throw new Error('Danh mục không tồn tại');
+      // Xử lý ảnh chính
+      let images = [];
+      if (req.files['img']) {
+        images.push(req.files['img'][0].originalname);
+      } else if (req.body.image) {
+        images.push(req.body.image.replace(/^.*[\\/]/, ""));
       }
 
+      // Thêm các thumbnail cũ giữ lại
+      if (Array.isArray(oldThumbnails)) {
+        images = images.concat(oldThumbnails);
+      }
+
+      // Thêm các thumbnail mới upload
+      if (req.files['thumbnails']) {
+        images = images.concat(req.files['thumbnails'].map(f => f.originalname));
+      }
+
+      // Đảm bảo luôn có ít nhất 1 ảnh
+      if (images.length === 0) {
+        return res.status(400).json({ message: "Sản phẩm phải có ít nhất 1 ảnh" });
+      }
+
+      // Ép kiểu và kiểm tra các trường bắt buộc
+      const updateData = {
+        name: product.name,
+        description: product.description,
+        price: Number(product.price),
+        categoryId: product.categoryId,
+        status: product.status,
+        images: images,
+      };
+
+      // Kiểm tra trường bắt buộc
+      if (!updateData.name || isNaN(updateData.price) || !updateData.categoryId) {
+        return res.status(400).json({ message: "Thiếu trường bắt buộc" });
+      }
+
+      // Cập nhật sản phẩm
       const data = await products.findByIdAndUpdate(
         req.params.id,
-        product,
+        updateData,
         { new: true }
       );
+
+      // --- XỬ LÝ VARIANTS ---
+      if (req.body.variants) {
+        let variantsArr = req.body.variants;
+        if (typeof variantsArr === "string") {
+          variantsArr = JSON.parse(variantsArr);
+        }
+        // Xóa hết variants cũ của sản phẩm này
+        await variants.deleteMany({ productId: req.params.id });
+        // Thêm lại variants mới
+        for (const v of variantsArr) {
+          await variants.create({
+            productId: req.params.id,
+            size: v.size,
+            quantity: v.quantity,
+            price: updateData.price // hoặc v.price nếu muốn
+          });
+        }
+      }
+
+      if (!data) {
+        return res.status(404).json({ message: "Không tìm thấy sản phẩm" });
+      }
 
       res.json(data);
     } catch (error) {
