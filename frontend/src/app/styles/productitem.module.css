@@ -1086,6 +1086,7 @@
 .filter-button {
   display: flex;
   align-items: center;
+  width: 60px;
   gap: 6px;
   padding: 6px 0;
   border: 1px solid #f72585;

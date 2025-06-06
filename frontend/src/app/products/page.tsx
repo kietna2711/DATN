@@ -51,6 +51,21 @@ export default function ProductsPage() {
         }else{
           data = await getProducts();
         }
+         // Lọc sản phẩm mới nếu có query new=true
+        if (searchParams.get("new") === "true") {
+          // Nếu sản phẩm có trường isNew
+          if (data.length && typeof data[0].isNew !== "undefined") {
+            data = data.filter((prod) => prod.isNew);
+          } else {
+            // Lọc theo ngày tạo (ví dụ: 15 ngày gần nhất)
+            const now = new Date();
+            data = data.filter((prod) => {
+              const created = new Date(prod.createdAt);
+              const diff = (now.getTime() - created.getTime()) / (1000 * 3600 * 24);
+              return diff <= 15;
+            });
+          }
+        }
         setProducts(data);
       } catch (error) {
         setProducts([]);
@@ -60,7 +75,7 @@ export default function ProductsPage() {
     }
     setLoading(true); //reset loading sau mỗi lần lọc
     fetchData();
-  }, [categoryId, subCategoryId]);
+  }, [categoryId, subCategoryId, searchParams]);
 
   function filterByPrice(product: Products) {
     const min = Math.min(...product.variants.map((v) => v.price));
@@ -164,7 +179,7 @@ export default function ProductsPage() {
             <option>Từ 300.000 đ - 500.000 đ</option>
             <option>Từ 500.000 đ - 1.000.000 đ</option>
             <option>Từ 1.000.000 đ - 2.000.000 đ</option>
-            <option>Từ 2.00.000 đ - 3.000.000 đ</option>
+            <option>Từ 2.000.000 đ - 3.000.000 đ</option>
           </select>
         </div>
         <div className={styles["filter-right"]}>

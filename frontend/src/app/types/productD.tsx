@@ -2,6 +2,7 @@ import { Category, SubCategory } from "./categoryD";
 import { Variant } from "./variantD";
 
 export interface Products {
+  isNew: any;
   id: string;
 
   _id: string;                         // id dạng string theo JSON bạn nhận
