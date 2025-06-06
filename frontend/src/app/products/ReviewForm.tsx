@@ -6,7 +6,6 @@ const ReviewForm = ({ productId }: { productId: string }) => {
   const [rating, setRating] = useState<number>(0);
   const [comment, setComment] = useState<string>('');
 
-  // Nếu click vào sao đang chọn, giảm rating đi 1 (bỏ chọn sao đó và các sao cao hơn)
   const handleStarClick = (star: number) => {
     if (rating === star) {
       setRating(star - 1);
@@ -21,9 +20,16 @@ const ReviewForm = ({ productId }: { productId: string }) => {
       alert('Vui lòng chọn số sao!');
       return;
     }
+
+    // Lấy token từ localStorage
+    const token = localStorage.getItem('token');
+
     const res = await fetch('http://localhost:3000/reviews', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 
+        'Content-Type': 'application/json',
+        ...(token ? { Authorization: `Bearer ${token}` } : {}), // THÊM DÒNG NÀY!
+      },
       body: JSON.stringify({ productId, rating, comment }),
     });
 
@@ -31,6 +37,8 @@ const ReviewForm = ({ productId }: { productId: string }) => {
       alert('Gửi đánh giá thành công!');
       setRating(0);
       setComment('');
+    } else {
+      alert('Bạn cần đăng nhập để đánh giá!');
     }
   };
 

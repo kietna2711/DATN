@@ -251,6 +251,29 @@
   font-weight: 500;
 }
 
+/* Thêm vào style global */
+.ant-popconfirm .ant-btn-primary {
+  background: #ea4c89;
+  border-color: #ea4c89;
+}
+.ant-popconfirm .ant-btn-primary:hover,
+.ant-popconfirm .ant-btn-primary:focus {
+  background: #c0336d;
+  border-color: #c0336d;
+}
+.ant-popconfirm .ant-btn-default {
+  color: #ea4c89;
+  border-color: #ea4c89;
+  background: #fff0fa;
+}
+.ant-popconfirm .ant-btn-default:hover,
+.ant-popconfirm .ant-btn-default:focus {
+  color: #fff;
+  background: #ea4c89;
+  border-color: #ea4c89;
+}
+
+
 @media (max-width: 900px) {
   .cartContainer { padding: 12px 3vw;}
   .h1 { font-size: 1.3rem;}

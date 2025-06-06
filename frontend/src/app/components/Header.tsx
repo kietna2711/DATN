@@ -254,7 +254,7 @@ const cartCount = useAppSelector((state) => state.cart.items.length);
                     <li
                       key={prod._id}
                       className={styles.suggestionItem}
-                      onClick={() => handleSuggestionClick(prod._id)}
+                     onMouseDown={() => handleSuggestionClick(prod._id)}
                     >
                       <img
                         src={`http://localhost:3000/images/${prod.images[0]}`}
@@ -265,7 +265,7 @@ const cartCount = useAppSelector((state) => state.cart.items.length);
                     </li>
                   ))}
                 </ul>
-                <div className={styles.suggestionFooter} onClick={handleSearchAction}>
+                <div className={styles.suggestionFooter} onMouseDown={handleSearchAction}>
                   <span>Xem thêm</span>
                 </div>
               </div>
@@ -273,12 +273,16 @@ const cartCount = useAppSelector((state) => state.cart.items.length);
           </form>
           <div className={styles["header-icons"]}>
 
-           <Link href="/favorites" title="Xem danh sách yêu thích" className={styles.favoriteIconWrap}>
-            <HeartOutlined style={{ fontSize: 22, color: "#ff4d4f", position: "relative" }} />
-            {favoriteCount > 0 && (
-              <span className={styles.favoriteBadge}>{favoriteCount}</span>
-            )}
-          </Link> 
+            <a
+              href="/favorites"
+              title="Xem danh sách yêu thích"
+              className={styles.favoriteIconWrap}
+            >
+              <HeartOutlined style={{ fontSize: 22, color: "#ff4d4f", position: "relative" }} />
+              {favoriteCount > 0 && (
+                <span className={styles.favoriteBadge}>{favoriteCount}</span>
+              )}
+            </a>
             <a href="/cart">
               {cartCount > 0 ? (
                 <Badge
