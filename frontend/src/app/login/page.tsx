@@ -36,8 +36,10 @@ export default function Login() {
       // Lưu user và token vào localStorage
       localStorage.setItem("user", JSON.stringify(data.user));
       localStorage.setItem("token", data.token);
+
       // Thông báo cho các component khác biết đã đăng nhập
       window.dispatchEvent(new Event("userChanged"));
+
       showMessage.success("Đăng nhập thành công!");
 
       // Chuyển hướng theo role
