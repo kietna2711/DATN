@@ -213,11 +213,11 @@ export default function ReviewManagement() {
       let newReviews = Array.isArray(data.reviews) ? data.reviews : [];
       // Bình luận mới nhất lên đầu
       newReviews = newReviews.sort(
-        (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+        (a: { createdAt: string | number | Date; }, b: { createdAt: string | number | Date; }) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
       );
       // Chỉ setReviews nếu dữ liệu thực sự thay đổi
       const oldString = JSON.stringify(reviewsRef.current.map(r => r._id + r.status + r.comment + r.createdAt));
-      const newString = JSON.stringify(newReviews.map(r => r._id + r.status + r.comment + r.createdAt));
+      const newString = JSON.stringify(newReviews.map((r: { _id: any; status: any; comment: any; createdAt: any; }) => r._id + r.status + r.comment + r.createdAt));
       if (firstLoad || oldString !== newString) {
         setReviews(newReviews);
         reviewsRef.current = newReviews;
