@@ -1,5 +1,5 @@
 "use client";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import "bootstrap/dist/css/bootstrap.min.css";
 import "@fortawesome/fontawesome-free/css/all.min.css";
 import "boxicons/css/boxicons.min.css";
@@ -7,11 +7,12 @@ import "../admin.css";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
-// Type cho 1 review
+// Bổ sung productName vào Review
 type Review = {
   username: any;
   _id: string;
   productId: string;
+  productName?: string;
   name: string;
   rating: number;
   comment: string;
@@ -19,7 +20,6 @@ type Review = {
   createdAt: string;
 };
 
-// Type cho 1 bình luận chi tiết (có thể giống Review, nhưng để tách biệt)
 type ReviewDetail = Review;
 
 function renderStars(stars: number) {
@@ -38,6 +38,15 @@ function renderStars(stars: number) {
   );
 }
 
+// Hàm format ngày tháng năm (dd/mm/yyyy)
+function formatDate(dateString: string) {
+  const date = new Date(dateString);
+  const dd = String(date.getDate()).padStart(2, "0");
+  const mm = String(date.getMonth() + 1).padStart(2, "0");
+  const yyyy = date.getFullYear();
+  return `${dd}/${mm}/${yyyy}`;
+}
+
 // Modal/component chi tiết review sản phẩm
 function ReviewDetailModal({
   productId,
@@ -47,26 +56,50 @@ function ReviewDetailModal({
   onClose: () => void;
 }) {
   const [details, setDetails] = useState<ReviewDetail[]>([]);
+  const [productName, setProductName] = useState<string>("");
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    let ignore = false;
     async function fetchDetails() {
       setLoading(true);
       try {
-      const res = await fetch(`http://localhost:3000/reviews/admin?productId=${productId}`);
+        const res = await fetch(`http://localhost:3000/reviews/admin?productId=${productId}`);
         if (!res.ok) throw new Error("Lỗi mạng!");
         const data = await res.json();
-        setDetails(Array.isArray(data.reviews) ? data.reviews : []);
+        let reviews = Array.isArray(data.reviews) ? data.reviews : [];
+        reviews = reviews.sort((a: { createdAt: string | number | Date; }, b: { createdAt: string | number | Date; }) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+        if (!ignore) setDetails(reviews);
+        if (reviews[0] && reviews[0].productName) {
+          setProductName(reviews[0].productName);
+        } else {
+          fetchProductName(productId).then(name => { if (!ignore) setProductName(name); });
+        }
       } catch (err) {
-        setDetails([]);
-        toast.error("Không thể tải chi tiết đánh giá!");
+        if (!ignore) {
+          setDetails([]);
+          toast.error("Không thể tải chi tiết đánh giá!");
+        }
       }
       setLoading(false);
     }
     fetchDetails();
+    return () => { ignore = true; };
   }, [productId]);
 
-  // Ẩn/hiện từng review
+  // API lấy tên sản phẩm nếu cần
+  async function fetchProductName(productId: string): Promise<string> {
+    try {
+      const res = await fetch(`http://localhost:3000/products/${productId}`);
+      if (!res.ok) return productId;
+      const data = await res.json();
+      return data.product?.name || productId;
+    } catch {
+      return productId;
+    }
+  }
+
+  // Không reload khi ẩn/hiện, chỉ cập nhật local state
   const handleToggleVisibility = async (reviewId: string) => {
     try {
       const res = await fetch(`http://localhost:3000/reviews/${reviewId}/toggle-status`, {
@@ -102,7 +135,9 @@ function ReviewDetailModal({
       <div className="modal-dialog modal-lg">
         <div className="modal-content">
           <div className="modal-header">
-            <h5 className="modal-title">Chi tiết đánh giá sản phẩm: {productId}</h5>
+            <h5 className="modal-title">
+              Chi tiết đánh giá sản phẩm: {productName || productId}
+            </h5>
             <button type="button" className="btn-close" onClick={onClose}></button>
           </div>
           <div className="modal-body">
@@ -112,24 +147,20 @@ function ReviewDetailModal({
               <table className="table table-hover table-bordered">
                 <thead>
                   <tr>
-                    <th>ID đánh giá</th>
                     <th>Tên người dùng</th>
                     <th>Số sao</th>
                     <th>Bình luận</th>
                     <th>Ngày đăng</th>
-                   
                     <th>Hoạt động</th>
                   </tr>
                 </thead>
                 <tbody>
                   {details.map(review => (
                     <tr key={review._id}>
-                      <td>{review._id}</td>
                       <td>{review.username ? review.username : review.name || "Ẩn danh"}</td>
                       <td>{renderStars(review.rating)}</td>
                       <td>{review.comment}</td>
-                      <td>{review.createdAt}</td>
-                    
+                      <td>{formatDate(review.createdAt)}</td>
                       <td>
                         <button
                           className="btn btn-light btn-sm toggle-visibility"
@@ -144,7 +175,7 @@ function ReviewDetailModal({
                   ))}
                   {details.length === 0 && (
                     <tr>
-                      <td colSpan={7} className="text-center">Không có đánh giá nào.</td>
+                      <td colSpan={5} className="text-center">Không có đánh giá nào.</td>
                     </tr>
                   )}
                 </tbody>
@@ -162,26 +193,45 @@ export default function ReviewManagement() {
   const [loading, setLoading] = useState(true);
   const [clock, setClock] = useState("");
   const [selectedProductId, setSelectedProductId] = useState<string | null>(null);
+  const [firstLoad, setFirstLoad] = useState(true);
+  const reviewsRef = useRef<Review[]>([]);
 
-  // Lấy dữ liệu: chỉ bình luận mới nhất mỗi sản phẩm
-  useEffect(() => {
-    async function fetchReviews() {
-      setLoading(true);
-      try {
-        const res = await fetch('http://localhost:3000/reviews/admin/reviews-latest');
-        if (!res.ok) throw new Error("Lỗi mạng!");
-        const data = await res.json();
-        setReviews(Array.isArray(data.reviews) ? data.reviews : []);
-      } catch (error) {
-        setReviews([]);
-        toast.error("Không thể tải dữ liệu đánh giá!");
+  // Hàm fetchReviews chỉ cập nhật khi có thay đổi thực sự (tránh "dựt")
+  const fetchReviews = async () => {
+    try {
+      const res = await fetch('http://localhost:3000/reviews/admin/reviews-latest');
+      if (!res.ok) throw new Error("Lỗi mạng!");
+      const data = await res.json();
+      let newReviews = Array.isArray(data.reviews) ? data.reviews : [];
+      // Bình luận mới nhất lên đầu
+      newReviews = newReviews.sort((a: { createdAt: string | number | Date; }, b: { createdAt: string | number | Date; }) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+      // Chỉ setReviews nếu dữ liệu thực sự thay đổi
+      const oldString = JSON.stringify(reviewsRef.current.map(r => r._id + r.status + r.comment + r.createdAt));
+      const newString = JSON.stringify(newReviews.map((r: { _id: any; status: any; comment: any; createdAt: any; }) => r._id + r.status + r.comment + r.createdAt));
+      if (firstLoad || oldString !== newString) {
+        setReviews(newReviews);
+        reviewsRef.current = newReviews;
+        setFirstLoad(false);
       }
       setLoading(false);
+    } catch (error) {
+      setReviews([]);
+      toast.error("Không thể tải dữ liệu đánh giá!");
+      setLoading(false);
     }
+  };
+
+  // Polling: tự động load bình luận mới nhất, tránh "dựt"
+  useEffect(() => {
+    setLoading(true);
     fetchReviews();
+    const interval = setInterval(() => {
+      fetchReviews();
+    }, 5000); // 5 giây 1 lần
+    return () => clearInterval(interval);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Đồng hồ realtime
   useEffect(() => {
     function updateClock() {
       const today = new Date();
@@ -208,7 +258,6 @@ export default function ReviewManagement() {
     return () => clearInterval(timer);
   }, []);
 
-  // Xem chi tiết bình luận sản phẩm
   const handleShowDetail = (productId: string) => {
     setSelectedProductId(productId);
   };
@@ -228,32 +277,32 @@ export default function ReviewManagement() {
         <div className="col-md-12">
           <div className="tile">
             <div className="tile-body">
-              {loading ? (
+              {loading && reviews.length === 0 ? (
                 <div>Đang tải dữ liệu...</div>
               ) : (
                 <table className="table table-hover table-bordered">
                   <thead>
                     <tr>
-                      <th>ID đánh giá</th>
                       <th>Tên người dùng</th>
-                      <th>Mã sản phẩm</th>
+                      <th>Tên sản phẩm</th>
                       <th>Số sao</th>
                       <th>Bình luận mới nhất</th>
                       <th>Ngày đăng</th>
-                    
                       <th>Hoạt động</th>
                     </tr>
                   </thead>
                   <tbody>
                     {reviews.map(review => (
                       <tr key={review._id}>
-                        <td>{review._id}</td>
                         <td>{review.username ? review.username : review.name || "Ẩn danh"}</td>
-                        <td>{review.productId}</td>
+                        <td>
+                          {review.productName
+                            ? review.productName
+                            : <span className="text-muted">Đang tải...</span>}
+                        </td>
                         <td>{renderStars(review.rating)}</td>
                         <td>{review.comment}</td>
-                        <td>{review.createdAt}</td>
-                     
+                        <td>{formatDate(review.createdAt)}</td>
                         <td>
                           <button
                             className="btn btn-info btn-sm"
@@ -266,9 +315,9 @@ export default function ReviewManagement() {
                         </td>
                       </tr>
                     ))}
-                    {reviews.length === 0 && (
+                    {reviews.length === 0 && !loading && (
                       <tr>
-                        <td colSpan={8} className="text-center">Không có đánh giá nào.</td>
+                        <td colSpan={6} className="text-center">Không có đánh giá nào.</td>
                       </tr>
                     )}
                   </tbody>
