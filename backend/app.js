@@ -21,9 +21,12 @@ var categoriesRouter = require('./routes/categories');
 var productsRouter = require('./routes/products');
 const variantsRouter = require('./routes/variants');
 const subcategoryRouter = require('./routes/subcategory');
-const authenticateToken = require('./middleware/auth');
 
+const authenticateToken = require('./middleware/auth');
 const favoriteRouter = require('./routes/favorites');
+const reviewRoutes = require('./routes/review');
+const orderRoutes = require("./routes/order"); //đơn hàng
+
 
 
 var app = express();
@@ -94,6 +97,11 @@ app.use('/variants', variantsRouter);
 app.use('/subcategory', subcategoryRouter);
 app.use(authenticateToken); // Bảo vệ các route sau khi xác thực token
 app.use('/favorites', favoriteRouter);
+// 
+app.use("/reviews", reviewRoutes);
+app.use("/reviews", require("./routes/review"));
+app.use("/orders", orderRoutes);
+
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
@@ -110,5 +118,6 @@ app.use(function(err, req, res, next) {
   res.status(err.status || 500);
   res.render('error');
 });
+
 
 module.exports = app;
