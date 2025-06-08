@@ -3,7 +3,7 @@ import React, { useState, useEffect } from "react";
 import "./checkout.css";
 import { useAppSelector } from "../store/store";
 import { useDispatch } from "react-redux";
-import { clearCart } from "../store/features/cartSlice"; // Đảm bảo đúng đường dẫn tới cartSlice
+import { clearCart } from "../store/features/cartSlice";
 import axios from "axios";
 import Swal from "sweetalert2";
 
@@ -101,7 +101,7 @@ const CheckoutPage: React.FC = () => {
   );
   const totalWithShipping = total + SHIPPING_FEE;
 
-  // Hàm xử lý lưu đơn hàng về backend
+  // Hàm xử lý lưu đơn hàng về backend (CÓ GỬI TOKEN)
   const saveOrder = async () => {
     // Chuẩn bị data gửi backend
     const shippingInfo = {
@@ -122,13 +122,20 @@ const CheckoutPage: React.FC = () => {
       images: item.product.images,
     }));
 
-    // Gửi API POST lên backend (sửa lại URL)
+    // LẤY TOKEN TỪ LOCALSTORAGE
+    const token = localStorage.getItem("token");
+
+    // Gửi API POST lên backend (có gửi token)
     const res = await axios.post("http://localhost:3000/orders", {
       items,
       shippingInfo,
       totalPrice: totalWithShipping,
       paymentMethod: payment,
       coupon: coupon || undefined,
+    }, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      }
     });
     return res.data;
   };
@@ -167,8 +174,8 @@ const CheckoutPage: React.FC = () => {
                 text: "Cảm ơn bạn đã mua hàng.",
                 icon: "success"
               }).then(() => {
-                dispatch(clearCart()); // clear cart sau khi đặt hàng thành công
-                window.location.href = "/"; // về trang chủ
+                dispatch(clearCart());
+                window.location.href = "/";
               });
             } catch (err) {
               swalWithBootstrapButtons.fire({
