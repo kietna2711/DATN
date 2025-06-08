@@ -24,8 +24,12 @@ const subcategoryRouter = require('./routes/subcategory');
 
 const authenticateToken = require('./middleware/auth');
 const reviewRoutes = require('./routes/review');
+
+const usersProfileRoutes = require('./routes/userprofile'); // Đường dẫn đến routes usersProfile
+
 const favoriteRouter = require('./routes/favorites');
 const orderRoutes = require("./routes/order"); //đơn hàng
+
 
 
 
@@ -101,8 +105,11 @@ app.use('/favorites', favoriteRouter);
 // 
 app.use("/reviews", reviewRoutes);
 app.use("/reviews", require("./routes/review"));
+app.use('/api/usersProfile', usersProfileRoutes);
+
 app.use("/orders", orderRoutes);
 app.use("/reviews", require("./routes/review"));
+
 
 
 // catch 404 and forward to error handler
