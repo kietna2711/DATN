@@ -164,7 +164,7 @@
                       <th>STT</th>
                       <th>Email</th>
                       <th>Username</th>
-                      <th>Ngày sinh</th>
+                      {/* <th>Ngày sinh</th> */}
                       <th>Quyền</th>
                       <th>Trạng thái</th>
                       <th>Chức năng</th>
@@ -183,7 +183,7 @@
                         <td>{users.length - idx}</td>
                         <td>{u.email}</td>
                         <td>{u.username}</td>
-                        <td>{u.dob}</td>
+                        {/* <td>{u.dob}</td> */}
                         <td>{u.role}</td>
                         <td>
                           <span className={`badge ${
