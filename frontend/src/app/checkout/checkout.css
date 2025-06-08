@@ -219,6 +219,12 @@ textarea {
   width: 110px;
   height: 42px;
   border-radius: 4px;
+    transition: background 0.2s, color 0.2s;
+}
+.saleTT button:hover{
+    color: #ea4c89;
+   background-color: #fff;
+   border: 1.5px solid #ea4c89;
 }
 .tinhTien{
   display: block;
@@ -266,7 +272,13 @@ textarea {
   border-radius: 5px;
   cursor: pointer;
   background-color: #e87ebd;
+  transition: background 0.2s, color 0.2s;
   color: #fff;
+}
+.submit:hover{
+   color: #ea4c89;
+   background-color: #fff;
+   border: 1.5px solid #ea4c89;
 }
 
 /*  */

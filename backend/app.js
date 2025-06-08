@@ -18,7 +18,7 @@ const variantsRouter = require('./routes/variants');
 const subcategoryRouter = require('./routes/subcategory');
 const favoriteRouter = require('./routes/favorites');
 const reviewRoutes = require('./routes/review');
-
+const orderRoutes = require("./routes/order"); //đơn hàng
 
 
 var app = express();
@@ -44,7 +44,7 @@ app.use('/subcategory', subcategoryRouter);
 app.use('/favorites', favoriteRouter);
 app.use("/reviews", reviewRoutes);
 app.use("/reviews", require("./routes/review"));
-
+app.use("/orders", orderRoutes);
 
 
 // catch 404 and forward to error handler
@@ -62,5 +62,6 @@ app.use(function(err, req, res, next) {
   res.status(err.status || 500);
   res.render('error');
 });
+
 
 module.exports = app;
