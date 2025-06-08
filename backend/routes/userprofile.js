@@ -1,4 +1,5 @@
 const express = require('express');
+const auth = require('../middleware/auth'); // đường dẫn đúng
 const User = require('../models/userprofileModel'); // Đảm bảo đường dẫn đúng tới model UserProfile
 const router = express.Router();
 

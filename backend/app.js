@@ -25,7 +25,7 @@ const subcategoryRouter = require('./routes/subcategory');
 const authenticateToken = require('./middleware/auth');
 const reviewRoutes = require('./routes/review');
 
-const usersProfileRoutes = require('./routes/userprofile');
+const usersProfileRoutes = require('./routes/userprofile'); // Đường dẫn đến routes usersProfile
 
 const favoriteRouter = require('./routes/favorites');
 const orderRoutes = require("./routes/order"); //đơn hàng

@@ -18,19 +18,26 @@ const UserProfile: React.FC = () => {
   useEffect(() => {
     const pathParts = window.location.pathname.split('/');
     const username = pathParts[pathParts.length - 1];
+    const token = localStorage.getItem('token');
 
     if (!username) {
       alert('Không có username trong URL');
       return;
     }
 
-    fetch(`http://localhost:3000/api/usersProfile/${username}`)
+    fetch(`http://localhost:3000/api/usersProfile/${username}`, {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      }
+    })
       .then(res => {
         if (!res.ok) throw new Error('Không thể lấy thông tin người dùng');
         return res.json();
       })
       .then((data: User) => setUser(data))
-      .catch(() => {
+      .catch(err => {
+        console.error(err);
         alert('Lỗi hoặc không tìm thấy user');
         window.location.href = '/login';
       });
@@ -42,23 +49,24 @@ const UserProfile: React.FC = () => {
     setUser(prev => prev ? { ...prev, [name]: value } : prev);
   };
 
- const handleSave = () => {
-  if (!user) return;
+  const handleSave = () => {
+    if (!user) return;
+    const token = localStorage.getItem('token');
 
-  fetch(`http://localhost:3000/api/usersProfile/${user._id}`, { //  sửa ở đây
-    method: 'PUT',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify(user),
-  })
-    .then(res => {
-      if (!res.ok) throw new Error('Lỗi khi cập nhật dữ liệu');
-      alert('Cập nhật thành công!');
+    fetch(`http://localhost:3000/api/usersProfile/${user._id}`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      },
+      body: JSON.stringify(user),
     })
-    .catch(err => console.error('Lỗi khi cập nhật:', err));
-};
-
+      .then(res => {
+        if (!res.ok) throw new Error('Lỗi khi cập nhật dữ liệu');
+        alert('Cập nhật thành công!');
+      })
+      .catch(err => console.error('Lỗi khi cập nhật:', err));
+  };
 
   const handleLogout = () => {
     localStorage.removeItem('user');
