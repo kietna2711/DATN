@@ -17,12 +17,23 @@ export default function Sidebar({ currentSection }: { currentSection: string }) 
     { key: "settings", label: "Cài đặt hệ thống", icon: "bx bx-cog" }
   ];
 
+  // Lấy user từ localStorage (chỉ chạy client)
+  let username = "Admin";
+  if (typeof window !== "undefined") {
+    const userStr = localStorage.getItem("user");
+    if (userStr) {
+      try {
+        const user = JSON.parse(userStr);
+        username = user.username || user.name || "Admin";
+      } catch {}
+    }
+  }
+
   return (
     <aside className="app-sidebar">
       <div className="app-sidebar__user">
-        <img className="app-sidebar__user-avatar" src="/images/hay.jpg" width={50} alt="User" />
         <div>
-          <p className="app-sidebar__user-name"><b>Võ Trường</b></p>
+          <p className="app-sidebar__user-name"><b>{username}</b></p>
           <p className="app-sidebar__user-designation">Chào mừng bạn trở lại</p>
         </div>
       </div>

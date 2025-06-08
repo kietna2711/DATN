@@ -1,4 +1,4 @@
-  "use client";
+"use client";
   import React, { useEffect, useState } from "react";
   import "bootstrap/dist/css/bootstrap.min.css";
   import "@fortawesome/fontawesome-free/css/all.min.css";
@@ -120,8 +120,27 @@
     }
   };
 
+  const handleToggleRole = async (userId: string, currentRole: string) => {
+    try {
+      const res = await fetch(`http://localhost:3000/users/${userId}/role`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          role: currentRole === "admin" ? "user" : "admin"
+        })
+      });
+      if (!res.ok) throw new Error("Cập nhật quyền thất bại");
+      const data = await res.json();
+      setUsers(users =>
+        users.map(u =>
+          u._id === userId ? { ...u, role: data.role } : u
+        )
+      );
+    } catch (err) {
+      alert("Không thể cập nhật quyền!");
+    }
+  };
 
-// 
     return (
       <main className="app-content">
         <div className="app-title">
@@ -131,17 +150,6 @@
           <div id="clock">{clock}</div>
         </div>
         <div className="row element-button">
-          <div className="col-sm-2">
-            <a className="btn btn-add btn-sm" href="form-add-user.html" title="Thêm">
-              <i className="fas fa-plus"></i> Tạo mới user
-            </a>
-          </div>
-          {/* <div className="col-sm-2">
-            <button className="btn btn-delete btn-sm" type="button" title="Xóa tất cả" onClick={handleDeleteAll}>
-              <i className="fas fa-trash-alt"></i> Xóa tất cả
-            </button>
-          </div> */}
-          {/* Các nút tải file, in, xuất excel/pdf, sao chép có thể bổ sung sau */}
         </div>
         <div className="row">
           <div className="col-md-12">
@@ -156,7 +164,7 @@
                       <th>STT</th>
                       <th>Email</th>
                       <th>Username</th>
-                      <th>Ngày sinh</th>
+                      {/* <th>Ngày sinh</th> */}
                       <th>Quyền</th>
                       <th>Trạng thái</th>
                       <th>Chức năng</th>
@@ -175,7 +183,7 @@
                         <td>{users.length - idx}</td>
                         <td>{u.email}</td>
                         <td>{u.username}</td>
-                        <td>{u.dob}</td>
+                        {/* <td>{u.dob}</td> */}
                         <td>{u.role}</td>
                         <td>
                           <span className={`badge ${
@@ -189,6 +197,15 @@
                           </span>
                         </td>
                         <td>
+                          <button
+                            className="btn-admin-role"
+                            type="button"
+                            title={u.role === "admin" ? "Bỏ quyền Admin" : "Cấp quyền Admin"}
+                            onClick={() => handleToggleRole(u._id, u.role)}
+                          >
+                            <i className="fas fa-crown"></i>
+                            {u.role === "admin" ? "Bỏ Admin" : "Cấp Admin"}
+                          </button>
                           <button
                             className={`btn btn-light btn-sm toggle-visibility ${u.visible ? "visible" : "hidden"}`}
                             type="button"
@@ -215,4 +232,3 @@
       </main>
     );
   }
-  

@@ -21,19 +21,20 @@ body {
   display: flex;
   flex: 2;
   gap: 40px;
+  border-radius: 10px;
+  border-bottom: 4px solid pink;
 }
 
 .column {
-  border-bottom: 4px solid pink;
-  max-width: 375px;
+  width: 370px;
   padding: 15px;
-  background-color: #fff;
   border-radius: 10px;        /* bo góc mềm mại */
 }
 .column h3{
   font-size: 18px;
 }
 .log{
+  width: 338px;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -77,7 +78,7 @@ input{
   height: 22px;
   width: 320px;
   text-align: center;
-  background-color: #e87ebd;
+  background-color: #f6c1e8;
   font-size: 15px;
 }
 .payment-method {
@@ -124,6 +125,11 @@ textarea {
   width: 331px;
 }
 
+.form-group{
+  width: 338px;
+}
+
+/* cột 3 */
 .right {
   border-bottom: 4px solid pink;
   margin-left: auto;
@@ -213,6 +219,12 @@ textarea {
   width: 110px;
   height: 42px;
   border-radius: 4px;
+    transition: background 0.2s, color 0.2s;
+}
+.saleTT button:hover{
+    color: #ea4c89;
+   background-color: #fff;
+   border: 1.5px solid #ea4c89;
 }
 .tinhTien{
   display: block;
@@ -260,5 +272,18 @@ textarea {
   border-radius: 5px;
   cursor: pointer;
   background-color: #e87ebd;
+  transition: background 0.2s, color 0.2s;
   color: #fff;
+}
+.submit:hover{
+   color: #ea4c89;
+   background-color: #fff;
+   border: 1.5px solid #ea4c89;
+}
+
+/*  */
+#district,
+#ward {
+  background-color: #c572ba8c;
+  transition: background 0.2s;
 }

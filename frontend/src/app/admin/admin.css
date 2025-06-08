@@ -13921,7 +13921,7 @@ be a descendant of the grid when it is being dragged.
   padding-top: 10px !important;
 }
 .app-sidebar__user-name {
-  font-size: 17px;
+  font-size: 20px;
   line-height: 1.3;
 }
 
@@ -15685,4 +15685,28 @@ text-align:center;
 /* Khi user đang bị ẩn (visible: false) → màu đen */
 .toggle-visibility.hidden i {
   color: #000; /* Đen */
+}
+/* Nút Cấp/Bỏ Admin */
+.btn-admin-role {
+  background: linear-gradient(90deg, #f7971e 0%, #ffd200 100%);
+  color: #222;
+  border: none;
+  border-radius: 20px;
+  font-weight: 600;
+  padding: 6px 18px;
+  margin-right: 8px;
+  box-shadow: 0 2px 8px #ffd20033;
+  transition: background 0.2s, color 0.2s, box-shadow 0.2s;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.btn-admin-role:hover {
+  background: linear-gradient(90deg, #ffd200 0%, #f7971e 100%);
+  color: #fff;
+  box-shadow: 0 4px 16px #ffd20055;
+}
+.btn-admin-role .fa-crown {
+  color: #d16ba5;
+  font-size: 1.1em;
 }

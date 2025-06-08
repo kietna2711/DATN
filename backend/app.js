@@ -1,6 +1,6 @@
 require('dotenv').config();
 const mongoose = require('mongoose');
-mongoose.connect('mongodb://localhost:27017/Shopgaubong')
+mongoose.connect('mongodb://127.0.0.1:27017/Shopgaubong')
     .then(() => console.log('MongoDB connected'))
     .catch(err => console.log(err));
 
@@ -21,9 +21,12 @@ var categoriesRouter = require('./routes/categories');
 var productsRouter = require('./routes/products');
 const variantsRouter = require('./routes/variants');
 const subcategoryRouter = require('./routes/subcategory');
-const authenticateToken = require('./middleware/auth');
 
+const authenticateToken = require('./middleware/auth');
+const reviewRoutes = require('./routes/review');
 const favoriteRouter = require('./routes/favorites');
+const orderRoutes = require("./routes/order"); //đơn hàng
+
 
 
 var app = express();
@@ -94,7 +97,14 @@ app.use('/variants', variantsRouter);
 app.use('/subcategory', subcategoryRouter);
 app.use(authenticateToken); // Bảo vệ các route sau khi xác thực token
 app.use('/favorites', favoriteRouter);
-    
+
+// 
+app.use("/reviews", reviewRoutes);
+app.use("/reviews", require("./routes/review"));
+app.use("/orders", orderRoutes);
+app.use("/reviews", require("./routes/review"));
+
+
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
   next(createError(404));

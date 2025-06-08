@@ -4,11 +4,13 @@ import "bootstrap/dist/css/bootstrap.min.css";
 import "@fortawesome/fontawesome-free/css/all.min.css";
 import "boxicons/css/boxicons.min.css";
 import "../admin.css";
+import { useSuccessNotification } from "../../utils/useSuccessNotification";
 
 type Product = {
   id: string;
   name: string;
   image: string;
+  images?: string[]; // Add this line to support multiple images
   desc: string;
   price: number;
   quantity: number;
@@ -16,9 +18,12 @@ type Product = {
   category: string;
   status: string;
   checked: boolean;
+  variants?: { size: string; price: number; quantity: number }[]; // Add this line to support variants
 };
 
 export default function ProductManagement() {
+  const notify = useSuccessNotification(); // <-- Gọi bên trong thân hàm component
+
   const [products, setProducts] = useState<Product[]>([]);
   const [selectAll, setSelectAll] = useState(false);
   const [showModal, setShowModal] = useState(false);
@@ -48,42 +53,57 @@ export default function ProductManagement() {
     status: "",
   });
   const [categories, setCategories] = useState<any[]>([]); // Thêm state cho danh sách danh mục
+  const [deleteId, setDeleteId] = useState<string | null>(null);
+  const [thumbnails, setThumbnails] = useState<File[]>([]);
+  const [thumbnailPreviews, setThumbnailPreviews] = useState<string[]>([]);
+  const [thumbnailInputs, setThumbnailInputs] = useState<{ file: File | null, url: string | null }[]>([]);
+  const thumbnailInputRef = React.useRef<HTMLInputElement>(null);
+  const [editThumbnails, setEditThumbnails] = useState<
+  { url: string; name: string; file: File | null; isNew: boolean }[]
+>([]);
+const [mainImageFile, setMainImageFile] = useState<File | null>(null);
+const [mainImagePreview, setMainImagePreview] = useState<string>("");
+const [editVariants, setEditVariants] = useState<{ size: string; price: number; quantity: number }[]>([]);
+const [createVariants, setCreateVariants] = useState<{ size: string; price: number; quantity: number }[]>([]);
 
   // Fetch sản phẩm từ backend nodejs
-  useEffect(() => {
-    async function fetchProducts() {
-      try {
-        const res = await fetch("http://localhost:3000/products");
-        const data = await res.json();
-        console.log("Raw data from API:", data);
+  const fetchProducts = async () => {
+    try {
+      const res = await fetch("http://localhost:3000/products");
+      const data = await res.json();
+      console.log("Raw data from API:", data);
 
-        // Giả sử data là mảng sản phẩm từ API
-        const products = data.map((prod: any) => ({
-          id: prod._id, // <-- chuyển từ _id sang id
-          name: prod.name,
-          image:
-            prod.images && prod.images.length > 0
-              ? `http://localhost:3000/images/${prod.images[0]}`
-              : "",
-          desc: prod.description,
-          price: prod.price,
-          size: prod.variants && prod.variants.length > 0
-            ? prod.variants.map((v: any) => v.size).join(", ")
-            : "",
-          quantity: prod.variants && prod.variants.length > 0
-            ? prod.variants.map((v: any) => v.quantity).join(", ")
-            : "",
-          category: prod.categoryId?.name || "",
-          status: prod.status || "Còn hàng",
-          checked: false,
-        }));
-        console.log("Mapped products:", products);
+      // Giả sử data là mảng sản phẩm từ API
+      const products = data.map((prod: any) => ({
+        id: prod._id,
+        name: prod.name,
+        image: prod.images && prod.images.length > 0
+          ? `http://localhost:3000/images/${prod.images[0]}`
+          : "",
+        images: prod.images,
+        desc: prod.description,
+        price: prod.price,
+        size: prod.variants && prod.variants.length > 0
+          ? prod.variants.map((v: any) => v.size).join(", ")
+          : "",
+        quantity: prod.variants && prod.variants.length > 0
+          ? prod.variants.map((v: any) => v.quantity).join(", ")
+          : "",
+        category: prod.categoryId?.name || "",
+        categoryId: prod.categoryId?._id || prod.categoryId,
+        status: prod.status || "Còn hàng",
+        checked: false,
+        variants: prod.variants || [], // THÊM DÒNG NÀY
+      }));
+      console.log("Mapped products:", products);
 
-        setProducts(products);
-      } catch (error) {
-        console.error("Lỗi khi fetch sản phẩm:", error);
-      }
+      setProducts(products);
+    } catch (error) {
+      console.error("Lỗi khi fetch sản phẩm:", error);
     }
+  };
+
+  useEffect(() => {
     fetchProducts();
   }, []);
 
@@ -152,42 +172,64 @@ export default function ProductManagement() {
   // Xóa sản phẩm
   const handleDelete = async (id: string) => {
     if (window.confirm("Bạn có chắc chắn muốn xóa sản phẩm này?")) {
-      // Gọi API xóa ở backend
-      await fetch(`http://localhost:3000/products/${id}`, {
-        method: "DELETE",
-        headers: {
-          Authorization: "Bearer " + localStorage.getItem("token"),
-        },
-      });
-      // Sau đó xóa ở state frontend
-      setProducts((products) => products.filter((p) => p.id !== id));
+      try {
+        const res = await fetch(`http://localhost:3000/products/${id}`, {
+          method: "DELETE",
+          headers: {
+            Authorization: "Bearer " + localStorage.getItem("token"),
+          },
+        });
+        if (res.ok) {
+          setProducts((products) => products.filter((p) => p.id !== id));
+          notify("Xóa sản phẩm thành công!", "");
+        } else {
+          notify("Xóa sản phẩm thất bại!", "");
+        }
+      } catch (error) {
+        notify("Lỗi khi xóa sản phẩm!", "");
+      }
     }
   };
 
-  // Xóa tất cả sản phẩm đã chọn
-  const handleDeleteAll = () => {
-    if (window.confirm("Bạn có chắc chắn muốn xóa các sản phẩm đã chọn?")) {
-      setProducts((products) => products.filter((p) => !p.checked));
-      setSelectAll(false);
-    }
-  };
+ 
 
   // Mở modal sửa
   const openEditModal = (id: string) => {
     const p = products.find((p) => p.id === id);
     if (!p) return;
     setEditIndex(products.findIndex((p) => p.id === id));
+    setMainImageFile(null); // reset file khi mở modal sửa
+    setMainImagePreview(
+      p.images && p.images.length > 0
+        ? (p.images[0].startsWith("http") ? p.images[0] : `http://localhost:3000/images/${p.images[0]}`)
+        : ""
+    );
     setForm({
       id: p.id,
       name: p.name,
-      image: p.image,
+      image: p.images && p.images.length > 0 ? p.images[0] : "",
       desc: p.desc,
       price: p.price,
       quantity: p.quantity,
       size: p.size,
-      category: p.category,
+      category: (p as any).categoryId || "", // ĐÚNG: truyền _id, không phải tên
       status: p.status,
     });
+    setEditThumbnails(
+      p.images?.slice(1).map((img: string) => ({
+        url: img.startsWith("http") ? img : `http://localhost:3000/images/${img}`,
+        name: img,
+        file: null,
+        isNew: false,
+      })) || []
+    );
+    setEditVariants(
+      p.variants?.map((v: any) => ({
+        size: v.size,
+        price: v.price,
+        quantity: v.quantity,
+      })) || []
+    );
     setShowModal(true);
   };
 
@@ -217,6 +259,7 @@ export default function ProductManagement() {
       setProducts((products) =>
         products.map((p, i) => (i === editIndex ? { ...p, ...form } : p))
       );
+      notify("Cập nhật sản phẩm thành công!", "");
     }
     setShowModal(false);
   };
@@ -259,6 +302,77 @@ useEffect(() => {
 }, [products]);
 
 
+  // Thay đổi ảnh thu nhỏ
+  const handleThumbnailChange = (idx: number, file: File | null) => {
+    setThumbnailInputs(inputs =>
+      inputs.map((input, i) =>
+        i === idx
+          ? { file, url: file ? URL.createObjectURL(file) : null }
+          : input
+      )
+    );
+  };
+
+  // Thêm input ảnh thumbnail mới
+  const addThumbnailInput = () => {
+    setThumbnailInputs(inputs => [...inputs, { file: null, url: null }]);
+  };
+
+  useEffect(() => {
+    if (showCreateModal && thumbnailInputs.length === 0) {
+      setThumbnailInputs([{ file: null, url: null }]);
+    }
+  }, [showCreateModal]);
+
+  // Sửa sản phẩm
+  const handleEditSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const formData = new FormData();
+    formData.append("name", form.name);
+    formData.append("description", form.desc);
+    formData.append("price", String(form.price));
+    formData.append("categoryId", form.category);
+    formData.append("status", form.status);
+    formData.append("variants", JSON.stringify(editVariants));
+
+    // Ảnh chính (nếu có thay đổi)
+    const imgInput = document.querySelector('input[name="image"]') as HTMLInputElement;
+    if (mainImageFile) {
+      formData.append("img", mainImageFile);
+    } else if (form.image && !form.image.startsWith("blob:") && !form.image.startsWith("http")) {
+      // Nếu không upload mới, gửi tên file gốc (KHÔNG gửi URL)
+      formData.append("image", form.image);
+    }
+
+    // Ảnh thumbnail mới
+    editThumbnails.forEach((thumb) => {
+      if (thumb.isNew && thumb.file) {
+        formData.append("thumbnails", thumb.file);
+      }
+    });
+
+    // Gửi danh sách tên ảnh thumbnail cũ giữ lại
+    const oldThumbs = editThumbnails.filter(t => !t.isNew).map(t => t.name);
+    formData.append("oldThumbnails", JSON.stringify(oldThumbs));
+
+    // Gửi request PATCH
+    const res = await fetch(`http://localhost:3000/products/${form.id}`, {
+      method: "PATCH",
+      body: formData,
+      headers: {
+        Authorization: "Bearer " + localStorage.getItem("token"),
+      },
+    });
+
+    if (res.ok) {
+      notify("Cập nhật sản phẩm thành công!", "");
+      setShowModal(false);
+      await fetchProducts();
+    } else {
+      notify("Cập nhật sản phẩm thất bại!", "");
+    }
+  };
+
   return (
     <div className="app-content">
       <div className="app-title">
@@ -282,16 +396,7 @@ useEffect(() => {
             <i className="fas fa-plus"></i> Tạo mới sản phẩm
           </button>
         </div>
-        <div className="col-sm-2">
-          <button
-            className="btn btn-delete btn-sm"
-            type="button"
-            title="Xóa tất cả"
-            onClick={handleDeleteAll}
-          >
-            <i className="fas fa-trash-alt"></i> Xóa tất cả
-          </button>
-        </div>
+
         <div className="col-sm-2">
           <button
             className="btn btn-delete btn-sm print-file"
@@ -359,14 +464,6 @@ useEffect(() => {
                       <td>{p.status}</td>
                       <td className="table-td-center">
                         <button
-                          className="btn btn-primary btn-sm trash"
-                          type="button"
-                          title="Xóa"
-                          onClick={() => handleDelete(p.id)}
-                        >
-                          <i className="fas fa-trash-alt"></i>
-                        </button>
-                        <button
                           className="btn btn-primary btn-sm edit"
                           type="button"
                           title="Sửa"
@@ -391,7 +488,7 @@ useEffect(() => {
   <div className="modal d-block" tabIndex={-1} role="dialog" style={{ background: "rgba(0,0,0,0.3)" }}>
     <div className="modal-dialog modal-dialog-centered" role="document">
       <div className="modal-content">
-        <form onSubmit={handleSubmit}>
+        <form onSubmit={handleEditSubmit}>
           <div className="modal-header">
             <h5 className="modal-title">Chỉnh sửa sản phẩm</h5>
             <button
@@ -427,28 +524,6 @@ useEffect(() => {
                 />
               </div>
               <div className="form-group col-md-6">
-                <label className="control-label">Số lượng</label>
-                <input
-                  className="form-control"
-                  type="number"
-                  required
-                  name="quantity"
-                  value={form.quantity}
-                  onChange={handleChange}
-                />
-              </div>
-              <div className="form-group col-md-6">
-                <label className="control-label">Size</label>
-                <input
-                  className="form-control"
-                  type="text"
-                  required
-                  name="size"
-                  value={form.size}
-                  onChange={handleChange}
-                />
-              </div>
-              <div className="form-group col-md-6">
                 <label className="control-label">Danh mục</label>
                 <select
                   className="form-control"
@@ -458,7 +533,7 @@ useEffect(() => {
                 >
                   <option value="">--Chọn danh mục--</option>
                   {categories.map((cat) => (
-                    <option key={cat._id} value={cat.name}>
+                    <option key={cat._id} value={cat._id}>
                       {cat.name}
                     </option>
                   ))}
@@ -484,16 +559,65 @@ useEffect(() => {
                   className="form-control"
                   type="file"
                   name="image"
-                  onChange={handleChange}
+                  onChange={e => {
+                    const file = e.target.files?.[0];
+                    if (file) {
+                      setMainImageFile(file);
+                      setMainImagePreview(URL.createObjectURL(file));
+                      setForm({
+                        ...form,
+                        image: file.name,
+                      });
+                    }
+                  }}
                 />
-                {form.image && (
+                {mainImagePreview && (
                   <img
-                    src={form.image}
+                    src={mainImagePreview}
                     alt="preview"
                     className="mt-2"
                     width={100}
                   />
                 )}
+              </div>
+              <div className="form-group col-md-6">
+                <label className="control-label">Ảnh thumbnail</label>
+                {editThumbnails.map((thumb, idx) => (
+                  <div key={idx} style={{ display: "flex", alignItems: "center", marginBottom: 8 }}>
+                    {thumb.url && (
+                      <img src={thumb.url} alt="thumb" width={50} style={{ marginRight: 8 }} />
+                    )}
+                    <button
+                      type="button"
+                      className="btn btn-danger btn-sm"
+                      onClick={() => {
+                        setEditThumbnails(editThumbnails.filter((_, i) => i !== idx));
+                      }}
+                      style={{ marginLeft: 8 }}
+                    >
+                      X
+                    </button>
+                  </div>
+                ))}
+                {/* Thêm input để upload thumbnail mới */}
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={e => {
+                    const file = e.target.files?.[0];
+                    if (file) {
+                      setEditThumbnails([
+                        ...editThumbnails,
+                        {
+                          url: URL.createObjectURL(file),
+                          name: file.name,
+                          file,
+                          isNew: true,
+                        },
+                      ]);
+                    }
+                  }}
+                />
               </div>
               <div className="form-group col-md-12">
                 <label className="control-label">Mô tả</label>
@@ -505,6 +629,59 @@ useEffect(() => {
                   onChange={handleChange}
                 />
               </div>
+              <div className="form-group col-md-12">
+  <label>Biến thể (Size/Giá/Số lượng)</label>
+  {editVariants.map((v, idx) => (
+    <div key={idx} style={{ display: "flex", gap: 8, marginBottom: 8 }}>
+      <input
+        type="text"
+        className="form-control"
+        placeholder="Size"
+        value={v.size}
+        style={{ width: 80 }}
+        onChange={e => {
+          const arr = [...editVariants];
+          arr[idx].size = e.target.value;
+          setEditVariants(arr);
+        }}
+      />
+      <input
+        type="number"
+        className="form-control"
+        placeholder="Giá"
+        value={v.price}
+        style={{ width: 120 }}
+        onChange={e => {
+          const arr = [...editVariants];
+          arr[idx].price = Number(e.target.value);
+          setEditVariants(arr);
+        }}
+      />
+      <input
+        type="number"
+        className="form-control"
+        placeholder="Số lượng"
+        value={v.quantity}
+        style={{ width: 100 }}
+        onChange={e => {
+          const arr = [...editVariants];
+          arr[idx].quantity = Number(e.target.value);
+          setEditVariants(arr);
+        }}
+      />
+      <button
+        type="button"
+        className="btn btn-danger btn-sm"
+        onClick={() => setEditVariants(editVariants.filter((_, i) => i !== idx))}
+      >X</button>
+    </div>
+  ))}
+  <button
+    type="button"
+    className="btn btn-primary btn-sm"
+    onClick={() => setEditVariants([...editVariants, { size: "", price: 0, quantity: 0 }])}
+  >+ Thêm biến thể</button>
+</div>
             </div>
           </div>
           <div className="modal-footer">
@@ -540,38 +717,34 @@ useEffect(() => {
                         onSubmit={async (e) => {
                           e.preventDefault();
                           try {
-                            // Nếu có upload ảnh, dùng FormData
                             const formData = new FormData();
                             formData.append("name", createForm.name);
                             formData.append("description", createForm.desc);
                             formData.append("price", String(createForm.price));
-                            formData.append("categoryId", createForm.category); // Lúc này category là _id
+                            formData.append("categoryId", createForm.category);
                             formData.append("status", createForm.status);
-                            formData.append("quantity", String(createForm.quantity));
-                            formData.append("size", createForm.size);
-                            // Nếu có file ảnh:
-                            const imgInput = document.querySelector('input[name="img"]') as HTMLInputElement;
-                            if (imgInput?.files?.[0]) {
-                              formData.append("img", imgInput.files[0]);
-                            }
+                            formData.append("variants", JSON.stringify(createVariants));
+                            // ...ảnh chính, thumbnails như cũ...
 
                             const res = await fetch("http://localhost:3000/products", {
                               method: "POST",
                               body: formData,
                               headers: {
-                                Authorization: "Bearer " + localStorage.getItem("token"), // hoặc nơi bạn lưu token
+                                Authorization: "Bearer " + localStorage.getItem("token"),
                               },
                             });
 
                             if (res.ok) {
-                              alert("Tạo sản phẩm thành công!");
-                              window.location.reload(); // Tải lại trang để cập nhật danh sách sản phẩm
+                              notify("Tạo sản phẩm thành công!", "");
+                              setShowCreateModal(false);
+                              await fetchProducts();
+                              setCreateVariants([]); // reset biến thể
                               return;
                             } else {
-                              alert("Thêm sản phẩm thất bại!");
+                              notify("Thêm sản phẩm thất bại!", "");
                             }
                           } catch (error) {
-                            alert("Lỗi khi thêm sản phẩm!");
+                            notify("Lỗi khi thêm sản phẩm!", "");
                           }
                         }}
                       >
@@ -620,38 +793,6 @@ useEffect(() => {
                               />
                             </div>
                             <div className="form-group col-md-6">
-                              <label className="control-label">Số lượng</label>
-                              <input
-                                className="form-control"
-                                type="number"
-                                required
-                                name="quantity"
-                                value={createForm.quantity}
-                                onChange={(e) =>
-                                  setCreateForm({
-                                    ...createForm,
-                                    quantity: Number(e.target.value),
-                                  })
-                                }
-                              />
-                            </div>
-                            <div className="form-group col-md-6">
-                              <label className="control-label">Size</label>
-                              <input
-                                className="form-control"
-                                type="text"
-                                required
-                                name="size"
-                                value={createForm.size}
-                                onChange={(e) =>
-                                  setCreateForm({
-                                    ...createForm,
-                                    size: e.target.value,
-                                  })
-                                }
-                              />
-                            </div>
-                            <div className="form-group col-md-6">
                               <label className="control-label">Danh mục</label>
                               <select
                                 className="form-control"
@@ -673,11 +814,8 @@ useEffect(() => {
                                 className="form-control"
                                 name="status"
                                 value={createForm.status}
-                                onChange={(e) =>
-                                  setCreateForm({
-                                    ...createForm,
-                                    status: e.target.value,
-                                  })
+                                onChange={e =>
+                                  setCreateForm({ ...createForm, status: e.target.value })
                                 }
                               >
                                 <option value="">--Chọn trạng thái--</option>
@@ -711,6 +849,44 @@ useEffect(() => {
                                 />
                               )}
                             </div>
+                            <div className="form-group col-md-6">
+                              <label className="control-label">Ảnh thumbnail</label>
+                              {thumbnailInputs.map((input, idx) => (
+                                <div key={idx} style={{ marginBottom: 8 }}>
+                                  <input
+                                    type="file"
+                                    accept="image/*"
+                                    onChange={e => {
+                                      const file = e.target.files?.[0] || null;
+                                      handleThumbnailChange(idx, file);
+                                    }}
+                                  />
+                                  {input.url && (
+                                    <img
+                                      src={input.url}
+                                      alt="thumb"
+                                      width={50}
+                                      style={{ marginLeft: 8 }}
+                                    />
+                                  )}
+                                </div>
+                              ))}
+                              <span
+                                style={{
+                                  color: "#007bff",
+                                  cursor: "pointer",
+                                  fontSize: 13,
+                                  marginTop: 4,
+                                  display: "inline-block",
+                                  fontWeight: 600,
+                                }}
+                                onClick={addThumbnailInput}
+                              >
+                                Thêm ảnh thumbnail
+                              </span>
+                            </div>
+                          </div>
+                          <div className="row">
                             <div className="form-group col-md-12">
                               <label className="control-label">Mô tả</label>
                               <textarea
@@ -718,14 +894,66 @@ useEffect(() => {
                                 required
                                 name="desc"
                                 value={createForm.desc}
-                                onChange={(e) =>
-                                  setCreateForm({
-                                    ...createForm,
-                                    desc: e.target.value,
-                                  })
+                                onChange={e =>
+                                  setCreateForm({ ...createForm, desc: e.target.value })
                                 }
                               />
                             </div>
+                          </div>
+                          <div className="row">
+                            <div className="form-group col-md-12">
+  <label>Biến thể (Size/Giá/Số lượng)</label>
+  {createVariants.map((v, idx) => (
+    <div key={idx} style={{ display: "flex", gap: 8, marginBottom: 8 }}>
+      <input
+        type="text"
+        className="form-control"
+        placeholder="Size"
+        value={v.size}
+        style={{ width: 80 }}
+        onChange={e => {
+          const arr = [...createVariants];
+          arr[idx].size = e.target.value;
+          setCreateVariants(arr);
+        }}
+      />
+      <input
+        type="number"
+        className="form-control"
+        placeholder="Giá"
+        value={v.price}
+        style={{ width: 120 }}
+        onChange={e => {
+          const arr = [...createVariants];
+          arr[idx].price = Number(e.target.value);
+          setCreateVariants(arr);
+        }}
+      />
+      <input
+        type="number"
+        className="form-control"
+        placeholder="Số lượng"
+        value={v.quantity}
+        style={{ width: 100 }}
+        onChange={e => {
+          const arr = [...createVariants];
+          arr[idx].quantity = Number(e.target.value);
+          setCreateVariants(arr);
+        }}
+      />
+      <button
+        type="button"
+        className="btn btn-danger btn-sm"
+        onClick={() => setCreateVariants(createVariants.filter((_, i) => i !== idx))}
+      >X</button>
+    </div>
+  ))}
+  <button
+    type="button"
+    className="btn btn-primary btn-sm"
+    onClick={() => setCreateVariants([...createVariants, { size: "", price: 0, quantity: 0 }])}
+  >+ Thêm biến thể</button>
+</div>
                           </div>
                           <a
                             href="#"

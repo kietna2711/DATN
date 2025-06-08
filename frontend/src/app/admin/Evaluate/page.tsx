@@ -64,7 +64,11 @@ function ReviewDetailModal({
     async function fetchDetails() {
       setLoading(true);
       try {
-        const res = await fetch(`http://localhost:3000/reviews/admin?productId=${productId}`);
+        const res = await fetch(`http://localhost:3000/reviews/admin?productId=${productId}`, {
+          headers: {
+            Authorization: "Bearer " + (localStorage.getItem("token") || ""),
+          }
+        });
         if (!res.ok) throw new Error("Lỗi mạng!");
         const data = await res.json();
         let reviews = Array.isArray(data.reviews) ? data.reviews : [];
@@ -199,12 +203,18 @@ export default function ReviewManagement() {
   // Hàm fetchReviews chỉ cập nhật khi có thay đổi thực sự (tránh "dựt")
   const fetchReviews = async () => {
     try {
-      const res = await fetch('http://localhost:3000/reviews/admin/reviews-latest');
+      const res = await fetch('http://localhost:3000/reviews/admin/reviews-latest', {
+        headers: {
+          Authorization: "Bearer " + (localStorage.getItem("token") || ""),
+        }
+      });
       if (!res.ok) throw new Error("Lỗi mạng!");
       const data = await res.json();
       let newReviews = Array.isArray(data.reviews) ? data.reviews : [];
       // Bình luận mới nhất lên đầu
-      newReviews = newReviews.sort((a: { createdAt: string | number | Date; }, b: { createdAt: string | number | Date; }) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+      newReviews = newReviews.sort(
+        (a: { createdAt: string | number | Date; }, b: { createdAt: string | number | Date; }) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+      );
       // Chỉ setReviews nếu dữ liệu thực sự thay đổi
       const oldString = JSON.stringify(reviewsRef.current.map(r => r._id + r.status + r.comment + r.createdAt));
       const newString = JSON.stringify(newReviews.map((r: { _id: any; status: any; comment: any; createdAt: any; }) => r._id + r.status + r.comment + r.createdAt));
