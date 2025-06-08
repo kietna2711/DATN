@@ -464,14 +464,6 @@ useEffect(() => {
                       <td>{p.status}</td>
                       <td className="table-td-center">
                         <button
-                          className="btn btn-primary btn-sm trash"
-                          type="button"
-                          title="Xóa"
-                          onClick={() => setDeleteId(p.id)}
-                        >
-                          <i className="fas fa-trash-alt"></i>
-                        </button>
-                        <button
                           className="btn btn-primary btn-sm edit"
                           type="button"
                           title="Sửa"
@@ -1059,50 +1051,6 @@ useEffect(() => {
           </div>
         </div>
       </div>
-      {/* Modal xác nhận xóa */}
-      {deleteId && (
-        <div className="modal d-block" tabIndex={-1} style={{ background: "rgba(0,0,0,0.3)" }}>
-          <div className="modal-dialog modal-dialog-centered">
-            <div className="modal-content">
-              <div className="modal-header">
-                <h5 className="modal-title">Xác nhận xóa</h5>
-                <button type="button" className="close" onClick={() => setDeleteId(null)}>
-                  <span>&times;</span>
-                </button>
-              </div>
-              <div className="modal-body">
-                <p>Bạn chắc chắn muốn xóa sản phẩm này?</p>
-              </div>
-              <div className="modal-footer">
-                <button className="btn btn-danger" onClick={async () => {
-                  try {
-                    const res = await fetch(`http://localhost:3000/products/${deleteId}`, {
-                      method: "DELETE",
-                      headers: {
-                        Authorization: "Bearer " + localStorage.getItem("token"),
-                      },
-                    });
-                    if (res.ok) {
-                      setProducts((products) => products.filter((p) => p.id !== deleteId));
-                      notify("Đã xóa sản phẩm!", "");
-                    } else {
-                      notify("Xóa sản phẩm thất bại!", "");
-                    }
-                  } catch (error) {
-                    notify("Lỗi khi xóa sản phẩm!", "");
-                  }
-                  setDeleteId(null);
-                }}>
-                  Xóa
-                </button>
-                <button className="btn btn-secondary" onClick={() => setDeleteId(null)}>
-                  Hủy
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 }

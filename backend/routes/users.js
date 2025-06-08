@@ -46,19 +46,37 @@ router.patch('/:id/toggle-visibility', async (req, res) => {
   }
 });
 
-// Đăng ký Google OAuth
+// Cập nhật vai trò người dùng
+router.patch('/:id/role', async (req, res) => {
+  try {
+    const { role } = req.body;
+    const user = await User.findByIdAndUpdate(
+      req.params.id,
+      { role },
+      { new: true }
+    );
+    if (!user) return res.status(404).json({ message: "User không tồn tại" });
+    res.json({ role: user.role });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
+// Đăng nhập với Google
 router.get('/auth/google', passport.authenticate('google', { scope: ['profile', 'email'] }));
 
+// Callback Google OAuth
 router.get('/auth/google/callback',
-  passport.authenticate('google', { failureRedirect: '/login' }),
+  passport.authenticate('google', {
+    failureRedirect: 'http://localhost:3007/login?error=access_denied'
+  }),
   (req, res) => {
-    // Tạo token
+    // Thành công
     const token = jwt.sign(
       { id: req.user._id, email: req.user.email, role: req.user.role },
       process.env.JWT_SECRET,
       { expiresIn: '1h' }
     );
-    // Truyền user và token về frontend qua query string
     res.redirect(
       `http://localhost:3007/oauth-success?user=${encodeURIComponent(JSON.stringify(req.user))}&token=${token}`
     );

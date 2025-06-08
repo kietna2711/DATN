@@ -2,6 +2,7 @@
 import React, { useState } from "react";
 import Link from "next/link";
 import "./register.css";
+import { useShowMessage } from "../utils/useShowMessage";
 
 export default function Register() {
   const [firstName, setFirstName] = useState("");
@@ -12,15 +13,16 @@ export default function Register() {
   const [agree, setAgree] = useState(false);
   const [loading, setLoading] = useState(false);
   const [username, setUsername] = useState("");
+  const showMessage = useShowMessage("register", "user");
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!agree) {
-      alert("Bạn phải đồng ý với Điều khoản!");
+      showMessage.error("Bạn phải đồng ý với Điều khoản!");
       return;
     }
     if (password !== confirm) {
-      alert("Mật khẩu nhập lại không khớp!");
+      showMessage.error("Mật khẩu nhập lại không khớp!");
       return;
     }
     setLoading(true);
@@ -44,7 +46,7 @@ export default function Register() {
       const data = await res.json();
 
       if (!res.ok) {
-        alert(
+        showMessage.error(
           `Đăng ký thất bại: ${
             data?.message || JSON.stringify(data) || "Lỗi server"
           }`
@@ -57,8 +59,7 @@ export default function Register() {
         if (data.token) {
           localStorage.setItem("token", data.token);
         }
-        alert(`Đăng ký thành công cho ${email}`);
-        // Reset form
+        showMessage.success(`Đăng ký thành công cho ${email}`);
         setFirstName("");
         setLastName("");
         setEmail("");
@@ -70,8 +71,7 @@ export default function Register() {
         window.location.href = "/login";
       }
     } catch (error) {
-      alert("Lỗi kết nối đến server");
-      console.error(error);
+      showMessage.error("Lỗi kết nối đến server");
     } finally {
       setLoading(false);
     }

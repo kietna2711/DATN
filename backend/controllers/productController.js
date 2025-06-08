@@ -240,21 +240,21 @@ const editPro = [
   },
 ];
 
-// Xoá sản phẩm
-const deletePro = async (req, res) => {
-  try {
-    // Xóa sản phẩm
-    const data = await products.findByIdAndDelete(req.params.id);
+// // Xoá sản phẩm
+// const deletePro = async (req, res) => {
+//   try {
+//     // Xóa sản phẩm
+//     const data = await products.findByIdAndDelete(req.params.id);
 
-    // Xóa tất cả variants liên quan đến sản phẩm này
-    await variants.deleteMany({ productId: req.params.id });
+//     // Xóa tất cả variants liên quan đến sản phẩm này
+//     await variants.deleteMany({ productId: req.params.id });
 
-    res.json(data);
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: error.message });
-  }
-};
+//     res.json(data);
+//   } catch (error) {
+//     console.error(error);
+//     res.status(500).json({ message: error.message });
+//   }
+// };
 
 // Xuất các hàm controller
 module.exports = {
@@ -262,5 +262,5 @@ module.exports = {
   getProductById,
   addPro,
   editPro,
-  deletePro,
+  // deletePro,
 };
