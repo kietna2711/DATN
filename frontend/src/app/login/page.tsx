@@ -51,8 +51,12 @@ export default function Login() {
       localStorage.setItem("token", data.token);
       window.dispatchEvent(new Event("userChanged"));
 
-      // Chuyển sang trang chủ và reload
-      window.location.href = "/";
+      // Chuyển trang phù hợp
+      if (data.user.role === "admin") {
+        window.location.href = "/admin";
+      } else {
+        window.location.href = "/";
+      }
     } catch (err) {
       showMessage.error("Lỗi kết nối máy chủ!");
     }
