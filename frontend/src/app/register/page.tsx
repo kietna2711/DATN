@@ -17,12 +17,40 @@ export default function Register() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!agree) {
-      showMessage.error("Bạn phải đồng ý với Điều khoản!");
+
+    // Kiểm tra các trường bắt buộc
+    if (!firstName.trim() || !lastName.trim() || !username.trim() || !email.trim() || !password || !confirm) {
+      showMessage.error("Vui lòng điền đầy đủ thông tin!");
       return;
     }
+
+    // Kiểm tra email hợp lệ
+    if (!email.match(/^[\w-.]+@([\w-]+\.)+[\w-]{2,4}$/)) {
+      showMessage.error("Email không hợp lệ!");
+      return;
+    }
+
+    // Kiểm tra tên đăng nhập không chứa ký tự đặc biệt và tối thiểu 4 ký tự
+    if (!/^[a-zA-Z0-9_]{4,}$/.test(username)) {
+      showMessage.error("Tên đăng nhập phải từ 4 ký tự, không chứa ký tự đặc biệt!");
+      return;
+    }
+
+    // Kiểm tra mật khẩu tối thiểu 6 ký tự
+    if (password.length < 6) {
+      showMessage.error("Mật khẩu phải có ít nhất 6 ký tự!");
+      return;
+    }
+
+    // Kiểm tra mật khẩu nhập lại
     if (password !== confirm) {
       showMessage.error("Mật khẩu nhập lại không khớp!");
+      return;
+    }
+
+    // Kiểm tra đồng ý điều khoản
+    if (!agree) {
+      showMessage.error("Bạn phải đồng ý với Điều khoản!");
       return;
     }
     setLoading(true);
@@ -52,13 +80,6 @@ export default function Register() {
           }`
         );
       } else {
-        // Lưu user (chứa username, firstName, lastName, ...) vào localStorage nếu có
-        if (data.user) {
-          localStorage.setItem("user", JSON.stringify(data.user));
-        }
-        if (data.token) {
-          localStorage.setItem("token", data.token);
-        }
         showMessage.success(`Đăng ký thành công cho ${email}`);
         setFirstName("");
         setLastName("");
@@ -67,7 +88,7 @@ export default function Register() {
         setConfirm("");
         setAgree(false);
         setUsername("");
-        // Chuyển hướng sang trang đăng nhập
+        // KHÔNG lưu user/token vào localStorage ở đây!
         window.location.href = "/login";
       }
     } catch (error) {

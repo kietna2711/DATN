@@ -12,7 +12,7 @@ export default function ProductItem({ product }: { product: Products }) {
   const hasVariants = Array.isArray(product.variants) && product.variants.length > 0;
   const [selectedIdx, setSelectedIdx] = useState(0);
   const dispatch = useAppDispatch();
-  const { success } = useShowMessage();
+  const { success } = useShowMessage("product", "user");
   const router = useRouter();
 
   const prices = hasVariants
@@ -38,7 +38,7 @@ export default function ProductItem({ product }: { product: Products }) {
     success("Đã thêm vào giỏ hàng!");
     setTimeout(() => {
       router.push('/cart');
-    }, 350);
+    }, 300);
   };
 
   return (

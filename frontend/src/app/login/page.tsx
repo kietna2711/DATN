@@ -15,6 +15,19 @@ export default function Login() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
+
+    // Kiểm tra email hợp lệ
+    if (!email.match(/^[\w-.]+@([\w-]+\.)+[\w-]{2,4}$/)) {
+      setError("Email không hợp lệ!");
+      return;
+    }
+
+    // Kiểm tra password tối thiểu 6 ký tự
+    if (password.length < 6) {
+      setError("Mật khẩu phải có ít nhất 6 ký tự!");
+      return;
+    }
+
     try {
       const res = await fetch("http://localhost:3000/users/login", {
         method: "POST",
@@ -36,15 +49,13 @@ export default function Login() {
       // Lưu user và token vào localStorage
       localStorage.setItem("user", JSON.stringify(data.user));
       localStorage.setItem("token", data.token);
-      // Thông báo cho các component khác biết đã đăng nhập
       window.dispatchEvent(new Event("userChanged"));
-      showMessage.success("Đăng nhập thành công!");
 
-      // Chuyển hướng theo role
+      // Chuyển trang phù hợp
       if (data.user.role === "admin") {
-        router.push("/admin");
+        window.location.href = "/admin";
       } else {
-        router.push("/");
+        window.location.href = "/";
       }
     } catch (err) {
       showMessage.error("Lỗi kết nối máy chủ!");

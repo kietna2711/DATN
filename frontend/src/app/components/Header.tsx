@@ -328,8 +328,6 @@ const cartCount = useAppSelector((state) => state.cart.items.length);
                       color: "#b94490",
                       cursor: "pointer",
                       padding: "4px 12px",
-                      borderRadius: "16px",
-                      background: "#fff",
                     }}
                   >
                     Xin chào, {username}
