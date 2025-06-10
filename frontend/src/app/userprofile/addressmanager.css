@@ -1,0 +1,136 @@
+/* AddressManager styles */
+.address-manager {
+  width: 100%;
+  border-radius: 16px;
+  margin: 0 auto;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  color: #5a194f;
+  box-sizing: border-box;
+}
+
+.address-manager h3 {
+  font-size: 2rem;
+  font-weight: 700;
+  margin-bottom: 22px;
+  color: #d6336c;
+  border-bottom: 3px solid #ffb6c1;
+  padding-bottom: 8px;
+}
+
+.empty-text {
+  font-style: italic;
+  color: #8c417a;
+  font-size: 1.15rem;
+  text-align: center;
+  margin-bottom: 24px;
+}
+
+.address-list {
+  list-style: none;
+  padding-left: 0;
+  margin-bottom: 28px;
+}
+
+.address-list li {
+  background: #fff;
+  border: 2px solid #ffc0cb;
+  padding: 14px 20px;
+  margin-bottom: 16px;
+  border-radius: 12px;
+  font-size: 1.15rem;
+  color: #672155;
+  box-shadow: 0 2px 8px rgba(214, 51, 108, 0.1);
+  transition: background-color 0.3s ease, box-shadow 0.3s ease;
+  cursor: default;
+}
+
+.address-list li:hover {
+  background-color: #ffe4ec;
+  box-shadow: 0 4px 14px rgba(214, 51, 108, 0.3);
+}
+
+.input-group {
+  display: flex;
+  gap: 14px;
+  margin-top: 8px;
+}
+
+.input-group input[type="text"] {
+  flex: 1;
+  padding: 14px 18px;
+  font-size: 1.15rem;
+  border: 2.5px solid #ffc0cb;
+  border-radius: 14px;
+  transition: border-color 0.3s ease, box-shadow 0.3s ease;
+  box-sizing: border-box;
+  color: #5a194f;
+}
+
+.input-group input[type="text"]::placeholder {
+  color: #d988af;
+  font-style: italic;
+}
+
+.input-group input[type="text"]:focus {
+  outline: none;
+  border-color: #d6336c;
+  box-shadow: 0 0 10px rgba(214, 51, 108, 0.5);
+}
+
+.input-group button {
+  padding: 14px 30px;
+  font-size: 1.15rem;
+  background: linear-gradient(135deg, #f48fb1, #f06292); /* hồng pastel dịu */
+  border: none;
+  border-radius: 16px;
+  color: white;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 3px 8px rgba(244, 143, 177, 0.5);
+  transition: background 0.3s ease, box-shadow 0.3s ease, transform 0.15s ease;
+  user-select: none;
+  flex-shrink: 0;
+}
+
+.input-group button:hover {
+  background: linear-gradient(135deg, #f06292, #ec407a);
+  box-shadow: 0 5px 14px rgba(236, 64, 122, 0.6);
+  transform: translateY(-1.5px);
+}
+
+.input-group button:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 7px rgba(236, 64, 122, 0.4);
+}
+
+/* Responsive for small screens */
+@media (max-width: 480px) {
+  .address-manager {
+    padding: 20px;
+  }
+  .input-group {
+    flex-direction: column;
+  }
+  .input-group input[type="text"],
+  .input-group button {
+    width: 100%;
+    flex-shrink: 1;
+  }
+  .input-group button {
+    margin-top: 12px;
+  }
+}
+
+.address-list li {
+  display: flex;
+  justify-content: space-between;
+  padding: 4px 0;
+}
+
+.delete-btn {
+  margin-left: 12px;
+  background: transparent;
+  color: red;
+  border: none;
+  cursor: pointer;
+}
