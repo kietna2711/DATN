@@ -3,6 +3,7 @@ import React, { useState } from "react";
 import "./login.css";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { useShowMessage } from "../utils/useShowMessage";
 
 export default function Login() {
   const [email, setEmail] = useState("");
@@ -10,10 +11,23 @@ export default function Login() {
   const [remember, setRemember] = useState(false);
   const [error, setError] = useState("");
   const router = useRouter();
-
+  const showMessage = useShowMessage("login", "user");
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
+
+    // Kiểm tra email hợp lệ
+    if (!email.match(/^[\w-.]+@([\w-]+\.)+[\w-]{2,4}$/)) {
+      setError("Email không hợp lệ!");
+      return;
+    }
+
+    // Kiểm tra password tối thiểu 6 ký tự
+    if (password.length < 6) {
+      setError("Mật khẩu phải có ít nhất 6 ký tự!");
+      return;
+    }
+
     try {
       const res = await fetch("http://localhost:3000/users/login", {
         method: "POST",
@@ -23,30 +37,28 @@ export default function Login() {
       const data = await res.json();
 
       if (!res.ok) {
-        setError(data.message || "Sai tài khoản hoặc mật khẩu!");
+        showMessage.error(data.message || "Sai tài khoản hoặc mật khẩu!");
         return;
       }
 
-      // Kiểm tra tài khoản bị khóa (nếu backend trả về)
       if (data.user && data.user.visible === false) {
-        setError("Tài khoản của bạn đã bị khóa. Vui lòng liên hệ quản trị viên.");
+        showMessage.error("Tài khoản của bạn đã bị khóa. Vui lòng liên hệ quản trị viên.");
         return;
       }
 
       // Lưu user và token vào localStorage
       localStorage.setItem("user", JSON.stringify(data.user));
       localStorage.setItem("token", data.token);
-      // Thông báo cho các component khác biết đã đăng nhập
       window.dispatchEvent(new Event("userChanged"));
 
-      // Chuyển hướng theo role
+      // Chuyển trang phù hợp
       if (data.user.role === "admin") {
-        router.push("/admin");
+        window.location.href = "/admin";
       } else {
-        router.push("/");
+        window.location.href = "/";
       }
     } catch (err) {
-      setError("Lỗi kết nối máy chủ!");
+      showMessage.error("Lỗi kết nối máy chủ!");
     }
   };
 

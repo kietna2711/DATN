@@ -16,5 +16,5 @@ export default function OauthSuccess() {
       router.replace("/");
     }
   }, [router]);
-  return <div>Đang đăng nhập bằng Google...</div>;
+  return null;
 }

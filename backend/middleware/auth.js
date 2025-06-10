@@ -7,7 +7,7 @@ function authenticateToken(req, res, next) {
 
   jwt.verify(token, 'conguoiyeuchua', (err, decoded) => {
     if (err) return res.status(403).json({ message: "Token không hợp lệ" });
-    req.user = decoded; // Đây là DÒNG QUAN TRỌNG NHẤT
+    req.user = decoded; 
     next();
   });
 }
