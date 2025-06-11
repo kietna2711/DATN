@@ -1,17 +1,17 @@
 const mongoose = require("mongoose");
 
 const orderSchema = new mongoose.Schema({
+  orderId: String,
   items: [
     {
       productId: { type: mongoose.Schema.Types.ObjectId, ref: "Product" },
-      productName: String,
       variant: String,
       quantity: Number,
-      price: Number,
-      images: [String],
+      images: String
     },
   ],
   shippingInfo: {
+    userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User' }, // Thêm userId để biết đơn của ai
     name: String,
     phone: String,
     address: String,
@@ -23,7 +23,8 @@ const orderSchema = new mongoose.Schema({
   totalPrice: Number,
   paymentMethod: String,
   coupon: String,
+  status: { type: String, default: "pending" }, // pending | paid | failed
   createdAt: { type: Date, default: Date.now },
 });
 
-module.exports = mongoose.model("order", orderSchema);
+module.exports = mongoose.model("Order", orderSchema);

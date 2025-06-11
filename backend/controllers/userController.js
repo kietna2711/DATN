@@ -51,7 +51,7 @@ const register = async (req, res) => {
             email: data.email,
             role: data.role,
             username: data.username // <-- thêm dòng này, đồng nhất với login
-        }, 'conguoiyeuchua', { expiresIn: '1h' });
+        }, process.env.JWT_SECRET, { expiresIn: '1h' });
 
         // Trả về cả user và token
         res.json({ user: data, token });
@@ -73,7 +73,12 @@ const login = [upload.single('img'), async (req, res) => {
         if (!isMatch) {
             throw new Error('Mật khẩu không đúng');
         }
-        const token = jwt.sign({ id: checkUser._id, email: checkUser.email, role: checkUser.role, username: checkUser.username }, 'conguoiyeuchua', {
+        const token = jwt.sign({
+            id: checkUser._id,
+            email: checkUser.email,
+            role: checkUser.role,
+            username: checkUser.username
+        }, process.env.JWT_SECRET, {
             expiresIn: '1h'
         });
         // Không trả về password!
@@ -85,13 +90,13 @@ const login = [upload.single('img'), async (req, res) => {
 }
 ]
 
-//Bảo mật token
+// Middleware xác thực
 const verifyToken = (req, res, next) => {
     const token = req.headers.authorization?.slice(7);
     if (!token) {
         return res.status(403).json({ message: 'Không có token' });
     }
-    jwt.verify(token, 'conguoiyeuchua', (err, decoded) => {
+    jwt.verify(token, process.env.JWT_SECRET, (err, decoded) => {
         if (err) {
             if (err.name === 'TokenExpiredError') {
                 return res.status(401).json({ message: 'Token đã hết hạn' });
@@ -100,7 +105,7 @@ const verifyToken = (req, res, next) => {
             }
             return res.status(401).json({ message: 'Lỗi xác thực token' });
         }
-        req.user = decoded; // Đúng chuẩn
+        req.user = decoded;
         next();
     });
 };

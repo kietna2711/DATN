@@ -314,7 +314,12 @@
       color: #cf3261;
       text-decoration: underline;
     }
-
+.input-error {
+  color: #d16ba5;
+  font-size: 13px;
+  margin-top: 2px;
+  margin-bottom: 6px;
+}
     .login-options {
       width: 320px;
       max-width: 90vw;

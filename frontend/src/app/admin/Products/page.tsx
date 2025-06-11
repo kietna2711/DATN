@@ -52,19 +52,18 @@ export default function ProductManagement() {
     category: "",
     status: "",
   });
-  const [categories, setCategories] = useState<any[]>([]); // Thêm state cho danh sách danh mục
-  const [deleteId, setDeleteId] = useState<string | null>(null);
-  const [thumbnails, setThumbnails] = useState<File[]>([]);
-  const [thumbnailPreviews, setThumbnailPreviews] = useState<string[]>([]);
-  const [thumbnailInputs, setThumbnailInputs] = useState<{ file: File | null, url: string | null }[]>([]);
-  const thumbnailInputRef = React.useRef<HTMLInputElement>(null);
+  const [categories, setCategories] = useState<any[]>([]); // Danh mụ
+  const [mainImageFile, setMainImageFile] = useState<File | null>(null); // Sửa
+  const [mainImagePreview, setMainImagePreview] = useState<string>("");   // Sửa
+  const [createMainImageFile, setCreateMainImageFile] = useState<File | null>(null); // Tạo
+  // Thumbnail
+  const [thumbnailInputs, setThumbnailInputs] = useState<{ file: File | null, url: string | null }[]>([]); // Tạo
   const [editThumbnails, setEditThumbnails] = useState<
   { url: string; name: string; file: File | null; isNew: boolean }[]
->([]);
-const [mainImageFile, setMainImageFile] = useState<File | null>(null);
-const [mainImagePreview, setMainImagePreview] = useState<string>("");
-const [editVariants, setEditVariants] = useState<{ size: string; price: number; quantity: number }[]>([]);
-const [createVariants, setCreateVariants] = useState<{ size: string; price: number; quantity: number }[]>([]);
+>([]); // Sửa
+  // Biến thể
+  const [editVariants, setEditVariants] = useState<{ size: string; price: number; quantity: number }[]>([]);
+  const [createVariants, setCreateVariants] = useState<{ size: string; price: number; quantity: number }[]>([]);
 
   // Fetch sản phẩm từ backend nodejs
   const fetchProducts = async () => {
@@ -169,29 +168,6 @@ const [createVariants, setCreateVariants] = useState<{ size: string; price: numb
     );
   };
 
-  // Xóa sản phẩm
-  const handleDelete = async (id: string) => {
-    if (window.confirm("Bạn có chắc chắn muốn xóa sản phẩm này?")) {
-      try {
-        const res = await fetch(`http://localhost:3000/products/${id}`, {
-          method: "DELETE",
-          headers: {
-            Authorization: "Bearer " + localStorage.getItem("token"),
-          },
-        });
-        if (res.ok) {
-          setProducts((products) => products.filter((p) => p.id !== id));
-          notify("Xóa sản phẩm thành công!", "");
-        } else {
-          notify("Xóa sản phẩm thất bại!", "");
-        }
-      } catch (error) {
-        notify("Lỗi khi xóa sản phẩm!", "");
-      }
-    }
-  };
-
- 
 
   // Mở modal sửa
   const openEditModal = (id: string) => {

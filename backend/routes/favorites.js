@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const favoriteController = require('../controllers/favorites');
+const favoriteController = require('../controllers/favoritesController');
 
 // POST - Thêm yêu thích
 router.post('/', favoriteController.addFavorite);
@@ -13,4 +13,4 @@ router.get('/', favoriteController.getFavoritesByUser); // userId lấy từ que
 // Router:
 router.delete('/:productId', favoriteController.removeFavorite);
 
-module.exports = router;
+module.exports = router; 
