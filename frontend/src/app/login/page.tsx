@@ -10,6 +10,9 @@ export default function Login() {
   const [password, setPassword] = useState("");
   const [remember, setRemember] = useState(false);
   const [error, setError] = useState("");
+  const [errors, setErrors] = useState<{ email?: string; password?: string }>(
+    {}
+  );
   const router = useRouter();
   const showMessage = useShowMessage("login", "user");
   const handleSubmit = async (e: React.FormEvent) => {
@@ -42,7 +45,9 @@ export default function Login() {
       }
 
       if (data.user && data.user.visible === false) {
-        showMessage.error("Tài khoản của bạn đã bị khóa. Vui lòng liên hệ quản trị viên.");
+        showMessage.error(
+          "Tài khoản của bạn đã bị khóa. Vui lòng liên hệ quản trị viên."
+        );
         return;
       }
 
@@ -60,6 +65,20 @@ export default function Login() {
     } catch (err) {
       showMessage.error("Lỗi kết nối máy chủ!");
     }
+  };
+
+  const validateField = (name: string, value: string) => {
+    let error = "";
+    if (name === "email") {
+      if (!value.trim()) error = "Vui lòng nhập email!";
+      else if (!value.match(/^[\w-.]+@([\w-]+\.)+[\w-]{2,4}$/))
+        error = "Email không hợp lệ!";
+    }
+    if (name === "password") {
+      if (!value) error = "Vui lòng nhập mật khẩu!";
+      else if (value.length < 6) error = "Mật khẩu phải có ít nhất 6 ký tự!";
+    }
+    setErrors((prev) => ({ ...prev, [name]: error }));
   };
 
   return (
@@ -80,25 +99,36 @@ export default function Login() {
           placeholder="Email"
           required
           value={email}
-          onChange={e => setEmail(e.target.value)}
+          onChange={(e) => {
+            setEmail(e.target.value);
+            validateField("email", e.target.value);
+          }}
         />
+        {errors.email && <div className="input-error">{errors.email}</div>}
+
         <input
           type="password"
           placeholder="Password"
           required
           value={password}
-          onChange={e => setPassword(e.target.value)}
+          onChange={(e) => {
+            setPassword(e.target.value);
+            validateField("password", e.target.value);
+          }}
         />
+        {errors.password && <div className="input-error">{errors.password}</div>}
         <div className="login-options">
           <label className="remember-me">
             <input
               type="checkbox"
               checked={remember}
-              onChange={e => setRemember(e.target.checked)}
+              onChange={(e) => setRemember(e.target.checked)}
             />
             Nhớ tôi sau nhé
           </label>
-          <Link href="/forget" className="forgot">Quên mật khẩu?</Link>
+          <Link href="/forget" className="forgot">
+            Quên mật khẩu?
+          </Link>
         </div>
         <button type="submit">Đăng nhập</button>
         <div className="social-login">
@@ -109,15 +139,23 @@ export default function Login() {
               (window.location.href = "http://localhost:3000/users/auth/google")
             }
           >
-            <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/google/google-original.svg" alt="" />
+            <img
+              src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/google/google-original.svg"
+              alt=""
+            />
             Google
           </button>
           <button className="facebook-btn" type="button">
-            <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/facebook/facebook-original.svg" alt="" />
+            <img
+              src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/facebook/facebook-original.svg"
+              alt=""
+            />
             Facebook
           </button>
         </div>
-        <Link href="/register" className="register-link">Bạn chưa có tài khoản?</Link>
+        <Link href="/register" className="register-link">
+          Bạn chưa có tài khoản?
+        </Link>
       </form>
     </div>
   );
