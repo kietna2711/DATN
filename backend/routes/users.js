@@ -54,7 +54,7 @@ router.get('/auth/google/callback',
   (req, res) => {
     // Tạo token
     const token = jwt.sign(
-      { id: req.user._id, email: req.user.email, role: req.user.role },
+      { id: req.user._id, email: req.user.email, role: req.user.role},
       process.env.JWT_SECRET,
       { expiresIn: '1h' }
     );
