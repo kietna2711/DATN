@@ -13,4 +13,4 @@ router.get('/', favoriteController.getFavoritesByUser); // userId lấy từ que
 // Router:
 router.delete('/:productId', favoriteController.removeFavorite);
 
-module.exports = router;
+module.exports = router; 
