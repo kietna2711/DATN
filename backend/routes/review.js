@@ -1,7 +1,7 @@
 const express = require("express");
 const router = express.Router();
 const reviewController = require("../controllers/reviewController");
-const authenticateToken = require("../middleware/auth"); // Đảm bảo đúng đường dẫn!
+const authenticateToken = require("../middleware/auth"); 
 
 // GET: lấy review theo productId (chỉ visible)
 router.get("/", reviewController.getReviews);
