@@ -102,17 +102,21 @@ app.use('/products', productsRouter);
 app.use('/variants', variantsRouter);
 app.use('/subcategory', subcategoryRouter);
 
+
 // không cần token khi thanh toán momo
 app.use("/payment", paymentRouter);
 app.use("/", paymentReturnRouter); // Để route /payment-return hoạt động tại http://localhost:3000/payment-return
 // 
-app.use(authenticateToken); // Bảo vệ các route sau khi xác thực token
+
+
 app.use('/favorites', favoriteRouter);
 // thanh toán
 app.use("/reviews", reviewRoutes);
 app.use("/reviews", require("./routes/review"));
 app.use('/api/usersProfile', usersProfileRoutes);
 app.use("/orders", orderRoutes);
+
+app.use(authenticateToken); 
 
 
 
