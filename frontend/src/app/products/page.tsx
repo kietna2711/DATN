@@ -62,7 +62,7 @@ export default function ProductsPage() {
             data = data.filter((prod) => {
               const created = new Date(prod.createdAt);
               const diff = (now.getTime() - created.getTime()) / (1000 * 3600 * 24);
-              return diff <= 15;
+              return diff <= 30;
             });
           }
         }
