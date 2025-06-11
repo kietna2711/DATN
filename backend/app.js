@@ -95,14 +95,14 @@ app.use('/categories', categoriesRouter);
 app.use('/products', productsRouter);
 app.use('/variants', variantsRouter);
 app.use('/subcategory', subcategoryRouter);
-app.use(authenticateToken); // Bảo vệ các route sau khi xác thực token
 app.use('/favorites', favoriteRouter);
 
 // 
 app.use("/reviews", reviewRoutes);
 app.use("/reviews", require("./routes/review"));
 app.use("/orders", orderRoutes);
-app.use("/reviews", require("./routes/review"));
+app.use(authenticateToken); 
+
 
 
 // catch 404 and forward to error handler
