@@ -95,7 +95,7 @@ app.use('/subcategory', subcategoryRouter);
 
 // không cần token khi thanh toán momo
 app.use("/payment", paymentRouter);
-app.use("/", paymentReturnRouter); // Để route /payment-return hoạt động tại http://localhost:3000/payment-return
+// app.use("/", paymentReturnRouter); // Để route /payment-return hoạt động tại http://localhost:3000/payment-return
 // 
 app.use('/favorites', favoriteRouter);
 // thanh toán
