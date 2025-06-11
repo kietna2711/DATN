@@ -167,3 +167,44 @@ exports.getLatestReviewPerProduct = async (req, res) => {
     res.status(500).json({ error: "Lỗi server khi lấy review mới nhất theo sản phẩm" });
   }
 };
+// Lấy thống kê review theo productId
+exports.getReviewStats = async (req, res) => {
+  const { productId } = req.params;
+
+  try {
+    const stats = await Review.aggregate([
+      {
+        $match: {
+          productId: new mongoose.Types.ObjectId(productId),
+          status: "visible"
+        }
+      },
+      {
+        $group: {
+          _id: "$productId",
+          averageRating: { $avg: "$rating" },
+          totalReviews: { $sum: 1 }
+        }
+      }
+    ]);
+
+    if (stats.length === 0) {
+      return res.json({
+        productId,
+        averageRating: 0,
+        totalReviews: 0
+      });
+    }
+
+    const { averageRating, totalReviews } = stats[0];
+
+    res.json({
+      productId,
+      averageRating,
+      totalReviews
+    });
+  } catch (error) {
+    console.error('Lỗi khi lấy thống kê:', error);
+    res.status(500).json({ message: 'Lỗi server' });
+  }
+};

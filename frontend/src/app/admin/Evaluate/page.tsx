@@ -38,7 +38,6 @@ function renderStars(stars: number) {
   );
 }
 
-// Hàm format ngày tháng năm (dd/mm/yyyy)
 function formatDate(dateString: string) {
   const date = new Date(dateString);
   const dd = String(date.getDate()).padStart(2, "0");
@@ -47,14 +46,13 @@ function formatDate(dateString: string) {
   return `${dd}/${mm}/${yyyy}`;
 }
 
-// Modal/component chi tiết review sản phẩm
-function ReviewDetailModal({
-  productId,
-  onClose,
-}: {
-  productId: string;
-  onClose: () => void;
-}) {
+function calculateAverageRating(reviews: Review[]) {
+  if (reviews.length === 0) return 0;
+  const total = reviews.reduce((sum, r) => sum + r.rating, 0);
+  return parseFloat((total / reviews.length).toFixed(1));
+}
+
+function ReviewDetailModal({ productId, onClose }: { productId: string; onClose: () => void; }) {
   const [details, setDetails] = useState<ReviewDetail[]>([]);
   const [productName, setProductName] = useState<string>("");
   const [loading, setLoading] = useState(true);
@@ -91,7 +89,6 @@ function ReviewDetailModal({
     return () => { ignore = true; };
   }, [productId]);
 
-  // API lấy tên sản phẩm nếu cần
   async function fetchProductName(productId: string): Promise<string> {
     try {
       const res = await fetch(`http://localhost:3000/products/${productId}`);
@@ -103,7 +100,6 @@ function ReviewDetailModal({
     }
   }
 
-  // Không reload khi ẩn/hiện, chỉ cập nhật local state
   const handleToggleVisibility = async (reviewId: string) => {
     try {
       const res = await fetch(`http://localhost:3000/reviews/${reviewId}/toggle-status`, {
@@ -114,13 +110,11 @@ function ReviewDetailModal({
         }
       });
       const updatedReview = await res.json();
-
       setDetails(reviews =>
         reviews.map(r =>
           r._id === reviewId ? { ...r, status: updatedReview.status } : r
         )
       );
-
       toast.success(
         updatedReview.status === "visible"
           ? "Đánh giá đã được hiển thị!"
@@ -132,10 +126,7 @@ function ReviewDetailModal({
   };
 
   return (
-    <div className="modal show" style={{
-      display: "block",
-      background: "rgba(0,0,0,0.3)"
-    }}>
+    <div className="modal show" style={{ display: "block", background: "rgba(0,0,0,0.3)" }}>
       <div className="modal-dialog modal-lg">
         <div className="modal-content">
           <div className="modal-header">
@@ -145,6 +136,10 @@ function ReviewDetailModal({
             <button type="button" className="btn-close" onClick={onClose}></button>
           </div>
           <div className="modal-body">
+            <div className="mb-3">
+              <strong>⭐ Trung bình sao:</strong> {calculateAverageRating(details)}<br />
+              <strong>📝 Số lượt đánh giá:</strong> {details.length}
+            </div>
             {loading ? (
               <div>Đang tải chi tiết...</div>
             ) : (
