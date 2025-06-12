@@ -16,5 +16,7 @@ router.post("/", authenticateToken, reviewController.createReview);
 
 // PATCH: đổi trạng thái review (ẩn/hiện)
 router.patch("/:id/toggle-status", authenticateToken, reviewController.toggleReviewStatus);
+// Route lấy thống kê đánh giá theo productId
+router.get('/stats/:productId', reviewController.getReviewStats);
 
 module.exports = router;

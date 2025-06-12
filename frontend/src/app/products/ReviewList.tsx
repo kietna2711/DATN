@@ -50,6 +50,7 @@ const ReviewList: React.FC<ReviewListProps> = ({ productId }) => {
           fetched = fetched.sort((a, b) => 
             (new Date(b.createdAt ?? 0).getTime()) - (new Date(a.createdAt ?? 0).getTime())
           );
+          console.log("Fetched reviews:", fetched);
           setReviews(fetched);
           setLoading(false);
           isFirstLoad.current = false;

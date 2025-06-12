@@ -1,5 +1,6 @@
 const Review = require("../models/reviewModel");
 const Product = require("../models/productModel");
+const User = require("../models/userModel");
 
 // Lấy review cho khách hàng (ẩn review đã bị admin ẩn, hoặc lấy tất cả cho admin)
 // Route: /reviews
@@ -31,7 +32,7 @@ exports.getReviews = async (req, res) => {
       limit: parseInt(limit),
       reviews: reviews.map(r => ({
         ...r.toObject(),
-        commenterName: r.username 
+        commenterName: r.username
       }))
     });
   } catch (err) {
@@ -71,17 +72,39 @@ exports.getReviewsAdmin = async (req, res) => {
 };
 
 // Thêm review mới
+
+
 exports.createReview = async (req, res) => {
   try {
     const { productId, rating, comment } = req.body;
-    const username = req.user?.username || "Ẩn danh";
-    const review = await Review.create({ productId, rating, comment, username, status: "visible" });
-    res.status(201).json(review);
+    const userId = req.user?.id;
+    if (!userId) {
+      return res.status(401).json({ error: 'Chưa xác thực người dùng.' });
+    }
+
+    const user = await User.findById(userId);
+    if (!user) {
+      console.log('Không tìm thấy user với ID:', userId);
+      return res.status(404).json({ error: 'Người dùng không tồn tại.' });
+    }
+
+    const review = await Review.create({
+      productId,
+      rating,
+      comment,
+      username: user.username || "Ẩn danh",
+      name: user.name || "",
+      status: "visible",
+      createdAt: new Date()
+    });
+
+    res.status(201).json({ message: "Đánh giá đã được gửi!", review });
   } catch (err) {
-    res.status(500).json({ error: "Lỗi server" });
+    console.error('Lỗi 500 khi tạo review:', err);
+    res.status(500).json({ error: "Lỗi server khi gửi đánh giá." });
   }
-  console.log('req.user:', req.user);
 };
+
 
 // Đổi trạng thái review (ẩn/hiện)
 exports.toggleReviewStatus = async (req, res) => {
@@ -142,5 +165,46 @@ exports.getLatestReviewPerProduct = async (req, res) => {
     res.json({ reviews: latestReviews });
   } catch (err) {
     res.status(500).json({ error: "Lỗi server khi lấy review mới nhất theo sản phẩm" });
+  }
+};
+// Lấy thống kê review theo productId
+exports.getReviewStats = async (req, res) => {
+  const { productId } = req.params;
+
+  try {
+    const stats = await Review.aggregate([
+      {
+        $match: {
+          productId: new mongoose.Types.ObjectId(productId),
+          status: "visible"
+        }
+      },
+      {
+        $group: {
+          _id: "$productId",
+          averageRating: { $avg: "$rating" },
+          totalReviews: { $sum: 1 }
+        }
+      }
+    ]);
+
+    if (stats.length === 0) {
+      return res.json({
+        productId,
+        averageRating: 0,
+        totalReviews: 0
+      });
+    }
+
+    const { averageRating, totalReviews } = stats[0];
+
+    res.json({
+      productId,
+      averageRating,
+      totalReviews
+    });
+  } catch (error) {
+    console.error('Lỗi khi lấy thống kê:', error);
+    res.status(500).json({ message: 'Lỗi server' });
   }
 };
