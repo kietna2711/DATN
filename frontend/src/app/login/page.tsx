@@ -116,7 +116,7 @@ export default function Login() {
             validateField("password", e.target.value);
           }}
         />
-        {errors.password && <div className="input-error">{errors.password}</div>}
+         {errors.password && <div className="input-error">{errors.password}</div>}
         <div className="login-options">
           <label className="remember-me">
             <input

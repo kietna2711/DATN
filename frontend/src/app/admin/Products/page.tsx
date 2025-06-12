@@ -10,14 +10,13 @@ type Product = {
   id: string;
   name: string;
   image: string;
-  images?: string[]; // Add this line to support multiple images
+  images?: string[];
   desc: string;
   price: number;
   quantity: number;
   size: string;
   category: string;
   status: string;
-  checked: boolean;
   variants?: { size: string; price: number; quantity: number }[]; // Add this line to support variants
 };
 
@@ -25,7 +24,6 @@ export default function ProductManagement() {
   const notify = useSuccessNotification(); // <-- Gọi bên trong thân hàm component
 
   const [products, setProducts] = useState<Product[]>([]);
-  const [selectAll, setSelectAll] = useState(false);
   const [showModal, setShowModal] = useState(false);
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [editIndex, setEditIndex] = useState<number | null>(null);
@@ -64,6 +62,8 @@ export default function ProductManagement() {
   // Biến thể
   const [editVariants, setEditVariants] = useState<{ size: string; price: number; quantity: number }[]>([]);
   const [createVariants, setCreateVariants] = useState<{ size: string; price: number; quantity: number }[]>([]);
+  const [showDetailModal, setShowDetailModal] = useState(false);
+  const [detailProduct, setDetailProduct] = useState<Product | null>(null);
 
   // Fetch sản phẩm từ backend nodejs
   const fetchProducts = async () => {
@@ -153,21 +153,6 @@ export default function ProductManagement() {
     return () => clearInterval(timer);
   }, []);
 
-  // Chọn tất cả
-  const handleSelectAll = () => {
-    setSelectAll(!selectAll);
-    setProducts((products) =>
-      products.map((p) => ({ ...p, checked: !selectAll }))
-    );
-  };
-
-  // Chọn từng dòng
-  const handleCheck = (id: string) => {
-    setProducts((products) =>
-      products.map((p) => (p.id === id ? { ...p, checked: !p.checked } : p))
-    );
-  };
-
 
   // Mở modal sửa
   const openEditModal = (id: string) => {
@@ -229,16 +214,6 @@ export default function ProductManagement() {
   };
 
   // Lưu sản phẩm (chỉ sửa trên frontend)
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (editIndex !== null) {
-      setProducts((products) =>
-        products.map((p, i) => (i === editIndex ? { ...p, ...form } : p))
-      );
-      notify("Cập nhật sản phẩm thành công!", "");
-    }
-    setShowModal(false);
-  };
 
   // In bảng sản phẩm
   const handlePrint = () => {
@@ -312,7 +287,6 @@ useEffect(() => {
     formData.append("variants", JSON.stringify(editVariants));
 
     // Ảnh chính (nếu có thay đổi)
-    const imgInput = document.querySelector('input[name="image"]') as HTMLInputElement;
     if (mainImageFile) {
       formData.append("img", mainImageFile);
     } else if (form.image && !form.image.startsWith("blob:") && !form.image.startsWith("http")) {
@@ -391,14 +365,13 @@ useEffect(() => {
               <table className="table table-hover table-bordered" id="sampleTable">
                 <thead>
                   <tr>
-                    <th style={{ width: "10px" }}>
+                    {/* <th style={{ width: "10px" }}>
                       <input
                         type="checkbox"
                         checked={selectAll}
                         onChange={handleSelectAll}
                       />
-                    </th>
-                    <th>ID sản phẩm</th>
+                    </th> */}
                     <th style={{ width: "150px" }}>Tên sản phẩm</th>
                     <th style={{ width: "20px" }}>Ảnh</th>
                     <th style={{ width: "300px" }}>Mô tả</th>
@@ -411,16 +384,15 @@ useEffect(() => {
                   </tr>
                 </thead>
                 <tbody>
-                  {currentProducts.filter(p => p && typeof p.price === "number").map((p, idx) => (
+                  {currentProducts.filter(p => p && typeof p.price === "number").map((p) => (
                     <tr key={p.id}>
-                      <td>
+                      {/* <td>
                         <input
                           type="checkbox"
                           checked={p.checked}
                           onChange={() => handleCheck(p.id)}
                         />
-                      </td>
-                      <td>{p.id}</td>
+                      </td> */}
                       <td>{p.name}</td>
                       <td>
                         {p.image ? (
@@ -439,6 +411,18 @@ useEffect(() => {
                       <td>{p.category}</td>
                       <td>{p.status}</td>
                       <td className="table-td-center">
+                        <button
+                          className="btn btn-info btn-sm"
+                          type="button"
+                          title="Xem chi tiết"
+                          onClick={() => {
+                            setDetailProduct(p);
+                            setShowDetailModal(true);
+                          }}
+                          style={{ marginRight: 6 }}
+                        >
+                          <i className="fas fa-eye"></i>
+                        </button>
                         <button
                           className="btn btn-primary btn-sm edit"
                           type="button"
@@ -696,7 +680,6 @@ useEffect(() => {
                             const formData = new FormData();
                             formData.append("name", createForm.name);
                             formData.append("description", createForm.desc);
-                            formData.append("price", String(createForm.price));
                             formData.append("categoryId", createForm.category);
                             formData.append("status", createForm.status);
                             formData.append("variants", JSON.stringify(createVariants));
@@ -748,22 +731,6 @@ useEffect(() => {
                                   setCreateForm({
                                     ...createForm,
                                     name: e.target.value,
-                                  })
-                                }
-                              />
-                            </div>
-                            <div className="form-group col-md-6">
-                              <label className="control-label">Giá</label>
-                              <input
-                                className="form-control"
-                                type="number"
-                                required
-                                name="price"
-                                value={createForm.price}
-                                onChange={(e) =>
-                                  setCreateForm({
-                                    ...createForm,
-                                    price: Number(e.target.value),
                                   })
                                 }
                               />
@@ -1027,6 +994,79 @@ useEffect(() => {
           </div>
         </div>
       </div>
+      {/* Modal Chi Tiết Sản Phẩm */}
+      {showDetailModal && detailProduct && (
+  <div className="modal d-block" tabIndex={-1} role="dialog" style={{ background: "rgba(0,0,0,0.3)" }}>
+    <div className="modal-dialog modal-dialog-centered" role="document">
+      <div className="modal-content">
+        <div className="modal-header">
+          <h5 className="modal-title">Chi tiết sản phẩm</h5>
+          <button
+            type="button"
+            className="close"
+            onClick={() => setShowDetailModal(false)}
+          >
+            <span>&times;</span>
+          </button>
+        </div>
+        <div className="modal-body">
+          <div><b>Tên:</b> {detailProduct.name}</div>
+          <div><b>Giá:</b> {detailProduct.price.toLocaleString()}đ</div>
+          <div><b>Danh mục:</b> {detailProduct.category}</div>
+          <div><b>Trạng thái:</b> {detailProduct.status}</div>
+          <div><b>Mô tả:</b> {detailProduct.desc}</div>
+          <div>
+            <b>Ảnh chính:</b><br />
+            {detailProduct.images && detailProduct.images.length > 0 && (
+              <img
+                src={detailProduct.images[0].startsWith("http") ? detailProduct.images[0] : `http://localhost:3000/images/${detailProduct.images[0]}`}
+                alt="Ảnh chính"
+                width={100}
+                style={{ marginRight: 8, marginBottom: 8, border: "2px solid #d16ba5" }}
+              />
+            )}
+          </div>
+          <div>
+            <b>Ảnh thumbnail:</b><br />
+            {detailProduct.images && detailProduct.images.length > 1 ? (
+              detailProduct.images.slice(1).map((img, idx) => (
+                <img
+                  key={idx}
+                  src={img.startsWith("http") ? img : `http://localhost:3000/images/${img}`}
+                  alt={`thumb-${idx}`}
+                  width={60}
+                  style={{ marginRight: 8, marginBottom: 8, border: "1px solid #ccc" }}
+                />
+              ))
+            ) : (
+              <span>Không có</span>
+            )}
+          </div>
+          <div>
+            <b>Biến thể:</b>
+            {detailProduct.variants && detailProduct.variants.length > 0 ? (
+              <ul>
+                {detailProduct.variants.map((v, idx) => (
+                  <li key={idx}>
+                    Size: {v.size}, Giá: {v.price.toLocaleString()}đ, SL: {v.quantity}
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <span>Không có</span>
+            )}
+          </div>
+        </div>
+        <div className="modal-footer">
+          <button className="btn btn-cancel" type="button" onClick={() => setShowDetailModal(false)}>
+            Đóng
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+)}
+      {/* End Modal Chi Tiết */}
     </div>
   );
 }
