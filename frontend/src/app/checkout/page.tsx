@@ -103,7 +103,6 @@ const CheckoutPage: React.FC = () => {
   }, [selectedDistrict, districts]);
 
   const cartItems = useAppSelector((state) => state.cart.items);
-
   const handlePaymentChange = (value: string) => {
     setPayment(value);
   };
@@ -156,7 +155,6 @@ const CheckoutPage: React.FC = () => {
 
     // LẤY TOKEN TỪ LOCALSTORAGE
     const token = localStorage.getItem("token");
-
     // Gửi API POST lên backend (có gửi token)
     const res = await axios.post("http://localhost:3000/orders", {
       items,
@@ -171,7 +169,6 @@ const CheckoutPage: React.FC = () => {
     });
     return res.data;
   };
-
   // Hàm gửi đơn hàng để lấy paymentUrl của MOMO (DÙNG CHO THANH TOÁN MOMO)
   // GHI CHÚ:
   // - Gọi API /payment/momo (backend bạn phải tạo route này)
@@ -179,11 +176,33 @@ const CheckoutPage: React.FC = () => {
   // - Nhận về paymentUrl, redirect sang trang thanh toán của MOMO
   const handleOnlineOrderMomo = async () => {
     const orderId = "order" + Date.now() + Math.floor(Math.random() * 1000000); // Luôn duy nhất!
+    
+    const shippingInfo = {
+    name: fullName,
+    phone,
+    address: `${address}, ${wards.find(w => w.Id === selectedWard)?.Name || ""}, ${districts.find(d => d.Id === selectedDistrict)?.Name || ""}, ${cities.find(c => c.Id === selectedCity)?.Name || ""}`,
+    note,
+    city: cities.find(c => c.Id === selectedCity)?.Name || "",
+    district: districts.find(d => d.Id === selectedDistrict)?.Name || "",
+    ward: wards.find(w => w.Id === selectedWard)?.Name || "",
+  };
+  const items = cartItems.map(item => ({
+    productId: item.product._id,
+    productName: item.product.name,
+    variant: item.selectedVariant ? item.selectedVariant.size : undefined,
+    quantity: item.quantity,
+    price: item.selectedVariant ? item.selectedVariant.price : item.product.price,
+    images: item.product.images,
+  }));
+
     try {
       const res = await axios.post("http://localhost:3000/payment/momo", {
         amount: totalWithShipping,
         orderId, // Dùng biến này!
-        orderInfo: "Thanh toán đơn hàng MimiBear"
+        orderInfo: "Thanh toán đơn hàng MimiBear",
+        items,
+        shippingInfo,
+        coupon
       }, {
         headers: {
           Authorization: `Bearer ${localStorage.getItem("token")}`,

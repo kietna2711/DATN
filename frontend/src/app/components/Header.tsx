@@ -321,18 +321,22 @@ const cartCount = useAppSelector((state) => state.cart.items.length);
             >
               {isLoggedIn && username ? (
                 <>
-                <Link href={`/userprofile/${username}`}>
+                {username && (
+  <a href={`/userprofile/${encodeURIComponent(username)}`}>
                   <span
                     style={{
                       fontWeight: 500,
                       color: "#b94490",
                       cursor: "pointer",
                       padding: "4px 12px",
+                      borderRadius: "16px",
+                      background: "#fff",
                     }}
                   >
                     Xin chào, {username}
                   </span>
-                  </Link>
+                   </a>
+)}
                   {showUserMenu && (
                     <div className={styles["user-menu-dropdown"]}>
                       <button
