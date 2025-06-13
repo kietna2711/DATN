@@ -108,7 +108,9 @@ export default function Register() {
           );
         }
       } else {
-        showMessage.success(`Đăng ký thành công cho ${email}`);
+        showMessage.success(
+          `Đăng ký thành công cho ${email}. Vui lòng kiểm tra email để xác thực tài khoản trước khi đăng nhập!`
+        );
         setFirstName("");
         setLastName("");
         setEmail("");
@@ -116,8 +118,8 @@ export default function Register() {
         setConfirm("");
         setAgree(false);
         setUsername("");
-        // KHÔNG lưu user/token vào localStorage ở đây!
-        window.location.href = "/login";
+        // KHÔNG chuyển hướng ngay!
+        // window.location.href = "/login"; // Bỏ dòng này
       }
     } catch (error) {
       showMessage.error("Lỗi kết nối đến server");

@@ -18,7 +18,7 @@ const upload = multer({ storage: storage, fileFilter: checkfile })
 
 ////////////////////////////
 const userModel = require('../models/userModel');
-const bcrypt = require('bcryptjs');
+const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 
 const register = async (req, res) => {
@@ -72,6 +72,9 @@ const login = [upload.single('img'), async (req, res) => {
         const isMatch = await bcrypt.compare(req.body.password, checkUser.password);
         if (!isMatch) {
             throw new Error('Mật khẩu không đúng');
+        }
+        if (!checkUser.isVerified) {
+            return res.status(403).json({ message: "Bạn cần xác thực email trước khi đăng nhập!" });
         }
         const token = jwt.sign({
             id: checkUser._id,
