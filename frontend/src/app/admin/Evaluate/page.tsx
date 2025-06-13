@@ -109,21 +109,35 @@ function ReviewDetailModal({ productId, onClose }: { productId: string; onClose:
           Authorization: "Bearer " + (localStorage.getItem("token") || ""),
         }
       });
-      const updatedReview = await res.json();
+
+      const data = await res.json();
+
+      if (!res.ok) {
+
+        if (res.status === 403) {
+          toast.error(data.error || "Bạn không có quyền thực hiện thao tác này!");
+        } else {
+          toast.error(data.error || "Không thể đổi trạng thái review!");
+        }
+        return;
+      }
+
       setDetails(reviews =>
         reviews.map(r =>
-          r._id === reviewId ? { ...r, status: updatedReview.status } : r
+          r._id === reviewId ? { ...r, status: data.status } : r
         )
       );
+
       toast.success(
-        updatedReview.status === "visible"
+        data.status === "visible"
           ? "Đánh giá đã được hiển thị!"
           : "Đánh giá đã được ẩn!"
       );
     } catch (err) {
-      toast.error("Không thể đổi trạng thái review!");
+      toast.error("Lỗi kết nối hoặc server!");
     }
   };
+
 
   return (
     <div className="modal show" style={{ display: "block", background: "rgba(0,0,0,0.3)" }}>

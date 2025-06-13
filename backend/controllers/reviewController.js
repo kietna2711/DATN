@@ -109,12 +109,22 @@ exports.createReview = async (req, res) => {
 // Đổi trạng thái review (ẩn/hiện)
 exports.toggleReviewStatus = async (req, res) => {
   try {
+    // Kiểm tra quyền admin
+    if (!req.user || req.user.role !== "admin") {
+      return res.status(403).json({ error: "Chỉ admin mới được phép thay đổi trạng thái đánh giá" });
+    }
+
     const { id } = req.params;
     const review = await Review.findById(id);
     console.log("Review found:", review);
-    if (!review) return res.status(404).json({ error: "Không tìm thấy review" });
+
+    if (!review) {
+      return res.status(404).json({ error: "Không tìm thấy review" });
+    }
+
     review.status = review.status === "visible" ? "hidden" : "visible";
     await review.save();
+
     console.log("Review after save:", review);
     res.json(review);
   } catch (err) {
@@ -122,6 +132,7 @@ exports.toggleReviewStatus = async (req, res) => {
     res.status(500).json({ error: "Lỗi server" });
   }
 };
+
 
 // Lấy review mới nhất cho mỗi sản phẩm
 exports.getLatestReviewPerProduct = async (req, res) => {
