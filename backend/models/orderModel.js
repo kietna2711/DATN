@@ -7,11 +7,11 @@ const orderSchema = new mongoose.Schema({
       productId: { type: mongoose.Schema.Types.ObjectId, ref: "Product" },
       variant: String,
       quantity: Number,
-      images: String
+      image: String
     },
   ],
   shippingInfo: {
-    userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User' }, // Thêm userId để biết đơn của ai
+    userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
     name: String,
     phone: String,
     address: String,

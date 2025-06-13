@@ -2,7 +2,7 @@ const express = require("express");
 const router = express.Router();
 const crypto = require("crypto");
 const axios = require("axios");
-const Order = require("../models/order");
+const Order = require("../models/orderModel");
 const { v4: uuidv4 } = require("uuid");
 
 // Thông tin cấu hình Momo
@@ -12,8 +12,10 @@ const secretKey = "4Vf1eeXWH0DqBN7IzDvKePIGMPb4fk2m";
 const redirectUrl = "http://localhost:3007/checkout/momo/return";
 const ipnUrl = "http://localhost:3000/payment/payment-ipn";
 
+const authenticateToken = require('../middleware/auth');
+
 // Tạo endpoint thanh toán momo
-router.post("/momo", async (req, res) => {
+router.post("/momo", authenticateToken, async (req, res) => {
   const { amount, orderId, orderInfo, items, shippingInfo, coupon } = req.body;  // Log orderId FE gửi lên để kiểm tra
   const userId = req.user?.id || req.user?._id; //có thể là id hoặc _id
 
@@ -105,62 +107,5 @@ router.post("/momo", async (req, res) => {
   }
 });
 
-// IPN từ Momo: cập nhật trạng thái đơn hàng về paid, có kiểm tra signature
-// router.post("/payment-ipn", async (req, res) => {
-//   try {
-//     const {
-//       partnerCode, accessKey, requestId, amount, orderId, orderInfo,
-//       orderType, transId, resultCode, message, payType, responseTime,
-//       extraData, signature
-//     } = req.body;
-
-//     // 1. Tạo lại rawSignature giống như MoMo gửi
-//     const rawSignature =
-//       `accessKey=${accessKey}` +
-//       `&amount=${amount}` +
-//       `&extraData=${extraData}` +
-//       `&message=${message}` +
-//       `&orderId=${orderId}` +
-//       `&orderInfo=${orderInfo}` +
-//       `&orderType=${orderType}` +
-//       `&partnerCode=${partnerCode}` +
-//       `&payType=${payType}` +
-//       `&requestId=${requestId}` +
-//       `&responseTime=${responseTime}` +
-//       `&resultCode=${resultCode}` +
-//       `&transId=${transId}`;
-
-//     // 2. Tính lại signature
-//     const serverSignature = crypto.createHmac("sha256", secretKey)
-//       .update(rawSignature)
-//       .digest("hex");
-
-//     // 3. So sánh signature
-//     if (signature !== serverSignature) {
-//       return res.status(400).json({ message: "Sai chữ ký xác thực!" });
-//     }
-
-//     // 4. Cập nhật đơn hàng
-//     if (resultCode == 0) {
-//       const order = await Order.findOneAndUpdate(
-//         { orderId },
-//         { status: "paid" }
-//       );
-//       if (!order) {
-//         // Nếu không tìm thấy đơn hàng, có thể log lại để kiểm tra
-//         return res.status(404).json({ message: "Không tìm thấy đơn hàng để cập nhật" });
-//       }
-//       return res.status(200).json({ message: "Đã cập nhật trạng thái đơn hàng sang 'paid'" });
-//     } else {
-//       await Order.findOneAndUpdate(
-//         { orderId },
-//         { status: "failed" }
-//       );
-//       return res.status(200).json({ message: "Thanh toán thất bại, trạng thái đơn hàng đã được cập nhật" });
-//     }
-//   } catch (err) {
-//     res.status(500).json({ message: "Lỗi xử lý IPN", detail: err.message });
-//   }
-// });
 
 module.exports = router;
