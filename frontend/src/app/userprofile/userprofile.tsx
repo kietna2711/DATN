@@ -1,13 +1,108 @@
 'use client';
 import React, { useEffect, useState } from 'react';
-import AddressManager from './AddressManager';
 import './userprofile.css';
+import './addressmanager.css';
+import { useShowMessage } from '@/app/utils/useShowMessage';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faUser, faBox, faLock, faRightFromBracket, faCircleQuestion } from '@fortawesome/free-solid-svg-icons';
 
+// AddressManager component code moved here
 interface Address {
   id: string;
   detail: string;
 }
 
+interface AddressManagerProps {
+  addresses?: Address[];
+  onUpdateAddresses: (newAddresses: Address[]) => void;
+  onSaveAddresses?: () => void;
+  readOnly?: boolean;
+}
+
+const AddressManager: React.FC<AddressManagerProps> = ({
+  addresses = [],
+  onUpdateAddresses,
+  onSaveAddresses,
+  readOnly = false,
+}) => {
+  const [newAddress, setNewAddress] = useState('');
+
+  const handleAddAddress = () => {
+    if (readOnly) return;
+    if (newAddress.trim() === '') return;
+    const newEntry: Address = {
+      id: Date.now().toString(),
+      detail: newAddress.trim(),
+    };
+    const updated = [...addresses, newEntry];
+    onUpdateAddresses(updated);
+    setNewAddress('');
+    if (onSaveAddresses) onSaveAddresses();
+  };
+
+  const handleDeleteAddress = (id: string) => {
+    if (readOnly) return;
+    const updated = addresses.filter(addr => addr.id !== id);
+    onUpdateAddresses(updated);
+    if (onSaveAddresses) onSaveAddresses();
+  };
+
+  return (
+    <div className="address-manager">
+      <h3>Quản lý địa chỉ</h3>
+      {(!addresses || addresses.length === 0) ? (
+        <>
+          <p className="empty-text">
+            Địa chỉ của bạn trống, vui lòng nhập vào.
+          </p>
+          {!readOnly && (
+            <div className="input-group">
+              <input
+                type="text"
+                placeholder="Nhập địa chỉ mới"
+                value={newAddress}
+                onChange={e => setNewAddress(e.target.value)}
+              />
+              <button onClick={handleAddAddress}>Thêm địa chỉ</button>
+            </div>
+          )}
+        </>
+      ) : (
+        <>
+          <ul className="address-list">
+            {addresses.map(addr => (
+              <li key={addr.id}>
+                {addr.detail}
+                {!readOnly && (
+                  <button
+                    className="delete-btn"
+                    title="Xóa địa chỉ"
+                    onClick={() => handleDeleteAddress(addr.id)}
+                  >
+                    ❌
+                  </button>
+                )}
+              </li>
+            ))}
+          </ul>
+          {!readOnly && (
+            <div className="input-group">
+              <input
+                type="text"
+                placeholder="Nhập địa chỉ mới"
+                value={newAddress}
+                onChange={e => setNewAddress(e.target.value)}
+              />
+              <button onClick={handleAddAddress}>Thêm địa chỉ</button>
+            </div>
+          )}
+        </>
+      )}
+    </div>
+  );
+};
+
+// Main UserProfile component
 interface Profile {
   phone?: string;
   gender?: string;
@@ -29,22 +124,20 @@ interface User {
 const UserProfile: React.FC = () => {
   const [user, setUser] = useState<User | null>(null);
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
-  const [currentTab, setCurrentTab] = useState<'profile' | 'orders' | 'password' | 'address'>('profile');
+  const [currentTab, setCurrentTab] = useState<'profile' | 'orders' | 'password'>('profile');
   const [editUser, setEditUser] = useState<User | null>(null);
   const [isEditing, setIsEditing] = useState(false);
+  const showMessage = useShowMessage("userprofile", "user");
 
   useEffect(() => {
     const userData = localStorage.getItem('user');
     const token = localStorage.getItem('token');
-
     if (!userData) {
       window.location.href = '/login';
       return;
     }
-
     const parsedUser = JSON.parse(userData);
     const isGoogleUser = !!parsedUser.googleId;
-
     if (isGoogleUser) {
       if (!parsedUser.profile) {
         parsedUser.profile = { addresses: [] };
@@ -57,7 +150,6 @@ const UserProfile: React.FC = () => {
         window.location.href = '/login';
         return;
       }
-
       const userId = parsedUser._id;
       fetch(`http://localhost:3000/api/usersProfile/id/${userId}`, {
         headers: {
@@ -83,14 +175,12 @@ const UserProfile: React.FC = () => {
 
   const isGoogleUser = !!user?.googleId;
 
-  // Handler cho trường của user (khi chỉnh sửa)
   const handleUserEditChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (!editUser) return;
     const { name, value } = e.target;
     setEditUser(prev => prev ? { ...prev, [name]: value } : prev);
   };
 
-  // Handler cho trường của profile (khi chỉnh sửa)
   const handleProfileEditChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     if (!editUser) return;
     const { name, value } = e.target;
@@ -100,7 +190,6 @@ const UserProfile: React.FC = () => {
     } : prev);
   };
 
-  // Cập nhật địa chỉ (khi chỉnh sửa)
   const handleEditAddresses = (newAddresses: Address[]) => {
     if (!editUser) return;
     setEditUser(prev => prev ? {
@@ -109,7 +198,6 @@ const UserProfile: React.FC = () => {
     } : prev);
   };
 
-  // Khi chưa chỉnh sửa: hiển thị readonly
   const renderUserInfo = () => (
     <div className="form-grid">
       <div className="form-group">
@@ -143,7 +231,6 @@ const UserProfile: React.FC = () => {
     </div>
   );
 
-  // Form chỉnh sửa cho user thường
   const renderEditFormNormal = () => (
     <div className="form-grid">
       <div className="form-group">
@@ -182,7 +269,6 @@ const UserProfile: React.FC = () => {
     </div>
   );
 
-  // Form chỉnh sửa cho user Google
   const renderEditFormGoogle = () => (
     <div className="form-grid">
       <div className="form-group">
@@ -221,22 +307,20 @@ const UserProfile: React.FC = () => {
     </div>
   );
 
-  // Bắt đầu chỉnh sửa
   const startEdit = () => {
     setIsEditing(true);
     setEditUser(JSON.parse(JSON.stringify(user)));
   };
 
-  // Huỷ chỉnh sửa
   const cancelEdit = () => {
     setIsEditing(false);
     setEditUser(null);
   };
 
-  // Lưu thay đổi
   const handleSave = () => {
     if (!editUser) return;
     const token = localStorage.getItem('token');
+    const isGoogleUser = !!editUser.googleId;
     const body: any = isGoogleUser
       ? {
           profile: {
@@ -277,11 +361,11 @@ const UserProfile: React.FC = () => {
         localStorage.setItem('user', JSON.stringify(updatedUser));
         setIsEditing(false);
         setEditUser(null);
-        alert('Cập nhật thành công!');
+        showMessage.success('Cập nhật thành công!');
       })
       .catch(err => {
         console.error('Lỗi khi cập nhật:', err);
-        alert('Lỗi khi cập nhật!');
+        showMessage.error('Lỗi khi cập nhật!');
       });
   };
 
@@ -310,13 +394,20 @@ const UserProfile: React.FC = () => {
 
       <div className="main-content">
         <div className="sidebar">
-          <div className={`menu-item ${currentTab === 'profile' ? 'active' : ''}`} onClick={() => setCurrentTab('profile')}>👤 Thông tin cá nhân</div>
-          <div className={`menu-item ${currentTab === 'orders' ? 'active' : ''}`} onClick={() => setCurrentTab('orders')}>📦 Đơn hàng</div>
+          <div className={`menu-item ${currentTab === 'profile' ? 'active' : ''}`} onClick={() => setCurrentTab('profile')}>
+            <FontAwesomeIcon icon={faUser} style={{ marginRight: 8 }} /> Thông tin cá nhân
+          </div>
+          <div className={`menu-item ${currentTab === 'orders' ? 'active' : ''}`} onClick={() => setCurrentTab('orders')}>
+            <FontAwesomeIcon icon={faBox} style={{ marginRight: 8 }} /> Đơn hàng
+          </div>
           {!isGoogleUser && (
-            <div className={`menu-item ${currentTab === 'password' ? 'active' : ''}`} onClick={() => setCurrentTab('password')}>🔒 Quên mật khẩu</div>
+            <div className={`menu-item ${currentTab === 'password' ? 'active' : ''}`} onClick={() => setCurrentTab('password')}>
+              <FontAwesomeIcon icon={faLock} style={{ marginRight: 8 }} /> Quên mật khẩu
+            </div>
           )}
-          <div className={`menu-item ${currentTab === 'address' ? 'active' : ''}`} onClick={() => setCurrentTab('address')}>🏠 Địa chỉ</div>
-          <div className="menu-item" onClick={() => setShowLogoutConfirm(true)}>➡️ Đăng xuất</div>
+          <div className="menu-item" onClick={() => setShowLogoutConfirm(true)}>
+            <FontAwesomeIcon icon={faRightFromBracket} style={{ marginRight: 8 }} /> Đăng xuất
+          </div>
         </div>
 
         <div className="content-area">
@@ -326,12 +417,26 @@ const UserProfile: React.FC = () => {
               {!isEditing && (
                 <>
                   {renderUserInfo()}
+                  <div style={{ marginTop: 24 }}>
+                    <AddressManager
+                      addresses={user.profile?.addresses || []}
+                      onUpdateAddresses={() => {}}
+                      readOnly={true}
+                    />
+                  </div>
                   <button className="btn btn-primary" onClick={startEdit}>Chỉnh sửa</button>
                 </>
               )}
               {isEditing && (
                 <>
                   {isGoogleUser ? renderEditFormGoogle() : renderEditFormNormal()}
+                  <div style={{ marginTop: 24 }}>
+                    <AddressManager
+                      addresses={editUser?.profile?.addresses || []}
+                      onUpdateAddresses={handleEditAddresses}
+                      readOnly={false}
+                    />
+                  </div>
                   <div style={{ marginTop: 16 }}>
                     <button className="btn btn-primary" onClick={handleSave}>Lưu thay đổi</button>
                     <button className="btn btn-cancel" style={{ marginLeft: 8 }} onClick={cancelEdit}>Huỷ</button>
@@ -340,28 +445,6 @@ const UserProfile: React.FC = () => {
               )}
             </>
           )}
-
-          {currentTab === 'address' && (
-            <>
-              {/* Nếu muốn chỉnh sửa địa chỉ độc lập, bỏ comment đoạn dưới */}
-              {/* {!isEditing && (
-                <button className="btn btn-primary" onClick={startEdit}>Chỉnh sửa địa chỉ</button>
-              )}
-              {isEditing && (
-                <div style={{ marginBottom: 8 }}>
-                  <button className="btn btn-primary" onClick={handleSave}>Lưu địa chỉ</button>
-                  <button className="btn btn-cancel" style={{ marginLeft: 8 }} onClick={cancelEdit}>Huỷ</button>
-                </div>
-              )} */}
-              <AddressManager
-                addresses={isEditing ? (editUser?.profile?.addresses || []) : (user.profile?.addresses || [])}
-                onUpdateAddresses={isEditing ? handleEditAddresses : () => {}}
-                onSaveAddresses={isEditing ? handleSave : undefined}
-                readOnly={!isEditing}
-              />
-            </>
-          )}
-
           {currentTab === 'orders' && <div><h3>Đơn hàng (chưa có dữ liệu)</h3></div>}
           {currentTab === 'password' && <div><h3>Quên mật khẩu (chưa có dữ liệu)</h3></div>}
         </div>
@@ -370,7 +453,10 @@ const UserProfile: React.FC = () => {
       {showLogoutConfirm && (
         <div className="modal-overlay">
           <div className="modal">
-            <h3>🐻 Bạn có chắc chắn muốn đăng xuất?</h3>
+            <h3>
+              <FontAwesomeIcon icon={faCircleQuestion} style={{ marginRight: 8 }} />
+              Bạn có chắc chắn muốn đăng xuất?
+            </h3>
             <p>Nhấn tiếp tục để rời khỏi tài khoản.</p>
             <div className="modal-actions">
               <button className="btn btn-cancel" onClick={() => setShowLogoutConfirm(false)}>Huỷ</button>

@@ -17,42 +17,42 @@ router.get('/id/:id', async (req, res) => {
   }
 });
 
-// // PUT update user & profile by user ID
-// router.put('/:id', async (req, res) => {
-//   try {
-//     const { id } = req.params;
-//     const { profile, ...userData } = req.body;
-//     const oldUser = await User.findById(id);
-//     if (!oldUser) return res.status(404).json({ message: 'Không tìm thấy người dùng để cập nhật' });
+// PUT update user & profile by user ID
+router.put('/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { profile, ...userData } = req.body;
+    const oldUser = await User.findById(id);
+    if (!oldUser) return res.status(404).json({ message: 'Không tìm thấy người dùng để cập nhật' });
 
-//     // Nếu là Google user, không cho đổi các trường này
-//     if (oldUser.googleId) {
-//       userData.email = oldUser.email;
-//       userData.username = oldUser.username;
-//       userData.firstName = oldUser.firstName;
-//       userData.lastName = oldUser.lastName;
-//     }
+    // Nếu là Google user, không cho đổi các trường này
+    if (oldUser.googleId) {
+      userData.email = oldUser.email;
+      userData.username = oldUser.username;
+      userData.firstName = oldUser.firstName;
+      userData.lastName = oldUser.lastName;
+    }
 
-//     // Cập nhật user chính
-//     const updatedUser = await User.findByIdAndUpdate(id, userData, { new: true, runValidators: true }).select('-password -role');
+    // Cập nhật user chính
+    const updatedUser = await User.findByIdAndUpdate(id, userData, { new: true, runValidators: true }).select('-password -role');
 
-//     // Cập nhật hoặc tạo mới profile
-//     let updatedProfile = null;
-//     if (profile) {
-//       updatedProfile = await Profile.findOneAndUpdate(
-//         { user: id },
-//         { ...profile, user: id },
-//         { new: true, upsert: true, runValidators: true }
-//       );
-//     } else {
-//       updatedProfile = await Profile.findOne({ user: id }) || {};
-//     }
+    // Cập nhật hoặc tạo mới profile
+    let updatedProfile = null;
+    if (profile) {
+      updatedProfile = await Profile.findOneAndUpdate(
+        { user: id },
+        { ...profile, user: id },
+        { new: true, upsert: true, runValidators: true }
+      );
+    } else {
+      updatedProfile = await Profile.findOne({ user: id }) || {};
+    }
 
-//     res.json({ ...updatedUser.toObject(), profile: updatedProfile });
-//   } catch (error) {
-//     console.error('Lỗi khi cập nhật user và profile:', error);
-//     res.status(500).json({ message: 'Lỗi server khi cập nhật user/profile' });
-//   }
-// });
+    res.json({ ...updatedUser.toObject(), profile: updatedProfile });
+  } catch (error) {
+    console.error('Lỗi khi cập nhật user và profile:', error);
+    res.status(500).json({ message: 'Lỗi server khi cập nhật user/profile' });
+  }
+});
 
 module.exports = router;

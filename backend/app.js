@@ -23,6 +23,8 @@ const variantsRouter = require('./routes/variants');
 const subcategoryRouter = require('./routes/subcategory');
 const paymentRouter = require("./routes/payment"); //thanh toán
 const orderRoutes = require("./routes/order"); //đơn hàng
+const postsRouter = require('./routes/posts');
+const postscategoriesRouter = require('./routes/postscategories');
 
 const authenticateToken = require('./middleware/auth');
 const reviewRoutes = require('./routes/review');
@@ -99,7 +101,8 @@ app.use("/payment", paymentRouter);
 // 
 app.use('/favorites', favoriteRouter);
 // thanh toán
-
+app.use('/api/posts', postsRouter);
+app.use('/api/postscategories', postscategoriesRouter);
 app.use("/reviews", reviewRoutes);
 app.use('/api/usersProfile', usersProfileRoutes);
 app.use("/payment", paymentRouter); //Momo, thanh toán
