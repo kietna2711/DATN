@@ -50,7 +50,7 @@ const register = async (req, res) => {
             id: data._id,
             email: data.email,
             role: data.role,
-            username: data.username // <-- thêm dòng này, đồng nhất với login
+            username: data.username 
         }, process.env.JWT_SECRET, { expiresIn: '1h' });
 
         // Trả về cả user và token
