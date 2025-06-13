@@ -10,7 +10,7 @@ import CheckoutInfo from "./CheckoutInfo";
 import CheckoutPayment from "./CheckoutPayment";
 import CheckoutOrderSummary from "./OrderSummary";
 
-const SHIPPING_FEE = 0; //phí ship mặc định
+const SHIPPING_FEE = 10000; //phí ship mặc định
 
 interface UserInfo {
   username: string;
@@ -160,6 +160,7 @@ const CheckoutPage: React.FC = () => {
       items,
       shippingInfo,
       totalPrice: totalWithShipping,
+      shippingFee: SHIPPING_FEE, //lấy phí ship
       paymentMethod: payment,
       coupon: coupon || undefined,
     }, {
@@ -175,6 +176,7 @@ const CheckoutPage: React.FC = () => {
   // - Gửi tổng tiền, orderId, orderInfo và token xác thực
   // - Nhận về paymentUrl, redirect sang trang thanh toán của MOMO
   const handleOnlineOrderMomo = async () => {
+
     const orderId = "order" + Date.now() + Math.floor(Math.random() * 1000000); // Luôn duy nhất!
     
     const shippingInfo = {
@@ -202,7 +204,8 @@ const CheckoutPage: React.FC = () => {
         orderInfo: "Thanh toán đơn hàng MimiBear",
         items,
         shippingInfo,
-        coupon
+        coupon,
+        shippingFee: SHIPPING_FEE, //phí ship
       }, {
         headers: {
           Authorization: `Bearer ${localStorage.getItem("token")}`,

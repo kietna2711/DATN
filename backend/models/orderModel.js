@@ -2,14 +2,6 @@ const mongoose = require("mongoose");
 
 const orderSchema = new mongoose.Schema({
   orderId: String,
-  items: [
-    {
-      productId: { type: mongoose.Schema.Types.ObjectId, ref: "Product" },
-      variant: String,
-      quantity: Number,
-      image: String
-    },
-  ],
   shippingInfo: {
     userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
     name: String,
@@ -21,9 +13,19 @@ const orderSchema = new mongoose.Schema({
     wardId: String,
   },
   totalPrice: Number,
+  shippingFee: { type: Number, default: 0 },
   paymentMethod: String,
   coupon: String,
-  status: { type: String, default: "pending" }, // pending | paid | failed
+  paymentStatus: {
+    type: String,
+    enum: ['paid', 'unpaid', 'pending'], //thanh toán - chưa thanh toán - đag chờ xử lý_kiểm tra
+    default: 'pending' // Sẽ tự động set lại ở controller khi tạo đơn
+  },
+  orderStatus: {
+    type: String,
+    enum: ['approved', 'waiting', 'processing', 'shipping', 'delivered', 'cancelled'],//duyệt - chờ xác nhận - đang chuẩn bị - đang giao - đã giao - hủy
+    default: 'waiting'
+  },
   createdAt: { type: Date, default: Date.now },
 });
 

@@ -1,42 +1,63 @@
 const Order = require('../models/orderModel');
+const OrderDetail = require('../models/orderDetailModel');
 
 // POST: Tạo đơn hàng mới
 exports.createOrder = async (req, res) => {
   try {
-    const { items, shippingInfo, totalPrice, paymentMethod, coupon, orderId } = req.body;
+    const { items, shippingInfo, totalPrice, paymentMethod, coupon, orderId, shippingFee } = req.body;
     const userId = req.user?._id || req.user?.id;
 
     if (!items || !shippingInfo || !totalPrice || !paymentMethod) {
       return res.status(400).json({ message: "Thiếu thông tin đơn hàng" });
     }
 
-    const itemsToSave = items.map(item => ({
-      productId: item.productId,
-      quantity: item.quantity,
-      variant: item.variant,
-      image: item.image
-    }));
+    // Xác định trạng thái thanh toán mặc định
+    let paymentStatus = 'pending';
+    if (paymentMethod === 'momo' || paymentMethod === 'vnpay') {
+      paymentStatus = 'paid';
+    }
+    if (paymentMethod === 'cod') {
+      paymentStatus = 'unpaid';
+    }
 
+    // 1. Lưu thông tin đơn hàng tổng quan khi tạo Order:
     const newOrder = new Order({
       orderId: orderId || undefined,
-      items: itemsToSave,
       shippingInfo: {
         ...shippingInfo,
         userId: userId || null
       },
       totalPrice,
+      shippingFee: shippingFee || 0, //phí ship
       paymentMethod,
-      coupon
+      coupon,
+      paymentStatus,           // Trạng thái thanh toán
+      orderStatus: 'waiting'   // Mặc định là chờ xác nhận
     });
-
     await newOrder.save();
-    res.status(201).json({ message: "Đặt hàng thành công!", order: newOrder });
+
+    // 2. Lưu từng item vào OrderDetail
+    const details = await Promise.all(
+      items.map(item =>
+        OrderDetail.create({
+          orderId: newOrder.orderId || newOrder._id.toString(),
+          productId: item.productId,
+          variant: item.variant,
+          quantity: item.quantity,
+          image: item.image,
+          price: item.price * item.quantity,
+          coupon: coupon || ""
+        })
+      )
+    );
+
+    res.status(201).json({ message: "Đặt hàng thành công!", order: newOrder, orderDetails: details });
   } catch (err) {
     res.status(500).json({ message: "Đặt hàng thất bại!", error: err.message });
   }
 };
 
-// GET: Kiểm tra trạng thái đơn hàng
+// GET: Kiểm tra trạng thái đơn hàng (bổ sung để tránh lỗi route)
 exports.getOrderStatus = async (req, res) => {
   try {
     const { orderId } = req.params;
@@ -46,16 +67,16 @@ exports.getOrderStatus = async (req, res) => {
     if (!order) {
       return res.status(404).json({ message: "Không tìm thấy đơn hàng" });
     }
-    // Nếu đang pending và resultCode=0 (thành công), cập nhật trạng thái sang paid
-    if (order.status === "pending" && resultCode === "0") {
-      order.status = "paid";
+    // Nếu đang pending và resultCode=0 (thành công), cập nhật trạng thái thanh toán sang paid
+    if (order.paymentStatus === "pending" && resultCode === "0") {
+      order.paymentStatus = "paid";
       await order.save();
     }
-    if (order.status === "pending" && resultCode && resultCode !== "0") {
-      order.status = "failed";
+    if (order.paymentStatus === "pending" && resultCode && resultCode !== "0") {
+      order.paymentStatus = "unpaid";
       await order.save();
     }
-    res.json({ status: order.status });
+    res.json({ status: order.paymentStatus });
   } catch (err) {
     res.status(500).json({ message: "Lỗi server", error: err.message });
   }
