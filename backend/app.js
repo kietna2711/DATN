@@ -26,10 +26,11 @@ const orderRoutes = require("./routes/order"); //đơn hàng
 const postsRouter = require('./routes/posts');
 const postscategoriesRouter = require('./routes/postscategories');
 
-const authenticateToken = require('./middleware/auth');
 const reviewRoutes = require('./routes/review');
 const usersProfileRoutes = require('./routes/userprofile'); // Đường dẫn đến routes usersProfile
 const favoriteRouter = require('./routes/favorites');
+const authenticateToken = require('./middleware/auth');
+
 
 var app = express();
 
@@ -110,9 +111,10 @@ app.use(require('./routes/payment')); //IPN
 // app.use("/payment", require("./routes/payment")); //đường dẫn file routes/payment.js
 app.use("/orders", orderRoutes);
 
-app.use(authenticateToken); // Bảo vệ các route sau khi xác thực token
 app.use('/favorites', favoriteRouter);
 app.use("/reviews", require("./routes/review"));
+app.use(authenticateToken); 
+
 
 
 // catch 404 and forward to error handler
