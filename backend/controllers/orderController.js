@@ -13,12 +13,16 @@ exports.createOrder = async (req, res) => {
 
     // Xác định trạng thái thanh toán mặc định
     let paymentStatus = 'pending';
-    if (paymentMethod === 'momo' || paymentMethod === 'vnpay') {
-      paymentStatus = 'paid';
-    }
     if (paymentMethod === 'cod') {
       paymentStatus = 'unpaid';
     }
+    // let paymentStatus = 'pending';
+    // if (paymentMethod === 'momo' || paymentMethod === 'vnpay') {
+    //   paymentStatus = 'paid';
+    // }
+    // if (paymentMethod === 'cod') {
+    //   paymentStatus = 'unpaid';
+    // }
 
     // 1. Lưu thông tin đơn hàng tổng quan khi tạo Order:
     const newOrder = new Order({
@@ -26,9 +30,9 @@ exports.createOrder = async (req, res) => {
       shippingInfo: {
         ...shippingInfo,
         userId: userId || null
-      },
-      totalPrice,
+      },     
       shippingFee: shippingFee || 0, //phí ship
+      totalPrice,
       paymentMethod,
       coupon,
       paymentStatus,           // Trạng thái thanh toán
@@ -54,6 +58,33 @@ exports.createOrder = async (req, res) => {
     res.status(201).json({ message: "Đặt hàng thành công!", order: newOrder, orderDetails: details });
   } catch (err) {
     res.status(500).json({ message: "Đặt hàng thất bại!", error: err.message });
+  }
+};
+
+// GET: lấy tất cả đơn hàng (ADMIN)
+exports.getAllOrders = async (req, res) =>{
+  try{
+    const orders = await Order.find().sort({ createdAt: -1 });
+    res.json(orders);
+  } catch (err){
+    res.status(500).json({ message: "Lỗi server", error: err.message });
+  }
+};
+
+// PUT: Cập nhật trạng thái đơn hàng (ADMIN)
+exports.updateOrderStatus = async (req, res) =>{
+  try{
+    const { orderId } = req.params;
+    const { orderStatus } = req.body; //
+    const order = await Order.findOneAndUpdate(
+      { $or: [ { orderId }, { _id: orderId } ] },
+      { orderStatus },
+      { new: true }
+    );
+    if (!order) return res.status(404).json({ message: "Không tìm thấy đơn hàng" });
+    res.json(order);
+  } catch(err){
+    res.status(500).json({ message: "Lỗi server", error: err.message });
   }
 };
 
