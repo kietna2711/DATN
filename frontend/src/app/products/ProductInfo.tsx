@@ -20,14 +20,14 @@ const ProductInfo = ({ product }: { product: Products }) => {
   const productId = (product._id ?? product._id)?.toString();
   const { error, success } = useShowMessage();
 
-   const userStr = typeof window !== "undefined" ? localStorage.getItem("user") : null;
+  const userStr = typeof window !== "undefined" ? localStorage.getItem("user") : null;
   const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
   let userId: string | null = null;
   if (userStr) {
     try {
       const userObj = JSON.parse(userStr);
       userId = userObj._id || userObj.id;
-    } catch {}
+    } catch { }
   }
   const isLoggedIn = !!userId && !!token;
 
@@ -67,7 +67,7 @@ const ProductInfo = ({ product }: { product: Products }) => {
     // eslint-disable-next-line
   }, [variants]);
 
- const toggleFavorite = async () => {
+  const toggleFavorite = async () => {
     if (isLoggedIn && userId && token) {
       if (isFavorite) {
         await removeFavorite(productId, userId, token);
@@ -76,7 +76,9 @@ const ProductInfo = ({ product }: { product: Products }) => {
       } else {
         await addFavorite(productId, userId, token);
         setIsFavorite(true);
-        success('Đã thêm vào yêu thích')
+        success('Đã thêm vào yêu thích');
+        error("Có lỗi xảy ra khi thêm vào giỏ!");
+
       }
       window.dispatchEvent(new Event("favoriteChanged"));
     } else {
@@ -86,11 +88,14 @@ const ProductInfo = ({ product }: { product: Products }) => {
       if (exists) {
         updatedFavorites = favorites.filter((item: Products) => ((item._id ?? item.id)?.toString() !== productId));
         setIsFavorite(false);
-        error("Đã xóa khỏi yêu thích");
+        success('Đã xóa khỏi yêu thích');
+        error("Có lỗi xảy ra khi thêm vào giỏ!");
       } else {
         updatedFavorites = [...favorites, product];
         setIsFavorite(true);
-        success('Đã thêm vào yêu thích')
+        success('Đã thêm vào yêu thích');
+        error("Có lỗi xảy ra khi thêm vào giỏ!");
+
       }
       localStorage.setItem("favorites", JSON.stringify(updatedFavorites));
       window.dispatchEvent(new Event("favoriteChanged"));
