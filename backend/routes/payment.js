@@ -36,11 +36,11 @@ router.post("/momo", authenticateToken, async (req, res) => {
         ...shippingInfo,
         userId: userId || null
       },
-      totalPrice: amount,
       shippingFee: shippingFee || 0,
+      totalPrice: amount,
       paymentMethod: "momo",
       coupon: coupon || "",
-      paymentStatus: "paid",
+      paymentStatus: "pending",
       orderStatus: "waiting"
     });
   } catch (err) {

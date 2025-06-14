@@ -12,8 +12,8 @@ const orderSchema = new mongoose.Schema({
     districtId: String,
     wardId: String,
   },
-  totalPrice: Number,
   shippingFee: { type: Number, default: 0 },
+  totalPrice: Number,
   paymentMethod: String,
   coupon: String,
   paymentStatus: {

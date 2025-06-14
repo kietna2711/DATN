@@ -4,108 +4,59 @@ import "bootstrap/dist/css/bootstrap.min.css";
 import "@fortawesome/fontawesome-free/css/all.min.css";
 import "boxicons/css/boxicons.min.css";
 import "../admin.css";
+import axios from "axios";
 
-type Order = {
-  id: string;
-  customer: string;
-  product: string;
-  date: string;
-  paymentStatus: "Trả" | "Chờ thanh toán" | "Chưa trả";
-  total: string;
-  paymentMethod: string;
-  orderStatus: string;
-};
-
+// Mapping trạng thái backend <-> frontend
 const statusOptions = [
-  "Duyệt",
-  "Chờ xác nhận",
-  "Đang chuẩn bị hàng",
-  "Đang giao",
-  "Đã giao",
-  "Đã hủy",
+  { label: "Duyệt", value: "approved" },
+  { label: "Chờ xác nhận", value: "waiting" },
+  { label: "Đang chuẩn bị hàng", value: "processing" },
+  { label: "Đang giao", value: "shipping" },
+  { label: "Đã giao", value: "delivered" },
+  { label: "Đã hủy", value: "cancelled" },
 ];
 
 const statusBadge: Record<string, string> = {
-  "Duyệt": "bg-success",
-  "Chờ xác nhận": "bg-info",
-  "Đang chuẩn bị hàng": "bg-warning",
-  "Đang giao": "bg-primary",
-  "Đã giao": "bg-success",
-  "Đã hủy": "bg-danger",
+  "approved": "bg-success",
+  "waiting": "bg-info",
+  "processing": "bg-warning",
+  "shipping": "bg-primary",
+  "delivered": "bg-success",
+  "cancelled": "bg-danger",
 };
 
 const paymentBadge: Record<string, string> = {
-  "Trả": "bg-success",
-  "Chờ thanh toán": "bg-warning",
-  "Chưa trả": "bg-danger",
+  "paid": "bg-success",
+  "pending": "bg-warning",
+  "unpaid": "bg-danger",
 };
 
-const initialOrders: Order[] = [
-  {
-    id: "#Kz025418",
-    customer: "Xe đẩy Mendor",
-    product: "Polka Dots Woman Dress",
-    date: "24/03/2022 04:26 CH",
-    paymentStatus: "Trả",
-    total: "11,250 đô la",
-    paymentMethod: "Thẻ Mastercard",
-    orderStatus: "Duyệt",
-  },
-  {
-    id: "#Kz025419",
-    customer: "Nguyễn Văn B",
-    product: "Áo sơ mi nam",
-    date: "25/03/2022 10:15 SA",
-    paymentStatus: "Chờ thanh toán",
-    total: "2,500 đô la",
-    paymentMethod: "Chuyển khoản",
-    orderStatus: "Chờ xác nhận",
-  },
-  {
-    id: "#Kz025420",
-    customer: "Trần Thị C",
-    product: "Giày thể thao nữ",
-    date: "26/03/2022 08:00 SA",
-    paymentStatus: "Trả",
-    total: "1,200 đô la",
-    paymentMethod: "Tiền mặt",
-    orderStatus: "Đang chuẩn bị hàng",
-  },
-  {
-    id: "#Kz025421",
-    customer: "Phạm Văn D",
-    product: "Đồng hồ nam",
-    date: "27/03/2022 09:30 SA",
-    paymentStatus: "Trả",
-    total: "5,000 đô la",
-    paymentMethod: "Thẻ Visa",
-    orderStatus: "Đang giao",
-  },
-  {
-    id: "#Kz025422",
-    customer: "Lê Thị E",
-    product: "Túi xách nữ",
-    date: "28/03/2022 11:00 SA",
-    paymentStatus: "Trả",
-    total: "3,000 đô la",
-    paymentMethod: "Thẻ Mastercard",
-    orderStatus: "Đã giao",
-  },
-  {
-    id: "#Kz025423",
-    customer: "Ngô Văn F",
-    product: "Áo khoác nam",
-    date: "29/03/2022 02:00 CH",
-    paymentStatus: "Chưa trả",
-    total: "1,800 đô la",
-    paymentMethod: "Tiền mặt",
-    orderStatus: "Đã hủy",
-  },
-];
+// Kiểu order (theo backend)
+type Order = {
+  _id: string;
+  orderId: string;
+  shippingInfo: {
+    name: string;
+    phone: string;
+    address: string;
+  };
+  totalPrice: number;
+  paymentStatus: "paid" | "unpaid" | "pending";
+  paymentMethod: string;
+  orderStatus: "approved" | "waiting" | "processing" | "shipping" | "delivered" | "cancelled";
+  createdAt: string;
+};
 
 export default function OrderManagement() {
-  const [orders, setOrders] = useState<Order[]>(initialOrders);
+  const [orders, setOrders] = useState<Order[]>([]);
   const [clock, setClock] = useState("");
+
+  // Lấy dữ liệu động từ backend
+  useEffect(() => {
+    axios.get("http://localhost:3000/orders")
+      .then(res => setOrders(res.data))
+      .catch(() => setOrders([]));
+  }, []);
 
   // Đồng hồ realtime
   useEffect(() => {
@@ -134,19 +85,21 @@ export default function OrderManagement() {
     return () => clearInterval(timer);
   }, []);
 
-  // Đổi trạng thái đơn hàng
-  const handleStatusChange = (idx: number, status: string) => {
-    setOrders(orders =>
-      orders.map((order, i) =>
-        i === idx ? { ...order, orderStatus: status } : order
-      )
-    );
+  // Đổi trạng thái đơn hàng (update thực tế vào DB)
+  const handleStatusChange = (id: string, status: string) => {
+    axios.put(`http://localhost:3000/orders/${id}`, { orderStatus: status })
+      .then(res => {
+        setOrders(orders => orders.map(order =>
+          order.orderId === id ? { ...order, orderStatus: status as Order["orderStatus"] } : order
+        ));
+      });
   };
 
-  // Xóa đơn hàng
-  const handleDelete = (idx: number) => {
+  // Xóa đơn hàng (nếu backend có API xóa, bổ sung tại đây)
+  const handleDelete = (id: string) => {
     if (window.confirm("Bạn có chắc chắn muốn xóa đơn hàng này?")) {
-      setOrders(orders => orders.filter((_, i) => i !== idx));
+      setOrders(orders => orders.filter(order => (order.orderId !== id && order._id !== id)));
+      // Nếu backend có API xóa, gọi thêm axios.delete(...)
     }
   };
 
@@ -167,7 +120,8 @@ export default function OrderManagement() {
                   <tr>
                     <th>Mã đơn hàng</th>
                     <th>Tên khách hàng</th>
-                    <th>Tên sản phẩm</th>
+                    <th>SĐT</th>
+                    <th>Địa chỉ</th>
                     <th>Ngày</th>
                     <th>Trạng thái thanh toán</th>
                     <th>Tổng cộng</th>
@@ -177,39 +131,40 @@ export default function OrderManagement() {
                   </tr>
                 </thead>
                 <tbody>
-                  {orders.map((order, idx) => (
-                    <tr key={order.id}>
-                      <td>{order.id}</td>
-                      <td>{order.customer}</td>
-                      <td>{order.product}</td>
-                      <td>{order.date}</td>
+                  {orders.map((order) => (
+                    <tr key={order._id}>
+                      <td>{order.orderId || order._id}</td>
+                      <td>{order.shippingInfo?.name || ""}</td>
+                      <td>{order.shippingInfo?.phone || ""}</td>
+                      <td>{order.shippingInfo?.address || ""}</td>
+                      <td>{new Date(order.createdAt).toLocaleString()}</td>
                       <td>
-                        <span className={`badge ${paymentBadge[order.paymentStatus]}`}>
-                          {order.paymentStatus}
+                        <span className={`badge ${paymentBadge[order.paymentStatus] || "bg-secondary"}`}>
+                          {order.paymentStatus === "paid" ? "Trả" : order.paymentStatus === "pending" ? "Chờ thanh toán" : "Chưa trả"}
                         </span>
                       </td>
-                      <td>{order.total}</td>
+                      <td>{order.totalPrice?.toLocaleString()} đ</td>
                       <td>{order.paymentMethod}</td>
                       <td>
                         <span className={`badge ${statusBadge[order.orderStatus] || "bg-secondary"}`}>
-                          {order.orderStatus}
+                          {statusOptions.find(opt => opt.value === order.orderStatus)?.label || order.orderStatus}
                         </span>
                       </td>
                       <td>
                         <select
                           className="form-control form-control-sm select-status"
                           value={order.orderStatus}
-                          onChange={e => handleStatusChange(idx, e.target.value)}
+                          onChange={e => handleStatusChange(order.orderId || order._id, e.target.value)}
                         >
                           {statusOptions.map(opt => (
-                            <option key={opt} value={opt}>{opt}</option>
+                            <option key={opt.value} value={opt.value}>{opt.label}</option>
                           ))}
                         </select>
                         <button
                           className="btn btn-danger btn-sm btn-delete-order mt-1"
                           type="button"
                           title="Xóa"
-                          onClick={() => handleDelete(idx)}
+                          onClick={() => handleDelete(order.orderId || order._id)}
                         >
                           <i className="fas fa-trash-alt"></i>
                         </button>
@@ -218,7 +173,7 @@ export default function OrderManagement() {
                   ))}
                   {orders.length === 0 && (
                     <tr>
-                      <td colSpan={9} className="text-center">Không có đơn hàng nào.</td>
+                      <td colSpan={10} className="text-center">Không có đơn hàng nào.</td>
                     </tr>
                   )}
                 </tbody>
