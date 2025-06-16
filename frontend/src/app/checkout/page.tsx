@@ -146,7 +146,7 @@ const CheckoutPage: React.FC = () => {
     };
     const items = cartItems.map(item => ({
       productId: item.product._id,
-      productName: item.product.name,
+      productName: item.product.name, //tên sản phẩm
       variant: item.selectedVariant ? item.selectedVariant.size : undefined,
       quantity: item.quantity,
       price: item.selectedVariant ? item.selectedVariant.price : item.product.price,

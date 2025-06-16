@@ -46,6 +46,7 @@ exports.createOrder = async (req, res) => {
         OrderDetail.create({
           orderId: newOrder.orderId || newOrder._id.toString(),
           productId: item.productId,
+          productName: item.productName,
           variant: item.variant,
           quantity: item.quantity,
           image: item.image,
@@ -62,11 +63,25 @@ exports.createOrder = async (req, res) => {
 };
 
 // GET: lấy tất cả đơn hàng (ADMIN)
-exports.getAllOrders = async (req, res) =>{
-  try{
+exports.getAllOrders = async (req, res) => {
+  try {
     const orders = await Order.find().sort({ createdAt: -1 });
-    res.json(orders);
-  } catch (err){
+    // Thêm tên sản phẩm cho mỗi đơn hàng
+    const ordersWithProducts = await Promise.all(
+      orders.map(async (order) => {
+        // Tìm các OrderDetail thuộc order này
+        const details = await OrderDetail.find({ orderId: order.orderId || order._id });
+        // Nếu trong OrderDetail đã lưu productName thì dùng luôn
+        // Nếu productName không có, bạn cần populate từ Product model
+        const productNames = details.map(d => d.productName || "Sản phẩm đã xóa");
+        return {
+          ...order.toObject(),
+          productNames,
+        };
+      })
+    );
+    res.json(ordersWithProducts);
+  } catch (err) {
     res.status(500).json({ message: "Lỗi server", error: err.message });
   }
 };

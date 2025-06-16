@@ -40,6 +40,7 @@ type Order = {
     phone: string;
     address: string;
   };
+  productNames?: string[];
   totalPrice: number;
   paymentStatus: "paid" | "unpaid" | "pending";
   paymentMethod: string;
@@ -119,6 +120,7 @@ export default function OrderManagement() {
                 <thead>
                   <tr>
                     <th>Mã đơn hàng</th>
+                    <th>Tên sản phẩm</th>
                     <th>Tên khách hàng</th>
                     <th>SĐT</th>
                     <th>Địa chỉ</th>
@@ -134,6 +136,9 @@ export default function OrderManagement() {
                   {orders.map((order) => (
                     <tr key={order._id}>
                       <td>{order.orderId || order._id}</td>
+                      <td>
+                       {order.productNames? order.productNames.map((name, idx) => (<div key={idx}>{name}</div>)): ""}
+                      </td>
                       <td>{order.shippingInfo?.name || ""}</td>
                       <td>{order.shippingInfo?.phone || ""}</td>
                       <td>{order.shippingInfo?.address || ""}</td>
@@ -160,14 +165,14 @@ export default function OrderManagement() {
                             <option key={opt.value} value={opt.value}>{opt.label}</option>
                           ))}
                         </select>
-                        <button
+                        {/* <button
                           className="btn btn-danger btn-sm btn-delete-order mt-1"
                           type="button"
                           title="Xóa"
                           onClick={() => handleDelete(order.orderId || order._id)}
                         >
                           <i className="fas fa-trash-alt"></i>
-                        </button>
+                        </button> */}
                       </td>
                     </tr>
                   ))}

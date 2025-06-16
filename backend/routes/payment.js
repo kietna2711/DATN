@@ -55,6 +55,7 @@ router.post("/momo", authenticateToken, async (req, res) => {
         OrderDetail.create({
           orderId: newOrder.orderId || newOrder._id.toString(),
           productId: item.productId,
+          productName: item.productName,
           variant: item.variant,
           quantity: item.quantity,
           image: item.image,
