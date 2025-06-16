@@ -6,7 +6,6 @@ import "boxicons/css/boxicons.min.css";
 import "../admin.css";
 import axios from "axios";
 
-// Mapping trạng thái backend <-> frontend
 const statusOptions = [
   { label: "Duyệt", value: "approved" },
   { label: "Chờ xác nhận", value: "waiting" },
@@ -31,7 +30,6 @@ const paymentBadge: Record<string, string> = {
   "unpaid": "bg-danger",
 };
 
-// Kiểu order (theo backend)
 type Order = {
   _id: string;
   orderId: string;
@@ -48,18 +46,35 @@ type Order = {
   createdAt: string;
 };
 
+// Xác định các trạng thái hợp lệ tiếp theo
+function getNextStatusOptions(current: Order["orderStatus"]) {
+  switch (current) {
+    case "waiting":
+      return ["approved", "cancelled"];
+    case "approved":
+      return ["processing"];
+    case "processing":
+      return ["shipping"];
+    case "shipping":
+      return ["delivered"];
+    case "delivered":
+    case "cancelled":
+      return [];
+    default:
+      return [];
+  }
+}
+
 export default function OrderManagement() {
   const [orders, setOrders] = useState<Order[]>([]);
   const [clock, setClock] = useState("");
 
-  // Lấy dữ liệu động từ backend
   useEffect(() => {
     axios.get("http://localhost:3000/orders")
       .then(res => setOrders(res.data))
       .catch(() => setOrders([]));
   }, []);
 
-  // Đồng hồ realtime
   useEffect(() => {
     function updateClock() {
       const today = new Date();
@@ -91,7 +106,7 @@ export default function OrderManagement() {
     axios.put(`http://localhost:3000/orders/${id}`, { orderStatus: status })
       .then(res => {
         setOrders(orders => orders.map(order =>
-          order.orderId === id ? { ...order, orderStatus: status as Order["orderStatus"] } : order
+          order._id === id ? { ...order, orderStatus: status as Order["orderStatus"] } : order
         ));
       });
   };
@@ -99,7 +114,7 @@ export default function OrderManagement() {
   // Xóa đơn hàng (nếu backend có API xóa, bổ sung tại đây)
   const handleDelete = (id: string) => {
     if (window.confirm("Bạn có chắc chắn muốn xóa đơn hàng này?")) {
-      setOrders(orders => orders.filter(order => (order.orderId !== id && order._id !== id)));
+      setOrders(orders => orders.filter(order => order._id !== id));
       // Nếu backend có API xóa, gọi thêm axios.delete(...)
     }
   };
@@ -137,7 +152,7 @@ export default function OrderManagement() {
                     <tr key={order._id}>
                       <td>{order.orderId || order._id}</td>
                       <td>
-                       {order.productNames? order.productNames.map((name, idx) => (<div key={idx}>{name}</div>)): ""}
+                        {order.productNames ? order.productNames.join(", ") : ""}
                       </td>
                       <td>{order.shippingInfo?.name || ""}</td>
                       <td>{order.shippingInfo?.phone || ""}</td>
@@ -159,17 +174,23 @@ export default function OrderManagement() {
                         <select
                           className="form-control form-control-sm select-status"
                           value={order.orderStatus}
-                          onChange={e => handleStatusChange(order.orderId || order._id, e.target.value)}
+                          onChange={e => handleStatusChange(order._id, e.target.value)}
+                          disabled={getNextStatusOptions(order.orderStatus).length === 0}
                         >
-                          {statusOptions.map(opt => (
-                            <option key={opt.value} value={opt.value}>{opt.label}</option>
+                          <option value={order.orderStatus}>
+                            {statusOptions.find(opt => opt.value === order.orderStatus)?.label}
+                          </option>
+                          {getNextStatusOptions(order.orderStatus).map(nextStatus => (
+                            <option key={nextStatus} value={nextStatus}>
+                              {statusOptions.find(opt => opt.value === nextStatus)?.label}
+                            </option>
                           ))}
                         </select>
                         {/* <button
                           className="btn btn-danger btn-sm btn-delete-order mt-1"
                           type="button"
                           title="Xóa"
-                          onClick={() => handleDelete(order.orderId || order._id)}
+                          onClick={() => handleDelete(order._id)}
                         >
                           <i className="fas fa-trash-alt"></i>
                         </button> */}
@@ -178,7 +199,7 @@ export default function OrderManagement() {
                   ))}
                   {orders.length === 0 && (
                     <tr>
-                      <td colSpan={10} className="text-center">Không có đơn hàng nào.</td>
+                      <td colSpan={11} className="text-center">Không có đơn hàng nào.</td>
                     </tr>
                   )}
                 </tbody>
