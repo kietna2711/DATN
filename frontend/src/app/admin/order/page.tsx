@@ -8,7 +8,8 @@ import "../admin.css";
 type Order = {
   id: string;
   customer: string;
-  product: string;
+  phone: string;
+  address: string;
   date: string;
   paymentStatus: "Trả" | "Chờ thanh toán" | "Chưa trả";
   total: string;
@@ -40,74 +41,79 @@ const paymentBadge: Record<string, string> = {
   "Chưa trả": "bg-danger",
 };
 
-const initialOrders: Order[] = [
-  {
-    id: "#Kz025418",
-    customer: "Xe đẩy Mendor",
-    product: "Polka Dots Woman Dress",
-    date: "24/03/2022 04:26 CH",
-    paymentStatus: "Trả",
-    total: "11,250 đô la",
-    paymentMethod: "Thẻ Mastercard",
-    orderStatus: "Duyệt",
-  },
-  {
-    id: "#Kz025419",
-    customer: "Nguyễn Văn B",
-    product: "Áo sơ mi nam",
-    date: "25/03/2022 10:15 SA",
-    paymentStatus: "Chờ thanh toán",
-    total: "2,500 đô la",
-    paymentMethod: "Chuyển khoản",
-    orderStatus: "Chờ xác nhận",
-  },
-  {
-    id: "#Kz025420",
-    customer: "Trần Thị C",
-    product: "Giày thể thao nữ",
-    date: "26/03/2022 08:00 SA",
-    paymentStatus: "Trả",
-    total: "1,200 đô la",
-    paymentMethod: "Tiền mặt",
-    orderStatus: "Đang chuẩn bị hàng",
-  },
-  {
-    id: "#Kz025421",
-    customer: "Phạm Văn D",
-    product: "Đồng hồ nam",
-    date: "27/03/2022 09:30 SA",
-    paymentStatus: "Trả",
-    total: "5,000 đô la",
-    paymentMethod: "Thẻ Visa",
-    orderStatus: "Đang giao",
-  },
-  {
-    id: "#Kz025422",
-    customer: "Lê Thị E",
-    product: "Túi xách nữ",
-    date: "28/03/2022 11:00 SA",
-    paymentStatus: "Trả",
-    total: "3,000 đô la",
-    paymentMethod: "Thẻ Mastercard",
-    orderStatus: "Đã giao",
-  },
-  {
-    id: "#Kz025423",
-    customer: "Ngô Văn F",
-    product: "Áo khoác nam",
-    date: "29/03/2022 02:00 CH",
-    paymentStatus: "Chưa trả",
-    total: "1,800 đô la",
-    paymentMethod: "Tiền mặt",
-    orderStatus: "Đã hủy",
-  },
-];
+function mapPaymentStatus(paymentStatus: string): Order["paymentStatus"] {
+  switch (paymentStatus) {
+    case "paid":
+      return "Trả";
+    case "unpaid":
+      return "Chưa trả";
+    case "pending":
+      return "Chờ thanh toán";
+    default:
+      return "Chưa trả";
+  }
+}
+
+function mapOrderStatus(orderStatus: string): string {
+  switch (orderStatus) {
+    case "approved":
+      return "Duyệt";
+    case "waiting":
+      return "Chờ xác nhận";
+    case "preparing":
+      return "Đang chuẩn bị hàng";
+    case "shipping":
+      return "Đang giao";
+    case "delivered":
+      return "Đã giao";
+    case "cancelled":
+      return "Đã hủy";
+    default:
+      return "Chờ xác nhận";
+  }
+}
+
+function mapPaymentMethod(method: string): string {
+  switch (method) {
+    case "momo":
+      return "Momo";
+    case "cod":
+      return "Tiền mặt";
+    case "bank":
+      return "Chuyển khoản";
+    default:
+      return method;
+  }
+}
+
+// SỬA ĐOẠN NÀY: tổng tiền = totalPrice + shippingFee
+function convertBackendOrderToOrder(data: any): Order {
+  const total =
+    (data.totalPrice || 0) + (data.shippingFee || 0);
+  return {
+    id: data.orderId || data._id || "N/A",
+    customer: data.shippingInfo?.name || "",
+    phone: data.shippingInfo?.phone || "",
+    address: data.shippingInfo?.address || "",
+    date: data.createdAt ? new Date(data.createdAt).toLocaleString("vi-VN") : "",
+    paymentStatus: mapPaymentStatus(data.paymentStatus),
+    total: `${total.toLocaleString("vi-VN")} đ`,
+    paymentMethod: mapPaymentMethod(data.paymentMethod),
+    orderStatus: mapOrderStatus(data.orderStatus),
+  };
+}
 
 export default function OrderManagement() {
-  const [orders, setOrders] = useState<Order[]>(initialOrders);
+  const [orders, setOrders] = useState<Order[]>([]);
   const [clock, setClock] = useState("");
 
-  // Đồng hồ realtime
+  useEffect(() => {
+    fetch("http://localhost:3000/api/orders")
+      .then(res => res.json())
+      .then(data => setOrders(data.map(convertBackendOrderToOrder)))
+      .catch(() => setOrders([]));
+  }, []);
+
   useEffect(() => {
     function updateClock() {
       const today = new Date();
@@ -134,7 +140,6 @@ export default function OrderManagement() {
     return () => clearInterval(timer);
   }, []);
 
-  // Đổi trạng thái đơn hàng
   const handleStatusChange = (idx: number, status: string) => {
     setOrders(orders =>
       orders.map((order, i) =>
@@ -143,7 +148,6 @@ export default function OrderManagement() {
     );
   };
 
-  // Xóa đơn hàng
   const handleDelete = (idx: number) => {
     if (window.confirm("Bạn có chắc chắn muốn xóa đơn hàng này?")) {
       setOrders(orders => orders.filter((_, i) => i !== idx));
@@ -167,7 +171,8 @@ export default function OrderManagement() {
                   <tr>
                     <th>Mã đơn hàng</th>
                     <th>Tên khách hàng</th>
-                    <th>Tên sản phẩm</th>
+                    <th>SĐT</th>
+                    <th>Địa chỉ</th>
                     <th>Ngày</th>
                     <th>Trạng thái thanh toán</th>
                     <th>Tổng cộng</th>
@@ -181,7 +186,8 @@ export default function OrderManagement() {
                     <tr key={order.id}>
                       <td>{order.id}</td>
                       <td>{order.customer}</td>
-                      <td>{order.product}</td>
+                      <td>{order.phone}</td>
+                      <td>{order.address}</td>
                       <td>{order.date}</td>
                       <td>
                         <span className={`badge ${paymentBadge[order.paymentStatus]}`}>
@@ -218,7 +224,7 @@ export default function OrderManagement() {
                   ))}
                   {orders.length === 0 && (
                     <tr>
-                      <td colSpan={9} className="text-center">Không có đơn hàng nào.</td>
+                      <td colSpan={10} className="text-center">Không có đơn hàng nào.</td>
                     </tr>
                   )}
                 </tbody>
