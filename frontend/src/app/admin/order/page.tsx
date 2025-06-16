@@ -4,116 +4,62 @@ import "bootstrap/dist/css/bootstrap.min.css";
 import "@fortawesome/fontawesome-free/css/all.min.css";
 import "boxicons/css/boxicons.min.css";
 import "../admin.css";
+import axios from "axios";
 
-type Order = {
-  id: string;
-  customer: string;
-  phone: string;
-  address: string;
-  date: string;
-  paymentStatus: "Trả" | "Chờ thanh toán" | "Chưa trả";
-  total: string;
-  paymentMethod: string;
-  orderStatus: string;
-};
-
+// Mapping trạng thái backend <-> frontend
 const statusOptions = [
-  "Duyệt",
-  "Chờ xác nhận",
-  "Đang chuẩn bị hàng",
-  "Đang giao",
-  "Đã giao",
-  "Đã hủy",
+  { label: "Duyệt", value: "approved" },
+  { label: "Chờ xác nhận", value: "waiting" },
+  { label: "Đang chuẩn bị hàng", value: "processing" },
+  { label: "Đang giao", value: "shipping" },
+  { label: "Đã giao", value: "delivered" },
+  { label: "Đã hủy", value: "cancelled" },
 ];
 
 const statusBadge: Record<string, string> = {
-  "Duyệt": "bg-success",
-  "Chờ xác nhận": "bg-info",
-  "Đang chuẩn bị hàng": "bg-warning",
-  "Đang giao": "bg-primary",
-  "Đã giao": "bg-success",
-  "Đã hủy": "bg-danger",
+  "approved": "bg-success",
+  "waiting": "bg-info",
+  "processing": "bg-warning",
+  "shipping": "bg-primary",
+  "delivered": "bg-success",
+  "cancelled": "bg-danger",
 };
 
 const paymentBadge: Record<string, string> = {
-  "Trả": "bg-success",
-  "Chờ thanh toán": "bg-warning",
-  "Chưa trả": "bg-danger",
+  "paid": "bg-success",
+  "pending": "bg-warning",
+  "unpaid": "bg-danger",
 };
 
-function mapPaymentStatus(paymentStatus: string): Order["paymentStatus"] {
-  switch (paymentStatus) {
-    case "paid":
-      return "Trả";
-    case "unpaid":
-      return "Chưa trả";
-    case "pending":
-      return "Chờ thanh toán";
-    default:
-      return "Chưa trả";
-  }
-}
-
-function mapOrderStatus(orderStatus: string): string {
-  switch (orderStatus) {
-    case "approved":
-      return "Duyệt";
-    case "waiting":
-      return "Chờ xác nhận";
-    case "preparing":
-      return "Đang chuẩn bị hàng";
-    case "shipping":
-      return "Đang giao";
-    case "delivered":
-      return "Đã giao";
-    case "cancelled":
-      return "Đã hủy";
-    default:
-      return "Chờ xác nhận";
-  }
-}
-
-function mapPaymentMethod(method: string): string {
-  switch (method) {
-    case "momo":
-      return "Momo";
-    case "cod":
-      return "Tiền mặt";
-    case "bank":
-      return "Chuyển khoản";
-    default:
-      return method;
-  }
-}
-
-// SỬA ĐOẠN NÀY: tổng tiền = totalPrice + shippingFee
-function convertBackendOrderToOrder(data: any): Order {
-  const total =
-    (data.totalPrice || 0) + (data.shippingFee || 0);
-  return {
-    id: data.orderId || data._id || "N/A",
-    customer: data.shippingInfo?.name || "",
-    phone: data.shippingInfo?.phone || "",
-    address: data.shippingInfo?.address || "",
-    date: data.createdAt ? new Date(data.createdAt).toLocaleString("vi-VN") : "",
-    paymentStatus: mapPaymentStatus(data.paymentStatus),
-    total: `${total.toLocaleString("vi-VN")} đ`,
-    paymentMethod: mapPaymentMethod(data.paymentMethod),
-    orderStatus: mapOrderStatus(data.orderStatus),
+// Kiểu order (theo backend)
+type Order = {
+  _id: string;
+  orderId: string;
+  shippingInfo: {
+    name: string;
+    phone: string;
+    address: string;
   };
-}
+  productNames?: string[];
+  totalPrice: number;
+  paymentStatus: "paid" | "unpaid" | "pending";
+  paymentMethod: string;
+  orderStatus: "approved" | "waiting" | "processing" | "shipping" | "delivered" | "cancelled";
+  createdAt: string;
+};
 
 export default function OrderManagement() {
   const [orders, setOrders] = useState<Order[]>([]);
   const [clock, setClock] = useState("");
 
+  // Lấy dữ liệu động từ backend
   useEffect(() => {
-    fetch("http://localhost:3000/api/orders")
-      .then(res => res.json())
-      .then(data => setOrders(data.map(convertBackendOrderToOrder)))
+    axios.get("http://localhost:3000/orders")
+      .then(res => setOrders(res.data))
       .catch(() => setOrders([]));
   }, []);
 
+  // Đồng hồ realtime
   useEffect(() => {
     function updateClock() {
       const today = new Date();
@@ -140,17 +86,21 @@ export default function OrderManagement() {
     return () => clearInterval(timer);
   }, []);
 
-  const handleStatusChange = (idx: number, status: string) => {
-    setOrders(orders =>
-      orders.map((order, i) =>
-        i === idx ? { ...order, orderStatus: status } : order
-      )
-    );
+  // Đổi trạng thái đơn hàng (update thực tế vào DB)
+  const handleStatusChange = (id: string, status: string) => {
+    axios.put(`http://localhost:3000/orders/${id}`, { orderStatus: status })
+      .then(res => {
+        setOrders(orders => orders.map(order =>
+          order.orderId === id ? { ...order, orderStatus: status as Order["orderStatus"] } : order
+        ));
+      });
   };
 
-  const handleDelete = (idx: number) => {
+  // Xóa đơn hàng (nếu backend có API xóa, bổ sung tại đây)
+  const handleDelete = (id: string) => {
     if (window.confirm("Bạn có chắc chắn muốn xóa đơn hàng này?")) {
-      setOrders(orders => orders.filter((_, i) => i !== idx));
+      setOrders(orders => orders.filter(order => (order.orderId !== id && order._id !== id)));
+      // Nếu backend có API xóa, gọi thêm axios.delete(...)
     }
   };
 
@@ -170,6 +120,7 @@ export default function OrderManagement() {
                 <thead>
                   <tr>
                     <th>Mã đơn hàng</th>
+                    <th>Tên sản phẩm</th>
                     <th>Tên khách hàng</th>
                     <th>SĐT</th>
                     <th>Địa chỉ</th>
@@ -182,43 +133,46 @@ export default function OrderManagement() {
                   </tr>
                 </thead>
                 <tbody>
-                  {orders.map((order, idx) => (
-                    <tr key={order.id}>
-                      <td>{order.id}</td>
-                      <td>{order.customer}</td>
-                      <td>{order.phone}</td>
-                      <td>{order.address}</td>
-                      <td>{order.date}</td>
+                  {orders.map((order) => (
+                    <tr key={order._id}>
+                      <td>{order.orderId || order._id}</td>
                       <td>
-                        <span className={`badge ${paymentBadge[order.paymentStatus]}`}>
-                          {order.paymentStatus}
+                       {order.productNames? order.productNames.map((name, idx) => (<div key={idx}>{name}</div>)): ""}
+                      </td>
+                      <td>{order.shippingInfo?.name || ""}</td>
+                      <td>{order.shippingInfo?.phone || ""}</td>
+                      <td>{order.shippingInfo?.address || ""}</td>
+                      <td>{new Date(order.createdAt).toLocaleString()}</td>
+                      <td>
+                        <span className={`badge ${paymentBadge[order.paymentStatus] || "bg-secondary"}`}>
+                          {order.paymentStatus === "paid" ? "Trả" : order.paymentStatus === "pending" ? "Chờ thanh toán" : "Chưa trả"}
                         </span>
                       </td>
-                      <td>{order.total}</td>
+                      <td>{order.totalPrice?.toLocaleString()} đ</td>
                       <td>{order.paymentMethod}</td>
                       <td>
                         <span className={`badge ${statusBadge[order.orderStatus] || "bg-secondary"}`}>
-                          {order.orderStatus}
+                          {statusOptions.find(opt => opt.value === order.orderStatus)?.label || order.orderStatus}
                         </span>
                       </td>
                       <td>
                         <select
                           className="form-control form-control-sm select-status"
                           value={order.orderStatus}
-                          onChange={e => handleStatusChange(idx, e.target.value)}
+                          onChange={e => handleStatusChange(order.orderId || order._id, e.target.value)}
                         >
                           {statusOptions.map(opt => (
-                            <option key={opt} value={opt}>{opt}</option>
+                            <option key={opt.value} value={opt.value}>{opt.label}</option>
                           ))}
                         </select>
-                        <button
+                        {/* <button
                           className="btn btn-danger btn-sm btn-delete-order mt-1"
                           type="button"
                           title="Xóa"
-                          onClick={() => handleDelete(idx)}
+                          onClick={() => handleDelete(order.orderId || order._id)}
                         >
                           <i className="fas fa-trash-alt"></i>
-                        </button>
+                        </button> */}
                       </td>
                     </tr>
                   ))}
