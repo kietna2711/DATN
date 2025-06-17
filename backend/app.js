@@ -21,6 +21,16 @@ var categoriesRouter = require('./routes/categories');
 var productsRouter = require('./routes/products');
 const variantsRouter = require('./routes/variants');
 const subcategoryRouter = require('./routes/subcategory');
+const vouchersRouter = require('./routes/vouchers');
+
+const authenticateToken = require('./middleware/auth');
+const reviewRoutes = require('./routes/review');
+
+const usersProfileRoutes = require('./routes/userprofile'); // Đường dẫn đến routes usersProfile
+
+const favoriteRouter = require('./routes/favorites');
+const orderRoutes = require("./routes/order"); //đơn hàng
+
 const paymentRouter = require("./routes/payment"); //thanh toán
 const orderRoutes = require("./routes/order"); //đơn hàng
 const postsRouter = require('./routes/posts');
@@ -95,6 +105,8 @@ app.use('/categories', categoriesRouter);
 app.use('/products', productsRouter);
 app.use('/variants', variantsRouter);
 app.use('/subcategory', subcategoryRouter);
+app.use('/vouchers', vouchersRouter);
+
 
 // không cần token khi thanh toán momo
 app.use("/payment", paymentRouter);
@@ -131,6 +143,5 @@ app.use(function(err, req, res, next) {
   res.status(err.status || 500);
   res.render('error');
 });
-
 
 module.exports = app;
