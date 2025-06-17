@@ -21,6 +21,7 @@ var categoriesRouter = require('./routes/categories');
 var productsRouter = require('./routes/products');
 const variantsRouter = require('./routes/variants');
 const subcategoryRouter = require('./routes/subcategory');
+const vouchersRouter = require('./routes/vouchers');
 
 const authenticateToken = require('./middleware/auth');
 const reviewRoutes = require('./routes/review');
@@ -101,6 +102,8 @@ app.use('/categories', categoriesRouter);
 app.use('/products', productsRouter);
 app.use('/variants', variantsRouter);
 app.use('/subcategory', subcategoryRouter);
+app.use('/vouchers', vouchersRouter);
+
 
 // không cần token khi thanh toán momo
 app.use("/payment", paymentRouter);

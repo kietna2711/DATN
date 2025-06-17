@@ -2,7 +2,7 @@
 import { SubcategoryModal } from "@/app/components/admin/SubcategoryModal";
 import { CategoryTable } from "@/app/components/admin/CategoryTable";
 import { useCategory } from "@/app/hooks/useCategory";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { CategoryModal } from "@/app/components/admin/CategoryModal";
 
 export default function CategoryManagement() {
@@ -29,6 +29,42 @@ export default function CategoryManagement() {
   const [editSubId, setEditSubId] = useState<string | null>(null);
   const [editSubName, setEditSubName] = useState("");
   const [editSubParentId, setEditSubParentId] = useState<string | null>(null);
+
+  const [clock, setClock] = useState("");
+
+  // Đồng hồ realtime
+  useEffect(() => {
+    function updateClock() {
+      const today = new Date();
+      const weekday = [
+        "Chủ Nhật",
+        "Thứ Hai",
+        "Thứ Ba",
+        "Thứ Tư",
+        "Thứ Năm",
+        "Thứ Sáu",
+        "Thứ Bảy",
+      ];
+      const day = weekday[today.getDay()];
+      let dd: string | number = today.getDate();
+      let mm: string | number = today.getMonth() + 1;
+      const yyyy = today.getFullYear();
+      let h: string | number = today.getHours();
+      let m: string | number = today.getMinutes();
+      let s: string | number = today.getSeconds();
+      m = m < 10 ? "0" + m : m;
+      s = s < 10 ? "0" + s : s;
+      dd = dd < 10 ? "0" + dd : dd;
+      mm = mm < 10 ? "0" + mm : mm;
+      const nowTime = `${h} giờ ${m} phút ${s} giây`;
+      const dateStr = `${day}, ${dd}/${mm}/${yyyy}`;
+      setClock(`${dateStr} - ${nowTime}`);
+    }
+    updateClock();
+    const timer = setInterval(updateClock, 1000);
+    return () => clearInterval(timer);
+  }, []);
+
 
   // Bắt sự kiện sửa
   const handleEdit = (_id: string, isSub?: boolean, parentId?: string) => {
@@ -85,6 +121,16 @@ export default function CategoryManagement() {
 
   return (
     <main className="app-content">
+      <div className="app-title">
+        <ul className="app-breadcrumb breadcrumb side">
+          <li className="breadcrumb-item active">
+            <a href="#categories">
+              <b>Danh sách danh mục</b>
+            </a>
+          </li>
+        </ul>
+        <div id="clock">{clock}</div>
+      </div>
       <div className="tile">
         <div className="tile-body">
           <button className="btn btn-add btn-sm mb-3" onClick={() => setShowModal(true)}>
