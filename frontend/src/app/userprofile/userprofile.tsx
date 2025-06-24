@@ -6,7 +6,7 @@ import { useShowMessage } from '@/app/utils/useShowMessage';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faUser, faBox, faLock, faRightFromBracket, faCircleQuestion } from '@fortawesome/free-solid-svg-icons';
 
-// AddressManager component code moved here
+// AddressManager component
 interface Address {
   id: string;
   detail: string;
@@ -150,8 +150,9 @@ const UserProfile: React.FC = () => {
         window.location.href = '/login';
         return;
       }
-      const userId = parsedUser._id;
-      fetch(`http://localhost:3000/api/usersProfile/id/${userId}`, {
+      // Lấy thông tin user + profile theo username
+      const username = parsedUser.username;
+      fetch(`http://localhost:3000/api/usersProfile/username/${username}`, {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json',
@@ -231,43 +232,43 @@ const UserProfile: React.FC = () => {
     </div>
   );
 
-  const renderEditFormNormal = () => (
-    <div className="form-grid">
-      <div className="form-group">
-        <label htmlFor="lastName">Họ</label>
-        <input type="text" id="lastName" name="lastName" value={editUser?.lastName || ''} onChange={handleUserEditChange} />
-      </div>
-      <div className="form-group">
-        <label htmlFor="firstName">Tên</label>
-        <input type="text" id="firstName" name="firstName" value={editUser?.firstName || ''} onChange={handleUserEditChange} />
-      </div>
-      <div className="form-group">
-        <label htmlFor="username">Tên đăng nhập</label>
-        <input type="text" id="username" name="username" value={editUser?.username || ''} onChange={handleUserEditChange} />
-      </div>
-      <div className="form-group">
-        <label htmlFor="email">Email</label>
-        <input type="email" id="email" name="email" value={editUser?.email || ''} onChange={handleUserEditChange} />
-      </div>
-      <div className="form-group">
-        <label htmlFor="phone">Số điện thoại</label>
-        <input type="text" id="phone" name="phone" value={editUser?.profile?.phone || ''} onChange={handleProfileEditChange} />
-      </div>
-      <div className="form-group">
-        <label htmlFor="gender">Giới tính</label>
-        <select id="gender" name="gender" value={editUser?.profile?.gender || ''} onChange={handleProfileEditChange}>
-          <option value="">Chọn giới tính</option>
-          <option value="male">Nam</option>
-          <option value="female">Nữ</option>
-          <option value="other">Khác</option>
-        </select>
-      </div>
-      <div className="form-group">
-        <label htmlFor="birthDate">Ngày sinh</label>
-        <input type="date" id="birthDate" name="birthDate" value={editUser?.profile?.birthDate ? editUser.profile.birthDate.slice(0, 10) : ''} onChange={handleProfileEditChange} />
-      </div>
+const renderEditFormNormal = () => (
+  <div className="form-grid">
+    <div className="form-group">
+      <label htmlFor="lastName">Họ</label>
+      <input type="text" id="lastName" name="lastName" value={editUser?.lastName || ''} onChange={handleUserEditChange} />
     </div>
-  );
+    <div className="form-group">
+      <label htmlFor="firstName">Tên</label>
+      <input type="text" id="firstName" name="firstName" value={editUser?.firstName || ''} onChange={handleUserEditChange} />
+    </div>
+    <div className="form-group">
+      <label htmlFor="username">Tên đăng nhập</label>
+      <input type="text" id="username" name="username" value={editUser?.username || ''} disabled />
+    </div>
+    <div className="form-group">
+      <label htmlFor="email">Email</label>
+      <input type="email" id="email" name="email" value={editUser?.email || ''} disabled />
+    </div>
+    <div className="form-group">
+      <label htmlFor="phone">Số điện thoại</label>
+      <input type="text" id="phone" name="phone" value={editUser?.profile?.phone || ''} onChange={handleProfileEditChange} />
+    </div>
+    <div className="form-group">
+      <label htmlFor="gender">Giới tính</label>
+      <select id="gender" name="gender" value={editUser?.profile?.gender || ''} onChange={handleProfileEditChange}>
+        <option value="">Chọn giới tính</option>
+        <option value="male">Nam</option>
+        <option value="female">Nữ</option>
+        <option value="other">Khác</option>
+      </select>
+    </div>
+    <div className="form-group">
+      <label htmlFor="birthDate">Ngày sinh</label>
+      <input type="date" id="birthDate" name="birthDate" value={editUser?.profile?.birthDate ? editUser.profile.birthDate.slice(0, 10) : ''} onChange={handleProfileEditChange} />
+    </div>
+  </div>
+);
 
   const renderEditFormGoogle = () => (
     <div className="form-grid">
@@ -317,46 +318,55 @@ const UserProfile: React.FC = () => {
     setEditUser(null);
   };
 
+  /**
+   * Lưu hoặc tạo mới profile nếu chưa từng có (chuẩn RESTful: POST nếu chưa có, PUT nếu đã có)
+   * - Nếu user đã có profile, gọi PUT /api/usersProfile/:username
+   * - Nếu user chưa có profile, gọi POST /api/usersProfile/:username
+   */
   const handleSave = () => {
     if (!editUser) return;
     const token = localStorage.getItem('token');
-    const isGoogleUser = !!editUser.googleId;
-    const body: any = isGoogleUser
-      ? {
-          profile: {
-            phone: editUser.profile?.phone || '',
-            gender: editUser.profile?.gender || '',
-            birthDate: editUser.profile?.birthDate || '',
-            addresses: editUser.profile?.addresses || []
-          }
-        }
-      : {
-          firstName: editUser.firstName,
-          lastName: editUser.lastName,
-          username: editUser.username,
-          email: editUser.email,
-          profile: {
-            phone: editUser.profile?.phone || '',
-            gender: editUser.profile?.gender || '',
-            birthDate: editUser.profile?.birthDate || '',
-            addresses: editUser.profile?.addresses || []
-          }
-        };
-    fetch(`http://localhost:3000/api/usersProfile/${editUser._id}`, {
-      method: 'PUT',
+    const username = editUser.username;
+
+    if (!username) {
+      showMessage.error('Thiếu username!');
+      return;
+    }
+
+    const profilePayload = {
+      phone: editUser.profile?.phone || '',
+      gender: editUser.profile?.gender || '',
+      birthDate: editUser.profile?.birthDate || '',
+      addresses: editUser.profile?.addresses || [],
+    };
+
+    // Kiểm tra user đã có profile hay chưa
+    const hasProfile = !!user?.profile && (
+      user.profile.phone ||
+      user.profile.gender ||
+      user.profile.birthDate ||
+      (user.profile.addresses && user.profile.addresses.length > 0)
+    );
+
+    const method = hasProfile ? 'PUT' : 'POST';
+
+    fetch(`http://localhost:3000/api/usersProfile/${username}`, {
+      method,
       headers: {
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${token}`
       },
-      body: JSON.stringify(body),
+      body: JSON.stringify(profilePayload),
     })
-      .then(res => {
-        if (!res.ok) throw new Error('Lỗi khi cập nhật dữ liệu');
+      .then(async res => {
+        if (!res.ok) {
+          const err = await res.json().catch(() => ({}));
+          throw new Error(err.message || 'Lỗi khi lưu dữ liệu');
+        }
         return res.json();
       })
-      .then((updatedUser) => {
-        if (!updatedUser.profile) updatedUser.profile = { addresses: [] };
-        if (!updatedUser.profile.addresses) updatedUser.profile.addresses = [];
+      .then((profile) => {
+        const updatedUser = { ...editUser, profile };
         setUser(updatedUser);
         localStorage.setItem('user', JSON.stringify(updatedUser));
         setIsEditing(false);
@@ -364,8 +374,8 @@ const UserProfile: React.FC = () => {
         showMessage.success('Cập nhật thành công!');
       })
       .catch(err => {
-        console.error('Lỗi khi cập nhật:', err);
-        showMessage.error('Lỗi khi cập nhật!');
+        console.error('Lỗi khi lưu:', err);
+        showMessage.error(err.message || 'Lỗi khi lưu!');
       });
   };
 
