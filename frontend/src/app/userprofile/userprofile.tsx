@@ -412,7 +412,7 @@ const renderEditFormNormal = () => (
           </div>
           {!isGoogleUser && (
             <div className={`menu-item ${currentTab === 'password' ? 'active' : ''}`} onClick={() => setCurrentTab('password')}>
-              <FontAwesomeIcon icon={faLock} style={{ marginRight: 8 }} /> Quên mật khẩu
+              <FontAwesomeIcon icon={faLock} style={{ marginRight: 8 }} /> Đổi mật khẩu
             </div>
           )}
           <div className="menu-item" onClick={() => setShowLogoutConfirm(true)}>
