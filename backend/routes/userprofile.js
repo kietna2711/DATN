@@ -3,55 +3,76 @@ const router = express.Router();
 const User = require('../models/userprofileModel');
 const Profile = require('../models/profileModel');
 
-// GET user + profile by user ID
-router.get('/id/:id', async (req, res) => {
+// Lấy thông tin user + profile theo username
+router.get('/username/:username', async (req, res) => {
   try {
-    const { id } = req.params;
-    const user = await User.findById(id).select('-password -role');
+    const { username } = req.params;
+    // Tìm user theo username
+    const user = await User.findOne({ username }).select('-password -role');
     if (!user) return res.status(404).json({ message: 'User không tồn tại' });
-    const profile = await Profile.findOne({ user: id }) || {};
+
+    // Tìm profile theo username
+    const profile = await Profile.findOne({ username }) || null;
     res.json({ ...user.toObject(), profile });
   } catch (error) {
-    console.error('Lỗi khi lấy user và profile theo ID:', error);
     res.status(500).json({ message: 'Lỗi server' });
   }
 });
 
-// PUT update user & profile by user ID
-router.put('/:id', async (req, res) => {
+// Tạo profile mới cho username (chỉ khi chưa có profile cho username này)
+router.post('/:username', async (req, res) => {
   try {
-    const { id } = req.params;
-    const { profile, ...userData } = req.body;
-    const oldUser = await User.findById(id);
-    if (!oldUser) return res.status(404).json({ message: 'Không tìm thấy người dùng để cập nhật' });
+    const { username } = req.params;
+    const { phone, gender, birthDate, addresses } = req.body;
 
-    // Nếu là Google user, không cho đổi các trường này
-    if (oldUser.googleId) {
-      userData.email = oldUser.email;
-      userData.username = oldUser.username;
-      userData.firstName = oldUser.firstName;
-      userData.lastName = oldUser.lastName;
+    if (!username || !username.trim()) {
+      return res.status(400).json({ message: 'Thiếu username hợp lệ' });
     }
 
-    // Cập nhật user chính
-    const updatedUser = await User.findByIdAndUpdate(id, userData, { new: true, runValidators: true }).select('-password -role');
+    // Kiểm tra user có tồn tại không
+    const user = await User.findOne({ username });
+    if (!user) return res.status(404).json({ message: 'User không tồn tại' });
 
-    // Cập nhật hoặc tạo mới profile
-    let updatedProfile = null;
-    if (profile) {
-      updatedProfile = await Profile.findOneAndUpdate(
-        { user: id },
-        { ...profile, user: id },
-        { new: true, upsert: true, runValidators: true }
-      );
-    } else {
-      updatedProfile = await Profile.findOne({ user: id }) || {};
-    }
+    // Kiểm tra profile đã tồn tại chưa
+    const existingProfile = await Profile.findOne({ username });
+    if (existingProfile) return res.status(400).json({ message: 'Profile đã tồn tại cho username này' });
 
-    res.json({ ...updatedUser.toObject(), profile: updatedProfile });
+    // Tạo mới profile
+    const profile = new Profile({ username, phone, gender, birthDate, addresses });
+    await profile.save();
+    res.status(201).json(profile);
   } catch (error) {
-    console.error('Lỗi khi cập nhật user và profile:', error);
-    res.status(500).json({ message: 'Lỗi server khi cập nhật user/profile' });
+    if (error.code === 11000) {
+      return res.status(400).json({ message: 'Username đã tồn tại (duplicate key)' });
+    }
+    res.status(500).json({ message: 'Lỗi server khi tạo profile', error: error.message });
+  }
+});
+
+// Cập nhật profile (chỉ khi đã tồn tại)
+router.put('/:username', async (req, res) => {
+  try {
+    const { username } = req.params;
+    const { phone, gender, birthDate, addresses } = req.body;
+
+    // Kiểm tra user có tồn tại không
+    const user = await User.findOne({ username });
+    if (!user) return res.status(404).json({ message: 'User không tồn tại' });
+
+    // Kiểm tra profile đã tồn tại chưa
+    const profile = await Profile.findOne({ username });
+    if (!profile) return res.status(404).json({ message: 'Profile chưa tồn tại cho username này' });
+
+    // Cập nhật thông tin profile
+    profile.phone = phone;
+    profile.gender = gender;
+    profile.birthDate = birthDate;
+    profile.addresses = addresses;
+
+    await profile.save();
+    res.json(profile);
+  } catch (error) {
+    res.status(500).json({ message: 'Lỗi server khi cập nhật profile', error: error.message });
   }
 });
 
