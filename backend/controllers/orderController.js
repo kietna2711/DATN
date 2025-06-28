@@ -63,12 +63,12 @@ exports.createOrder = async (req, res) => {
 };
 
 // GET: lấy tất cả đơn hàng (ADMIN)
-exports.getAllOrders = async (req, res) =>{
-  try{
+exports.getAllOrders = async (req, res) => {
+  try {
     const orders = await Order.find().sort({ createdAt: -1 });
     res.json(orders);
-  } catch (err){
-    res.status(500).json({ message: "Lỗi server", error: err.message });
+  } catch (err) {
+    res.status(500).json({ message: "Lỗi lấy tất cả đơn hàng" });
   }
 };
 
@@ -151,6 +151,15 @@ exports.updateOrderStatus = async (req, res) => {
     res.json(order);
   } catch (error) {
     res.status(500).json({ error: "Server error" });
+  }
+};
+
+exports.getLatestOrders = async (req, res) => {
+  try {
+    const orders = await Order.find().sort({ createdAt: -1 }).limit(10);
+    res.json(orders);
+  } catch (err) {
+    res.status(500).json({ message: "Lỗi lấy đơn hàng mới nhất" });
   }
 };
 

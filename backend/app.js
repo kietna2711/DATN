@@ -28,11 +28,12 @@ const vouchersRouter = require('./routes/vouchers');
 const paymentRouter = require("./routes/payment"); //thanh toán
 const postsRouter = require('./routes/posts');
 const postscategoriesRouter = require('./routes/postscategories');
-const orderRoutes = require("./routes/order"); //đơn hàng
+const orderRoutes = require('./routes/order'); //đơn hàng
 const reviewRoutes = require('./routes/review');
 const usersProfileRoutes = require('./routes/userprofile'); // Đường dẫn đến routes usersProfile
 const favoriteRouter = require('./routes/favorites');
 const authenticateToken = require('./middleware/auth');
+const statisticsRouter = require('./routes/statistics');
 
 
 var app = express();
@@ -115,6 +116,7 @@ app.use("/payment", paymentRouter); //Momo, thanh toán
 app.use(require('./routes/payment')); //IPN
 // app.use("/payment", require("./routes/payment")); //đường dẫn file routes/payment.js
 app.use("/orders", orderRoutes);
+app.use('/api/statistics', statisticsRouter);
 
 app.use('/favorites', favoriteRouter);
 app.use("/reviews", require("./routes/review"));

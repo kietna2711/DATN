@@ -229,4 +229,18 @@ router.post('/reset-password', async (req, res) => {
   res.json({ message: "Đổi mật khẩu thành công!" });
 });
 
+// Lấy khách hàng mới trong 7 ngày gần nhất
+router.get('/new-this-week', async (req, res) => {
+  try {
+    const now = new Date();
+    const weekAgo = new Date(now);
+    weekAgo.setDate(now.getDate() - 7);
+
+    const users = await User.find({ createdAt: { $gte: weekAgo } }).sort({ createdAt: -1 });
+    res.json(users);
+  } catch (err) {
+    res.status(500).json({ message: "Lỗi lấy khách hàng mới trong tuần" });
+  }
+});
+
 module.exports = router;
