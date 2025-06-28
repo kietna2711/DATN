@@ -119,6 +119,11 @@ const addPro = [
 
       product.createdAt = new Date();
 
+      // KIỂM TRA TRƯỜNG BẮT BUỘC
+      if (!product.name || !product.categoryId || product.images.length === 0) {
+        return res.status(400).json({ message: "Thiếu trường bắt buộc (tên, danh mục, ảnh)" });
+      }
+
       const category = await categories.findById(product.categoryId);
       if (!category) throw new Error('Danh mục không tồn tại');
 
@@ -131,7 +136,7 @@ const addPro = [
           productId: data._id,
           size: req.body.size,
           quantity: req.body.quantity,
-          price: product.price // hoặc req.body.price nếu muốn variant có giá riêng
+          price: product.price
         });
         await variant.save();
       }
@@ -223,7 +228,7 @@ const editPro = [
             productId: req.params.id,
             size: v.size,
             quantity: v.quantity,
-            price: updateData.price // hoặc v.price nếu muốn
+            price: v.price // LẤY GIÁ TỪ BIẾN THỂ
           });
         }
       }

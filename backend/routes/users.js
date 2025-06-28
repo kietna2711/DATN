@@ -17,8 +17,9 @@ router.post('/register', async (req, res) => {
     // Kiểm tra email đã tồn tại chưa
     const exist = await User.findOne({ email });
     if (exist) {
-      if (exist.isVerified) {
-        return res.status(400).json({ message: "Email đã tồn tại" });
+      // Nếu là tài khoản Google hoặc đã xác thực, báo lỗi luôn
+      if (exist.isVerified || exist.googleId) {
+        return res.status(400).json({ message: "Email này đã tồn tại" });
       } else {
         // Nếu user chưa xác thực, xóa user cũ để cho phép đăng ký lại
         await User.deleteOne({ email });

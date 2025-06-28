@@ -77,7 +77,6 @@ const ProductInfo = ({ product }: { product: Products }) => {
         await addFavorite(productId, userId, token);
         setIsFavorite(true);
         success('Đã thêm vào yêu thích');
-        error("Có lỗi xảy ra khi thêm vào giỏ!");
 
       }
       window.dispatchEvent(new Event("favoriteChanged"));
@@ -89,12 +88,10 @@ const ProductInfo = ({ product }: { product: Products }) => {
         updatedFavorites = favorites.filter((item: Products) => ((item._id ?? item.id)?.toString() !== productId));
         setIsFavorite(false);
         success('Đã xóa khỏi yêu thích');
-        error("Có lỗi xảy ra khi thêm vào giỏ!");
       } else {
         updatedFavorites = [...favorites, product];
         setIsFavorite(true);
         success('Đã thêm vào yêu thích');
-        error("Có lỗi xảy ra khi thêm vào giỏ!");
 
       }
       localStorage.setItem("favorites", JSON.stringify(updatedFavorites));
