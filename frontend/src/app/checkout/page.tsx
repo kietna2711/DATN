@@ -9,6 +9,8 @@ import Swal from "sweetalert2";
 import CheckoutInfo from "./CheckoutInfo";
 import CheckoutPayment from "./CheckoutPayment";
 import CheckoutOrderSummary from "./OrderSummary";
+import { getVouchers } from "../services/voucherService";
+import { validateVoucher } from "../utils/validateVoucher";
 
 const SHIPPING_FEE = 10000; //phí ship mặc định
 
@@ -24,6 +26,9 @@ const CheckoutPage: React.FC = () => {
   const [note, setNote] = useState("");
   const [payment, setPayment] = useState("");
   const [coupon, setCoupon] = useState("");
+  const [discount, setDiscount] = useState(0);
+  const [voucherMessage, setVoucherMessage] = useState("");
+  const [appliedVoucher, setAppliedVoucher] = useState<any>(null);
 
   // Địa chỉ động
   const [cities, setCities] = useState<any[]>([]);
@@ -130,7 +135,7 @@ const CheckoutPage: React.FC = () => {
     },
     0
   );
-  const totalWithShipping = total + SHIPPING_FEE;
+  const totalWithShipping = total + SHIPPING_FEE - discount;
 
   // Hàm xử lý lưu đơn hàng về backend (CÓ GỬI TOKEN, dùng cho COD & thanh toán thường)
   const saveOrder = async () => {
@@ -221,6 +226,41 @@ const CheckoutPage: React.FC = () => {
   const handleLoginRedirect = () => {
     localStorage.setItem("redirectAfterLogin", window.location.pathname);
     window.location.href = "/login";
+  };
+
+  // Hàm áp dụng mã giảm giá
+  const handleApplyCoupon = async () => {
+    setVoucherMessage("");
+    setDiscount(0);
+    setAppliedVoucher(null);
+    if (!coupon.trim()) {
+      setVoucherMessage("Vui lòng nhập mã giảm giá");
+      return;
+    }
+    try {
+      const vouchers = await getVouchers();
+      const voucher = vouchers.find(v => v.discountCode.toLowerCase() === coupon.trim().toLowerCase());
+      if (!voucher) {
+        setVoucherMessage("Mã giảm giá không tồn tại");
+        return;
+      }
+      const result = validateVoucher({
+        voucher,
+        cartItems,
+        total,
+      });
+      if (!result.valid) {
+        setVoucherMessage(result.message || "Mã giảm giá không hợp lệ");
+        setDiscount(0);
+        setAppliedVoucher(null);
+      } else {
+        setDiscount(result.discount || 0);
+        setVoucherMessage("Áp dụng mã giảm giá thành công!");
+        setAppliedVoucher(voucher);
+      }
+    } catch (err) {
+      setVoucherMessage("Có lỗi khi kiểm tra mã giảm giá");
+    }
   };
 
   // Xử lý đặt hàng
@@ -346,6 +386,9 @@ const CheckoutPage: React.FC = () => {
         SHIPPING_FEE={SHIPPING_FEE}
         totalWithShipping={totalWithShipping}
         handleOrder={handleOrder}
+        onApplyCoupon={handleApplyCoupon}
+        discount={discount}
+        voucherMessage={voucherMessage}
       />
     </div>
   );

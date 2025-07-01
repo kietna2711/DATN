@@ -14,6 +14,7 @@ import ServiceSection from "./sections/Home/ServiceSection";
 import ProductNew from "./sections/Home/ProductNew";
 import ProductHotSlider from "./sections/Home/ProductHotSlider";
 import BearStories from "./sections/Home/BearStories";
+import VoucherList from "./components/VoucherList";
 
 
 export default function HomePage() {
@@ -67,6 +68,7 @@ export default function HomePage() {
     <main>
       <Banner />
       <ProductCollection />
+      <VoucherList />
       <ProductNew
         props={{
           title: "Sản phẩm mới",

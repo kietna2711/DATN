@@ -4,6 +4,7 @@ import { CategoryTable } from "@/app/components/admin/CategoryTable";
 import { useCategory } from "@/app/hooks/useCategory";
 import React, { useState, useEffect } from "react";
 import { CategoryModal } from "@/app/components/admin/CategoryModal";
+import "../admin.css";
 
 export default function CategoryManagement() {
   const {

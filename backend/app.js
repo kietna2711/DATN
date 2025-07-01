@@ -137,4 +137,53 @@ app.use(function(err, req, res, next) {
   res.render('error');
 });
 
+const cron = require('node-cron');
+const Voucher = require('./models/voucherModel');
+
+// Cronjob: CHẠY MỖI GIỜ để tự động kích hoạt voucher đến ngày bắt đầu
+cron.schedule('*/1 * * * *', async () => {
+  const now = new Date();
+  console.log('CRON TEST:', now);
+  const vouchers = await Voucher.find({
+    active: false,
+    startDate: { $lte: now },
+    endDate: { $gte: now }
+  });
+  console.log('Voucher đủ điều kiện kích hoạt:', vouchers.length);
+  try {
+    const result = await Voucher.updateMany(
+      {
+        active: false,
+        startDate: { $lte: now },
+        endDate: { $gte: now }
+      },
+      { $set: { active: true } }
+    );
+    if (result.modifiedCount > 0) {
+      console.log(`[CRON] Đã tự động kích hoạt ${result.modifiedCount} voucher đến ngày bắt đầu.`);
+    }
+  } catch (err) {
+    console.error('[CRON] Lỗi khi tự động kích hoạt voucher:', err);
+  }
+});
+
+// Cronjob: CHẠY MỖI GIỜ để tự động tắt voucher khi hết hạn
+cron.schedule('*/1 * * * *', async () => {
+  const now = new Date();
+  try {
+    const result = await Voucher.updateMany(
+      {
+        active: true,
+        endDate: { $lt: now }
+      },
+      { $set: { active: false } }
+    );
+    if (result.modifiedCount > 0) {
+      console.log(`[CRON] Đã tự động tắt ${result.modifiedCount} voucher hết hạn.`);
+    }
+  } catch (err) {
+    console.error('[CRON] Lỗi khi tự động tắt voucher:', err);
+  }
+});
+
 module.exports = app;
