@@ -14,6 +14,9 @@
 // - SHIPPING_FEE: phí ship (hằng số)
 // - totalWithShipping: tổng cộng (tiền hàng + ship)
 // - handleOrder: hàm submit đặt hàng
+// - onApplyCoupon: hàm áp dụng mã giảm giá
+// - discount: giá trị giảm giá
+// - voucherMessage: thông điệp về voucher
 
 import React from "react";
 
@@ -25,6 +28,9 @@ interface Props {
   SHIPPING_FEE: number;
   totalWithShipping: number;
   handleOrder: (e: React.FormEvent) => void;
+  onApplyCoupon: () => void; // thêm prop này
+  discount: number;          // thêm prop này
+  voucherMessage: string;    // thêm prop này
 }
 
 const CheckoutOrderSummary: React.FC<Props> = ({
@@ -35,6 +41,9 @@ const CheckoutOrderSummary: React.FC<Props> = ({
   SHIPPING_FEE,
   totalWithShipping,
   handleOrder,
+  onApplyCoupon,
+  discount,
+  voucherMessage,
 }) => (
   <div className="right">
     <form onSubmit={handleOrder}>
@@ -74,8 +83,13 @@ const CheckoutOrderSummary: React.FC<Props> = ({
             value={coupon}
             onChange={e => setCoupon(e.target.value)}
           />
-          <button type="button">ÁP DỤNG</button>
+          <button type="button" onClick={onApplyCoupon}>ÁP DỤNG</button>
         </div>
+        {voucherMessage && (
+          <div style={{ color: discount > 0 ? "green" : "red", marginBottom: 8 }}>
+            {voucherMessage}
+          </div>
+        )}
         <div className="tinhTien">
           <div className="tTien">
             <p>Tạm tính</p>
@@ -85,10 +99,16 @@ const CheckoutOrderSummary: React.FC<Props> = ({
             <p>Phí vận chuyển</p>
             <span>{SHIPPING_FEE.toLocaleString('vi-VN')} ₫</span>
           </div>
+          {discount > 0 && (
+            <div className="tTien">
+              <p>Giảm giá</p>
+              <span>-{discount.toLocaleString('vi-VN')} ₫</span>
+            </div>
+          )}
         </div>
         <div className="total">
           <p>Tổng cộng</p>
-          <span>{totalWithShipping.toLocaleString('vi-VN')} ₫</span>
+          <span>{(total + SHIPPING_FEE - discount).toLocaleString('vi-VN')} ₫</span>
         </div>
         <div className="actions">
           <button className="back" type="button" onClick={() => window.history.back()}>

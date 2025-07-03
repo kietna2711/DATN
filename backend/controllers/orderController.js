@@ -46,7 +46,7 @@ exports.createOrder = async (req, res) => {
         OrderDetail.create({
           orderId: newOrder.orderId || newOrder._id.toString(),
           productId: item.productId,
-          productName: item.productName,
+          productName: item.productName, // Tên sản phẩm có thể lấy từ item
           variant: item.variant,
           quantity: item.quantity,
           image: item.image,
@@ -128,3 +128,44 @@ exports.getOrderStatus = async (req, res) => {
     res.status(500).json({ message: "Lỗi server", error: err.message });
   }
 };
+
+exports.getOrders = async (req, res) => {
+  try {
+    const orders = await Order.find().sort({ createdAt: -1 });
+
+    const result = await Promise.all(
+      orders.map(async (order) => {
+        // orderId có thể là string hoặc _id, tùy cách bạn lưu lúc tạo OrderDetail
+        const details = await OrderDetail.find({
+          orderId: order.orderId || order._id.toString(),
+        });
+        // Lấy tên sản phẩm từ productName (vì bạn đã lưu sẵn khi tạo OrderDetail)
+        const productNames = details.map(d => d.productName || '');
+        return {
+          ...order.toObject(),
+          productNames,
+        };
+      })
+    );
+    res.json(result);
+  } catch (error) {
+    res.status(500).json({ error: "Server error" });
+  }
+};
+
+exports.updateOrderStatus = async (req, res) => {
+  try {
+    const { orderStatus } = req.body;
+    const { id } = req.params;
+    const order = await Order.findOneAndUpdate(
+      { $or: [{ orderId: id }, { _id: id }] },
+      { orderStatus },
+      { new: true }
+    );
+    if (!order) return res.status(404).json({ error: "Order not found" });
+    res.json(order);
+  } catch (error) {
+    res.status(500).json({ error: "Server error" });
+  }
+};
+

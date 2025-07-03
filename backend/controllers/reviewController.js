@@ -1,5 +1,6 @@
 const Review = require("../models/reviewModel");
-const Product = require("../models/productModel");
+const Order = require("../models/orderModel");
+const OrderDetail = require("../models/orderDetailModel");
 const User = require("../models/userModel");
 
 // Lấy review cho khách hàng (ẩn review đã bị admin ẩn, hoặc lấy tất cả cho admin)
@@ -70,6 +71,25 @@ exports.getReviewsAdmin = async (req, res) => {
     res.status(500).json({ error: "Lỗi server khi lấy review" });
   }
 };
+// trạn thái
+const canUserReviewProduct = async (userId, productId) => {
+  // 1. Lấy các đơn hàng đã giao thành công
+  const deliveredOrders = await Order.find({
+    "shippingInfo.userId": userId,
+    orderStatus: "delivered",
+  }).select('_id'); // chỉ lấy ID đơn hàng
+
+  const deliveredOrderIds = deliveredOrders.map(order => order._id);
+
+  // 2. Kiểm tra xem có OrderDetail nào trong các đơn đó chứa productId không
+  const orderDetail = await OrderDetail.findOne({
+    orderId: { $in: deliveredOrderIds },
+    productId: productId
+  });
+
+  return !!orderDetail; // true nếu có, false nếu không
+};
+
 
 // Thêm review mới
 
@@ -78,18 +98,48 @@ exports.createReview = async (req, res) => {
   try {
     const { productId, rating, comment } = req.body;
     const userId = req.user?.id;
+
     if (!userId) {
-      return res.status(401).json({ error: 'Chưa xác thực người dùng.' });
+      return res.status(401).json({ error: 'Bạn chưa đăng nhập.' });
     }
 
     const user = await User.findById(userId);
     if (!user) {
-      console.log('Không tìm thấy user với ID:', userId);
-      return res.status(404).json({ error: 'Người dùng không tồn tại.' });
+      return res.status(404).json({ error: 'Không tìm thấy người dùng.' });
     }
 
+    // ❌ Kiểm tra đã đánh giá sản phẩm này chưa
+    const existingReview = await Review.findOne({ productId, userId });
+    if (existingReview) {
+      return res.status(400).json({ error: 'Bạn đã đánh giá sản phẩm này rồi.' });
+    }
+
+    // ✅ Lấy danh sách order đã giao của user
+    const deliveredOrders = await Order.find({
+      "shippingInfo.userId": userId,
+      orderStatus: "delivered",
+    }).select('_id');
+
+    const deliveredOrderIds = deliveredOrders.map(order => order._id);
+
+    if (deliveredOrderIds.length === 0) {
+      return res.status(403).json({ error: 'Bạn cần mua và nhận hàng sản phẩm này để đánh giá.' });
+    }
+
+    // ✅ Kiểm tra OrderDetail có sản phẩm đó không
+    const matchingOrderDetail = await OrderDetail.findOne({
+      orderId: { $in: deliveredOrderIds },
+      productId
+    });
+
+    if (!matchingOrderDetail) {
+      return res.status(403).json({ error: 'Bạn chưa mua sản phẩm này hoặc đơn hàng chưa được giao.' });
+    }
+
+    // ✅ Tạo đánh giá
     const review = await Review.create({
       productId,
+      userId,
       rating,
       comment,
       username: user.username || "Ẩn danh",
@@ -98,9 +148,9 @@ exports.createReview = async (req, res) => {
       createdAt: new Date()
     });
 
-    res.status(201).json({ message: "Đánh giá đã được gửi!", review });
+    res.status(201).json({ message: "Cảm ơn bạn đã đánh giá!", review });
   } catch (err) {
-    console.error('Lỗi 500 khi tạo review:', err);
+    console.error("Lỗi khi tạo đánh giá:", err);
     res.status(500).json({ error: "Lỗi server khi gửi đánh giá." });
   }
 };

@@ -1,6 +1,9 @@
 import { Category } from "@/app/types/categoryD";
-import { log } from "console";
 import React, { useState } from "react";
+import "bootstrap/dist/css/bootstrap.min.css";
+import "@fortawesome/fontawesome-free/css/all.min.css";
+import "boxicons/css/boxicons.min.css";
+import "@/app/admin/admin.css";
 
 type Props = {
   categories: Category[];
@@ -95,7 +98,7 @@ export const CategoryTable = ({
 {cat.subcategories && cat.subcategories.length > 0 && showSubs[cat._id] && (
   <>
     {/* Log toàn bộ mảng subcategories của category này */}
-    {console.log("Subcategories của category", cat.name, ":", cat.subcategories)}
+    {/* {console.log("Subcategories của category", cat.name, ":", cat.subcategories)} */}
     {cat.subcategories.map((sub) => {
       // Log từng subcategory (với cả hidden và typeof)
       console.log("Render sub:", sub.name, "hidden:", sub.hidden, "typeof:", typeof sub.hidden);

@@ -13523,7 +13523,7 @@ be a descendant of the grid when it is being dragged.
 
 @media (min-width: 768px) {
   .app.sidenav-toggled .app-content {
-    margin-left: 0;
+    margin-left: 200px;
   }
   .app.sidenav-toggled .app-sidebar {
     left: -230px;
@@ -13565,7 +13565,7 @@ be a descendant of the grid when it is being dragged.
 
 @media (min-width: 768px) {
   .app-content {
-    margin-left: 82px;
+    margin-left: 125px;
     margin-top: 10px;
   }
 }

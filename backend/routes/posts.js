@@ -61,4 +61,20 @@ router.get('/:id', async (req, res) => {
   }
 });
 
+// Lấy danh sách bài viết theo categoryId (có hỗ trợ phân trang và lọc ẩn hiện)
+router.get('/category/:categoryId', async (req, res) => {
+  const { hidden } = req.query;
+  const { categoryId } = req.params;
+
+  const filter = { categoryId };
+  if (typeof hidden !== 'undefined') filter.hidden = hidden === 'true';
+
+  try {
+    const posts = await Post.find(filter).sort({ createdAt: -1 });
+    res.json({ total: posts.length, items: posts });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 module.exports = router;

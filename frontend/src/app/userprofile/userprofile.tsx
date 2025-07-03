@@ -6,7 +6,7 @@ import { useShowMessage } from '@/app/utils/useShowMessage';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faUser, faBox, faLock, faRightFromBracket, faCircleQuestion } from '@fortawesome/free-solid-svg-icons';
 
-// AddressManager component code moved here
+// AddressManager component
 interface Address {
   id: string;
   detail: string;
@@ -25,6 +25,38 @@ const AddressManager: React.FC<AddressManagerProps> = ({
   onSaveAddresses,
   readOnly = false,
 }) => {
+  const [cities, setCities] = useState<any[]>([]);
+  const [districts, setDistricts] = useState<any[]>([]);
+  const [wards, setWards] = useState<any[]>([]);
+  const [selectedCity, setSelectedCity] = useState('');
+  const [selectedDistrict, setSelectedDistrict] = useState('');
+  const [selectedWard, setSelectedWard] = useState('');
+  const [detailAddress, setDetailAddress] = useState('');
+
+  useEffect(() => {
+    fetch('https://raw.githubusercontent.com/kenzouno1/DiaGioiHanhChinhVN/master/data.json')
+      .then(res => res.json())
+      .then(data => setCities(data))
+      .catch(err => console.error('Lỗi tải địa chỉ:', err));
+  }, []);
+
+  const handleCityChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const cityId = e.target.value;
+    const city = cities.find(c => c.Id === cityId);
+    setSelectedCity(cityId);
+    setDistricts(city?.Districts || []);
+    setSelectedDistrict('');
+    setWards([]);
+    setSelectedWard('');
+  };
+
+  const handleDistrictChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const districtId = e.target.value;
+    const district = districts.find(d => d.Id === districtId);
+    setSelectedDistrict(districtId);
+    setWards(district?.Wards || []);
+    setSelectedWard('');
+  };
   const [newAddress, setNewAddress] = useState('');
 
   const handleAddAddress = () => {
@@ -56,14 +88,58 @@ const AddressManager: React.FC<AddressManagerProps> = ({
             Địa chỉ của bạn trống, vui lòng nhập vào.
           </p>
           {!readOnly && (
-            <div className="input-group">
+           <div className="input-group">
               <input
                 type="text"
-                placeholder="Nhập địa chỉ mới"
-                value={newAddress}
-                onChange={e => setNewAddress(e.target.value)}
+                placeholder="Số nhà, tên đường..."
+                value={detailAddress}
+                onChange={(e) => setDetailAddress(e.target.value)}
               />
-              <button onClick={handleAddAddress}>Thêm địa chỉ</button>
+
+              <select value={selectedCity} onChange={handleCityChange}>
+                <option value="">Chọn Tỉnh/Thành</option>
+                {cities.map((city: any) => (
+                  <option key={city.Id} value={city.Id}>{city.Name}</option>
+                ))}
+              </select>
+
+              <select value={selectedDistrict} onChange={handleDistrictChange} disabled={!selectedCity}>
+                <option value="">Chọn Quận/Huyện</option>
+                {districts.map((d: any) => (
+                  <option key={d.Id} value={d.Id}>{d.Name}</option>
+                ))}
+              </select>
+
+              <select value={selectedWard} onChange={(e) => setSelectedWard(e.target.value)} disabled={!selectedDistrict}>
+                <option value="">Chọn Phường/Xã</option>
+                {wards.map((w: any) => (
+                  <option key={w.Id} value={w.Id}>{w.Name}</option>
+                ))}
+              </select>
+
+              <button onClick={() => {
+                if (!detailAddress || !selectedCity || !selectedDistrict || !selectedWard) return;
+                const city = cities.find(c => c.Id === selectedCity)?.Name;
+                const district = districts.find(d => d.Id === selectedDistrict)?.Name;
+                const ward = wards.find(w => w.Id === selectedWard)?.Name;
+
+                const full = `${detailAddress}, ${ward}, ${district}, ${city}`;
+                const newEntry = { id: Date.now().toString(), detail: full };
+
+                const updated = [...addresses, newEntry];
+                onUpdateAddresses(updated);
+                if (onSaveAddresses) onSaveAddresses();
+
+                // Reset
+                setDetailAddress('');
+                setSelectedCity('');
+                setDistricts([]);
+                setSelectedDistrict('');
+                setWards([]);
+                setSelectedWard('');
+              }}>
+                Thêm địa chỉ
+              </button>
             </div>
           )}
         </>
@@ -89,12 +165,57 @@ const AddressManager: React.FC<AddressManagerProps> = ({
             <div className="input-group">
               <input
                 type="text"
-                placeholder="Nhập địa chỉ mới"
-                value={newAddress}
-                onChange={e => setNewAddress(e.target.value)}
+                placeholder="Số nhà, tên đường..."
+                value={detailAddress}
+                onChange={(e) => setDetailAddress(e.target.value)}
               />
-              <button onClick={handleAddAddress}>Thêm địa chỉ</button>
+
+              <select value={selectedCity} onChange={handleCityChange}>
+                <option value="">Chọn Tỉnh/Thành</option>
+                {cities.map((city: any) => (
+                  <option key={city.Id} value={city.Id}>{city.Name}</option>
+                ))}
+              </select>
+
+              <select value={selectedDistrict} onChange={handleDistrictChange} disabled={!selectedCity}>
+                <option value="">Chọn Quận/Huyện</option>
+                {districts.map((d: any) => (
+                  <option key={d.Id} value={d.Id}>{d.Name}</option>
+                ))}
+              </select>
+
+              <select value={selectedWard} onChange={(e) => setSelectedWard(e.target.value)} disabled={!selectedDistrict}>
+                <option value="">Chọn Phường/Xã</option>
+                {wards.map((w: any) => (
+                  <option key={w.Id} value={w.Id}>{w.Name}</option>
+                ))}
+              </select>
+
+              <button onClick={() => {
+                if (!detailAddress || !selectedCity || !selectedDistrict || !selectedWard) return;
+                const city = cities.find(c => c.Id === selectedCity)?.Name;
+                const district = districts.find(d => d.Id === selectedDistrict)?.Name;
+                const ward = wards.find(w => w.Id === selectedWard)?.Name;
+
+                const full = `${detailAddress}, ${ward}, ${district}, ${city}`;
+                const newEntry = { id: Date.now().toString(), detail: full };
+
+                const updated = [...addresses, newEntry];
+                onUpdateAddresses(updated);
+                if (onSaveAddresses) onSaveAddresses();
+
+                // Reset
+                setDetailAddress('');
+                setSelectedCity('');
+                setDistricts([]);
+                setSelectedDistrict('');
+                setWards([]);
+                setSelectedWard('');
+              }}>
+                Thêm địa chỉ
+              </button>
             </div>
+
           )}
         </>
       )}
@@ -129,49 +250,45 @@ const UserProfile: React.FC = () => {
   const [isEditing, setIsEditing] = useState(false);
   const showMessage = useShowMessage("userprofile", "user");
 
-  useEffect(() => {
-    const userData = localStorage.getItem('user');
-    const token = localStorage.getItem('token');
-    if (!userData) {
+useEffect(() => {
+  const userData = localStorage.getItem('user');
+  const token = localStorage.getItem('token');
+  if (!userData) {
+    window.location.href = '/login';
+    return;
+  }
+
+  const parsedUser = JSON.parse(userData);
+  const username = parsedUser.username;
+  const isGoogleUser = !!parsedUser.googleId;
+
+  if (!token) {
+    window.location.href = '/login';
+    return;
+  }
+
+  // Gọi API để luôn lấy user + profile mới nhất từ server
+  fetch(`http://localhost:3000/api/usersProfile/username/${username}`, {
+    headers: {
+      'Authorization': `Bearer ${token}`,
+      'Content-Type': 'application/json',
+    }
+  })
+    .then(res => {
+      if (!res.ok) throw new Error('Không thể lấy thông tin người dùng');
+      return res.json();
+    })
+    .then((data: any) => {
+      if (!data.profile) data.profile = { addresses: [] };
+      else if (!data.profile.addresses) data.profile.addresses = [];
+      setUser(data);
+    })
+    .catch(err => {
+      console.error('Lỗi khi lấy user:', err);
       window.location.href = '/login';
-      return;
-    }
-    const parsedUser = JSON.parse(userData);
-    const isGoogleUser = !!parsedUser.googleId;
-    if (isGoogleUser) {
-      if (!parsedUser.profile) {
-        parsedUser.profile = { addresses: [] };
-      } else if (!parsedUser.profile.addresses) {
-        parsedUser.profile.addresses = [];
-      }
-      setUser(parsedUser);
-    } else {
-      if (!token) {
-        window.location.href = '/login';
-        return;
-      }
-      const userId = parsedUser._id;
-      fetch(`http://localhost:3000/api/usersProfile/id/${userId}`, {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        }
-      })
-        .then(res => {
-          if (!res.ok) throw new Error('Không thể lấy thông tin người dùng');
-          return res.json();
-        })
-        .then((data: any) => {
-          if (!data.profile) data.profile = { addresses: [] };
-          else if (!data.profile.addresses) data.profile.addresses = [];
-          setUser(data);
-        })
-        .catch(err => {
-          console.error('Lỗi khi lấy user:', err);
-          window.location.href = '/login';
-        });
-    }
-  }, []);
+    });
+}, []);
+
 
   const isGoogleUser = !!user?.googleId;
 
@@ -231,43 +348,43 @@ const UserProfile: React.FC = () => {
     </div>
   );
 
-  const renderEditFormNormal = () => (
-    <div className="form-grid">
-      <div className="form-group">
-        <label htmlFor="lastName">Họ</label>
-        <input type="text" id="lastName" name="lastName" value={editUser?.lastName || ''} onChange={handleUserEditChange} />
-      </div>
-      <div className="form-group">
-        <label htmlFor="firstName">Tên</label>
-        <input type="text" id="firstName" name="firstName" value={editUser?.firstName || ''} onChange={handleUserEditChange} />
-      </div>
-      <div className="form-group">
-        <label htmlFor="username">Tên đăng nhập</label>
-        <input type="text" id="username" name="username" value={editUser?.username || ''} onChange={handleUserEditChange} />
-      </div>
-      <div className="form-group">
-        <label htmlFor="email">Email</label>
-        <input type="email" id="email" name="email" value={editUser?.email || ''} onChange={handleUserEditChange} />
-      </div>
-      <div className="form-group">
-        <label htmlFor="phone">Số điện thoại</label>
-        <input type="text" id="phone" name="phone" value={editUser?.profile?.phone || ''} onChange={handleProfileEditChange} />
-      </div>
-      <div className="form-group">
-        <label htmlFor="gender">Giới tính</label>
-        <select id="gender" name="gender" value={editUser?.profile?.gender || ''} onChange={handleProfileEditChange}>
-          <option value="">Chọn giới tính</option>
-          <option value="male">Nam</option>
-          <option value="female">Nữ</option>
-          <option value="other">Khác</option>
-        </select>
-      </div>
-      <div className="form-group">
-        <label htmlFor="birthDate">Ngày sinh</label>
-        <input type="date" id="birthDate" name="birthDate" value={editUser?.profile?.birthDate ? editUser.profile.birthDate.slice(0, 10) : ''} onChange={handleProfileEditChange} />
-      </div>
+const renderEditFormNormal = () => (
+  <div className="form-grid">
+    <div className="form-group">
+      <label htmlFor="lastName">Họ</label>
+      <input type="text" id="lastName" name="lastName" value={editUser?.lastName || ''} onChange={handleUserEditChange} />
     </div>
-  );
+    <div className="form-group">
+      <label htmlFor="firstName">Tên</label>
+      <input type="text" id="firstName" name="firstName" value={editUser?.firstName || ''} onChange={handleUserEditChange} />
+    </div>
+    <div className="form-group">
+      <label htmlFor="username">Tên đăng nhập</label>
+      <input type="text" id="username" name="username" value={editUser?.username || ''} disabled />
+    </div>
+    <div className="form-group">
+      <label htmlFor="email">Email</label>
+      <input type="email" id="email" name="email" value={editUser?.email || ''} disabled />
+    </div>
+    <div className="form-group">
+      <label htmlFor="phone">Số điện thoại</label>
+      <input type="text" id="phone" name="phone" value={editUser?.profile?.phone || ''} onChange={handleProfileEditChange} />
+    </div>
+    <div className="form-group">
+      <label htmlFor="gender">Giới tính</label>
+      <select id="gender" name="gender" value={editUser?.profile?.gender || ''} onChange={handleProfileEditChange}>
+        <option value="">Chọn giới tính</option>
+        <option value="male">Nam</option>
+        <option value="female">Nữ</option>
+        <option value="other">Khác</option>
+      </select>
+    </div>
+    <div className="form-group">
+      <label htmlFor="birthDate">Ngày sinh</label>
+      <input type="date" id="birthDate" name="birthDate" value={editUser?.profile?.birthDate ? editUser.profile.birthDate.slice(0, 10) : ''} onChange={handleProfileEditChange} />
+    </div>
+  </div>
+);
 
   const renderEditFormGoogle = () => (
     <div className="form-grid">
@@ -317,46 +434,55 @@ const UserProfile: React.FC = () => {
     setEditUser(null);
   };
 
+  /**
+   * Lưu hoặc tạo mới profile nếu chưa từng có (chuẩn RESTful: POST nếu chưa có, PUT nếu đã có)
+   * - Nếu user đã có profile, gọi PUT /api/usersProfile/:username
+   * - Nếu user chưa có profile, gọi POST /api/usersProfile/:username
+   */
   const handleSave = () => {
     if (!editUser) return;
     const token = localStorage.getItem('token');
-    const isGoogleUser = !!editUser.googleId;
-    const body: any = isGoogleUser
-      ? {
-          profile: {
-            phone: editUser.profile?.phone || '',
-            gender: editUser.profile?.gender || '',
-            birthDate: editUser.profile?.birthDate || '',
-            addresses: editUser.profile?.addresses || []
-          }
-        }
-      : {
-          firstName: editUser.firstName,
-          lastName: editUser.lastName,
-          username: editUser.username,
-          email: editUser.email,
-          profile: {
-            phone: editUser.profile?.phone || '',
-            gender: editUser.profile?.gender || '',
-            birthDate: editUser.profile?.birthDate || '',
-            addresses: editUser.profile?.addresses || []
-          }
-        };
-    fetch(`http://localhost:3000/api/usersProfile/${editUser._id}`, {
-      method: 'PUT',
+    const username = editUser.username;
+
+    if (!username) {
+      showMessage.error('Thiếu username!');
+      return;
+    }
+
+    const profilePayload = {
+      phone: editUser.profile?.phone || '',
+      gender: editUser.profile?.gender || '',
+      birthDate: editUser.profile?.birthDate || '',
+      addresses: editUser.profile?.addresses || [],
+    };
+
+    // Kiểm tra user đã có profile hay chưa
+    const hasProfile = !!user?.profile && (
+      user.profile.phone ||
+      user.profile.gender ||
+      user.profile.birthDate ||
+      (user.profile.addresses && user.profile.addresses.length > 0)
+    );
+
+    const method = hasProfile ? 'PUT' : 'POST';
+
+    fetch(`http://localhost:3000/api/usersProfile/${username}`, {
+      method,
       headers: {
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${token}`
       },
-      body: JSON.stringify(body),
+      body: JSON.stringify(profilePayload),
     })
-      .then(res => {
-        if (!res.ok) throw new Error('Lỗi khi cập nhật dữ liệu');
+      .then(async res => {
+        if (!res.ok) {
+          const err = await res.json().catch(() => ({}));
+          throw new Error(err.message || 'Lỗi khi lưu dữ liệu');
+        }
         return res.json();
       })
-      .then((updatedUser) => {
-        if (!updatedUser.profile) updatedUser.profile = { addresses: [] };
-        if (!updatedUser.profile.addresses) updatedUser.profile.addresses = [];
+      .then((profile) => {
+        const updatedUser = { ...editUser, profile };
         setUser(updatedUser);
         localStorage.setItem('user', JSON.stringify(updatedUser));
         setIsEditing(false);
@@ -364,8 +490,8 @@ const UserProfile: React.FC = () => {
         showMessage.success('Cập nhật thành công!');
       })
       .catch(err => {
-        console.error('Lỗi khi cập nhật:', err);
-        showMessage.error('Lỗi khi cập nhật!');
+        console.error('Lỗi khi lưu:', err);
+        showMessage.error(err.message || 'Lỗi khi lưu!');
       });
   };
 
@@ -402,7 +528,7 @@ const UserProfile: React.FC = () => {
           </div>
           {!isGoogleUser && (
             <div className={`menu-item ${currentTab === 'password' ? 'active' : ''}`} onClick={() => setCurrentTab('password')}>
-              <FontAwesomeIcon icon={faLock} style={{ marginRight: 8 }} /> Quên mật khẩu
+              <FontAwesomeIcon icon={faLock} style={{ marginRight: 8 }} /> Đổi mật khẩu
             </div>
           )}
           <div className="menu-item" onClick={() => setShowLogoutConfirm(true)}>
