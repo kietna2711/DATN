@@ -217,6 +217,52 @@ const CheckoutPage: React.FC = () => {
     }
   };
 
+
+  // --- HÀM GỬI ĐƠN HÀNG ĐỂ LẤY LINK THANH TOÁN VNPAY (THÊM MỚI) ---
+  const handleOnlineOrderVnpay = async () => {
+    const orderId = "order" + Date.now() + Math.floor(Math.random() * 1000000); // Luôn duy nhất
+    const shippingInfo = {
+      name: fullName,
+      phone,
+      address: `${address}, ${wards.find(w => w.Id === selectedWard)?.Name || ""}, ${districts.find(d => d.Id === selectedDistrict)?.Name || ""}, ${cities.find(c => c.Id === selectedCity)?.Name || ""}`,
+      note,
+      city: cities.find(c => c.Id === selectedCity)?.Name || "",
+      district: districts.find(d => d.Id === selectedDistrict)?.Name || "",
+      ward: wards.find(w => w.Id === selectedWard)?.Name || "",
+    };
+    const items = cartItems.map(item => ({
+      productId: item.product._id,
+      productName: item.product.name,
+      variant: item.selectedVariant ? item.selectedVariant.size : undefined,
+      quantity: item.quantity,
+      price: item.selectedVariant ? item.selectedVariant.price : item.product.price,
+      image: item.product.images?.[0],
+    }));
+
+    try {
+      const res = await axios.post("http://localhost:3000/payment/vnpay", {
+        amount: totalWithShipping,
+        orderId,
+        orderInfo: "Thanh toán đơn hàng MimiBear qua VNPAY",
+        items,
+        shippingInfo,
+        coupon,
+        shippingFee: SHIPPING_FEE,
+      }, {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        }
+      });
+      window.location.href = res.data.paymentUrl;
+    } catch (err) {
+      Swal.fire("Lỗi", "Không thể tạo thanh toán VNPAY!", "error");
+    }
+  };
+
+
+
+
+
   // Khi bấm nút đăng nhập ở trang thanh toán
   const handleLoginRedirect = () => {
     localStorage.setItem("redirectAfterLogin", window.location.pathname);
@@ -283,8 +329,11 @@ const CheckoutPage: React.FC = () => {
       } else if (payment === "momo") {
         // THANH TOÁN ONLINE MOMO: chuyển sang cổng thanh toán
         await handleOnlineOrderMomo();
+      } else if(payment === "vnpay") {
+        // thanh toán online VNPAY
+        await handleOnlineOrderVnpay();
       } else {
-        // Các phương thức khác (ví dụ: vnpay, zalopay, thanh toán thông thường)
+        // Các phương thức khác (ví dụ: zalopay, thanh toán thông thường)
         try {
           await saveOrder();
           Swal.fire("Thanh toán thành công", "Cảm ơn bạn đã mua hàng!", "success").then(() => {
