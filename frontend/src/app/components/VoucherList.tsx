@@ -34,9 +34,6 @@ export default function VoucherList() {
       }, 1500);
     });
   };
-
-  if (vouchers.length === 0) return <div>Không có voucher toàn shop nào!</div>;
-
   return (  
     <div className={styles.container}>
       <h1 className={styles.title}>Mã Giảm Giá Toàn Shop</h1>
