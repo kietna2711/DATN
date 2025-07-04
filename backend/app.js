@@ -25,10 +25,14 @@ const vouchersRouter = require('./routes/vouchers');
 
 
 
-const paymentRouter = require("./routes/payment"); //thanh toán
+
 const postsRouter = require('./routes/posts');
 const postscategoriesRouter = require('./routes/postscategories');
+
 const orderRoutes = require('./routes/order'); //đơn hàng
+const orderRoutes = require("./routes/order"); //đơn hàng
+const paymentRouter = require("./routes/payment"); //thanh toán
+const orderDetailRoutes = require('./routes/orderdetail'); //đường dẫn đơn hàng chi tiết
 const reviewRoutes = require('./routes/review');
 const usersProfileRoutes = require('./routes/userprofile'); // Đường dẫn đến routes usersProfile
 const favoriteRouter = require('./routes/favorites');
@@ -116,7 +120,9 @@ app.use("/payment", paymentRouter); //Momo, thanh toán
 app.use(require('./routes/payment')); //IPN
 // app.use("/payment", require("./routes/payment")); //đường dẫn file routes/payment.js
 app.use("/orders", orderRoutes);
+
 app.use('/api/statistics', statisticsRouter);
+app.use("/orderdetails", orderDetailRoutes); //đường dẫn đơn hàng chi tiết
 
 app.use('/favorites', favoriteRouter);
 app.use("/reviews", require("./routes/review"));
@@ -137,6 +143,56 @@ app.use(function(err, req, res, next) {
   // render the error page
   res.status(err.status || 500);
   res.render('error');
+});
+
+const cron = require('node-cron');
+const Voucher = require('./models/voucherModel');
+const orderDetailModel = require('./models/orderDetailModel');
+
+// Cronjob: CHẠY MỖI GIỜ để tự động kích hoạt voucher đến ngày bắt đầu
+cron.schedule('*/1 * * * *', async () => {
+  const now = new Date();
+  console.log('CRON TEST:', now);
+  const vouchers = await Voucher.find({
+    active: false,
+    startDate: { $lte: now },
+    endDate: { $gte: now }
+  });
+  console.log('Voucher đủ điều kiện kích hoạt:', vouchers.length);
+  try {
+    const result = await Voucher.updateMany(
+      {
+        active: false,
+        startDate: { $lte: now },
+        endDate: { $gte: now }
+      },
+      { $set: { active: true } }
+    );
+    if (result.modifiedCount > 0) {
+      console.log(`[CRON] Đã tự động kích hoạt ${result.modifiedCount} voucher đến ngày bắt đầu.`);
+    }
+  } catch (err) {
+    console.error('[CRON] Lỗi khi tự động kích hoạt voucher:', err);
+  }
+});
+
+// Cronjob: CHẠY MỖI GIỜ để tự động tắt voucher khi hết hạn
+cron.schedule('*/1 * * * *', async () => {
+  const now = new Date();
+  try {
+    const result = await Voucher.updateMany(
+      {
+        active: true,
+        endDate: { $lt: now }
+      },
+      { $set: { active: false } }
+    );
+    if (result.modifiedCount > 0) {
+      console.log(`[CRON] Đã tự động tắt ${result.modifiedCount} voucher hết hạn.`);
+    }
+  } catch (err) {
+    console.error('[CRON] Lỗi khi tự động tắt voucher:', err);
+  }
 });
 
 module.exports = app;

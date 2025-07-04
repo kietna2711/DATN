@@ -1,5 +1,9 @@
 import { Category } from "@/app/types/categoryD";
 import React, { useState } from "react";
+import "bootstrap/dist/css/bootstrap.min.css";
+import "@fortawesome/fontawesome-free/css/all.min.css";
+import "boxicons/css/boxicons.min.css";
+import "@/app/admin/admin.css";
 
 type Props = {
   categories: Category[];

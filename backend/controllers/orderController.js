@@ -16,13 +16,6 @@ exports.createOrder = async (req, res) => {
     if (paymentMethod === 'cod') {
       paymentStatus = 'unpaid';
     }
-    // let paymentStatus = 'pending';
-    // if (paymentMethod === 'momo' || paymentMethod === 'vnpay') {
-    //   paymentStatus = 'paid';
-    // }
-    // if (paymentMethod === 'cod') {
-    //   paymentStatus = 'unpaid';
-    // }
 
     // 1. Lưu thông tin đơn hàng tổng quan khi tạo Order:
     const newOrder = new Order({
@@ -66,6 +59,7 @@ exports.createOrder = async (req, res) => {
 exports.getAllOrders = async (req, res) => {
   try {
     const orders = await Order.find().sort({ createdAt: -1 });
+
     res.json(orders);
   } catch (err) {
     res.status(500).json({ message: "Lỗi lấy tất cả đơn hàng" });

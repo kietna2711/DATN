@@ -13,7 +13,6 @@ const productSchema = new mongoose.Schema({
   subcategoryId: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'subcategories',
-    ref: 'subcategories' // Đúng nếu model export là 'subcategories'
   }
 }, {
   timestamps: true, // ✅ Tự động thêm createdAt và updatedAt
@@ -22,6 +21,14 @@ const productSchema = new mongoose.Schema({
     virtuals: true,
     transform: function (doc, ret) {
       delete ret.id;
+      // Xóa id trong categoryId nếu có
+      if (ret.categoryId && ret.categoryId.id) {
+        delete ret.categoryId.id;
+      }
+      // Xóa id trong subcategoryId nếu có
+      if (ret.subcategoryId && ret.subcategoryId.id) {
+        delete ret.subcategoryId.id;
+      }
       return ret;
     }
   },

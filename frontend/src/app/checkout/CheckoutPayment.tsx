@@ -43,7 +43,7 @@ const CheckoutPayment: React.FC<Props> = ({
         />
       </div>
     </div>
-    <div className="payment-method" onClick={() => handlePaymentChange("zalopay")}>
+    {/* <div className="payment-method" onClick={() => handlePaymentChange("zalopay")}>
       <input
         type="radio"
         name="pay"
@@ -54,7 +54,7 @@ const CheckoutPayment: React.FC<Props> = ({
       <div className="cod">
         <img src="http://localhost:3000/images/zalopay.png" alt="ZaloPay" style={{ width: 65 }} />
       </div>
-    </div>
+    </div> */}
     <div className="payment-method" onClick={() => handlePaymentChange("vnpay")}>
       <input
         type="radio"

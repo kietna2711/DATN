@@ -9,6 +9,8 @@ import Swal from "sweetalert2";
 import CheckoutInfo from "./CheckoutInfo";
 import CheckoutPayment from "./CheckoutPayment";
 import CheckoutOrderSummary from "./OrderSummary";
+import { getVouchers } from "../services/voucherService";
+import { validateVoucher } from "../utils/validateVoucher";
 
 const SHIPPING_FEE = 10000; //phí ship mặc định
 
@@ -24,6 +26,9 @@ const CheckoutPage: React.FC = () => {
   const [note, setNote] = useState("");
   const [payment, setPayment] = useState("");
   const [coupon, setCoupon] = useState("");
+  const [discount, setDiscount] = useState(0);
+  const [voucherMessage, setVoucherMessage] = useState("");
+  const [appliedVoucher, setAppliedVoucher] = useState<any>(null);
 
   // Địa chỉ động
   const [cities, setCities] = useState<any[]>([]);
@@ -130,7 +135,7 @@ const CheckoutPage: React.FC = () => {
     },
     0
   );
-  const totalWithShipping = total + SHIPPING_FEE;
+  const totalWithShipping = total + SHIPPING_FEE - discount;
 
   // Hàm xử lý lưu đơn hàng về backend (CÓ GỬI TOKEN, dùng cho COD & thanh toán thường)
   const saveOrder = async () => {
@@ -146,7 +151,7 @@ const CheckoutPage: React.FC = () => {
     };
     const items = cartItems.map(item => ({
       productId: item.product._id,
-      productName: item.product.name,
+      productName: item.product.name, //tên sản phẩm
       variant: item.selectedVariant ? item.selectedVariant.size : undefined,
       quantity: item.quantity,
       price: item.selectedVariant ? item.selectedVariant.price : item.product.price,
@@ -217,10 +222,91 @@ const CheckoutPage: React.FC = () => {
     }
   };
 
+
+  // --- HÀM GỬI ĐƠN HÀNG ĐỂ LẤY LINK THANH TOÁN VNPAY (THÊM MỚI) ---
+  const handleOnlineOrderVnpay = async () => {
+    const orderId = "order" + Date.now() + Math.floor(Math.random() * 1000000); // Luôn duy nhất
+    const shippingInfo = {
+      name: fullName,
+      phone,
+      address: `${address}, ${wards.find(w => w.Id === selectedWard)?.Name || ""}, ${districts.find(d => d.Id === selectedDistrict)?.Name || ""}, ${cities.find(c => c.Id === selectedCity)?.Name || ""}`,
+      note,
+      city: cities.find(c => c.Id === selectedCity)?.Name || "",
+      district: districts.find(d => d.Id === selectedDistrict)?.Name || "",
+      ward: wards.find(w => w.Id === selectedWard)?.Name || "",
+    };
+    const items = cartItems.map(item => ({
+      productId: item.product._id,
+      productName: item.product.name,
+      variant: item.selectedVariant ? item.selectedVariant.size : undefined,
+      quantity: item.quantity,
+      price: item.selectedVariant ? item.selectedVariant.price : item.product.price,
+      image: item.product.images?.[0],
+    }));
+
+    try {
+      const res = await axios.post("http://localhost:3000/payment/vnpay", {
+        amount: totalWithShipping,
+        orderId,
+        orderInfo: "Thanh toán đơn hàng MimiBear qua VNPAY",
+        items,
+        shippingInfo,
+        coupon,
+        shippingFee: SHIPPING_FEE,
+      }, {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        }
+      });
+      window.location.href = res.data.paymentUrl;
+    } catch (err) {
+      Swal.fire("Lỗi", "Không thể tạo thanh toán VNPAY!", "error");
+    }
+  };
+
+
+
+
+
   // Khi bấm nút đăng nhập ở trang thanh toán
   const handleLoginRedirect = () => {
     localStorage.setItem("redirectAfterLogin", window.location.pathname);
     window.location.href = "/login";
+  };
+
+  // Hàm áp dụng mã giảm giá
+  const handleApplyCoupon = async () => {
+    setVoucherMessage("");
+    setDiscount(0);
+    setAppliedVoucher(null);
+    if (!coupon.trim()) {
+      setVoucherMessage("Vui lòng nhập mã giảm giá");
+      return;
+    }
+    try {
+      const vouchers = await getVouchers();
+      const voucher = vouchers.find(v => v.discountCode.toLowerCase() === coupon.trim().toLowerCase());
+      if (!voucher) {
+        setVoucherMessage("Mã giảm giá không tồn tại");
+        return;
+      }
+      const result = validateVoucher({
+        voucher,
+        cartItems,
+        total,
+      });
+      if (!result.valid) {
+        setVoucherMessage(result.message || "Mã giảm giá không hợp lệ");
+        setDiscount(0);
+        setAppliedVoucher(null);
+      } else {
+        setDiscount(result.discount || 0);
+        setVoucherMessage("Áp dụng mã giảm giá thành công!");
+        setAppliedVoucher(voucher);
+      }
+    } catch (err) {
+      setVoucherMessage("Có lỗi khi kiểm tra mã giảm giá");
+    }
   };
 
   // Xử lý đặt hàng
@@ -283,8 +369,11 @@ const CheckoutPage: React.FC = () => {
       } else if (payment === "momo") {
         // THANH TOÁN ONLINE MOMO: chuyển sang cổng thanh toán
         await handleOnlineOrderMomo();
+      } else if(payment === "vnpay") {
+        // thanh toán online VNPAY
+        await handleOnlineOrderVnpay();
       } else {
-        // Các phương thức khác (ví dụ: vnpay, zalopay, thanh toán thông thường)
+        // Các phương thức khác (ví dụ: zalopay, thanh toán thông thường)
         try {
           await saveOrder();
           Swal.fire("Thanh toán thành công", "Cảm ơn bạn đã mua hàng!", "success").then(() => {
@@ -346,6 +435,9 @@ const CheckoutPage: React.FC = () => {
         SHIPPING_FEE={SHIPPING_FEE}
         totalWithShipping={totalWithShipping}
         handleOrder={handleOrder}
+        onApplyCoupon={handleApplyCoupon}
+        discount={discount}
+        voucherMessage={voucherMessage}
       />
     </div>
   );

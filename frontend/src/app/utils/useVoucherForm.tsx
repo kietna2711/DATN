@@ -23,8 +23,8 @@ export function validateVoucherForm(
   const end = new Date(form.endDate);
   if (isNaN(start.getTime()) || isNaN(end.getTime()))
     return "Ngày không hợp lệ.";
-  if (start > end)
-    return "Ngày kết thúc phải lớn hơn hoặc bằng ngày bắt đầu.";
+  if (start >= end)
+    return "Ngày kết thúc phải lớn hơn ngày bắt đầu.";
 
   if (
     form.targetType === "product" &&

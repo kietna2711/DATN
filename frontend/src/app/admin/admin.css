@@ -13523,7 +13523,7 @@ be a descendant of the grid when it is being dragged.
 
 @media (min-width: 768px) {
   .app.sidenav-toggled .app-content {
-    margin-left: 0;
+    margin-left: 200px;
   }
   .app.sidenav-toggled .app-sidebar {
     left: -230px;
@@ -13565,7 +13565,7 @@ be a descendant of the grid when it is being dragged.
 
 @media (min-width: 768px) {
   .app-content {
-    margin-left: 82px;
+    margin-left: 125px;
     margin-top: 10px;
   }
 }
@@ -15709,4 +15709,41 @@ text-align:center;
 .btn-admin-role .fa-crown {
   color: #d16ba5;
   font-size: 1.1em;
+}
+
+
+/* sửa bảng đơn hàng */
+/* ============ TÙY CHỈNH BẢNG ĐƠN HÀNG ADMIN ============ */
+#sampleTable th, #sampleTable td {
+  padding: 0;    /* Tăng/giảm khoảng cách trong ô */
+  vertical-align: middle;
+  text-align: center;
+}
+
+#sampleTable th {
+  background-color: #f2f4fa;
+  font-weight: 600;
+}
+
+#sampleTable td {
+  font-size: 11px;
+}
+
+/* Chỉnh cột tên sản phẩm rộng hơn */
+#sampleTable td:nth-child(2) {
+  text-align: start;
+  min-width: 150px;
+  padding: 0 10px;
+  /* Hoặc tăng lên nếu tên sản phẩm dài */
+}
+
+/* Chỉnh cột mã đơn hàng nhỏ lại */
+#sampleTable td:first-child {
+  min-width: 80px;
+  padding: 0 10px;
+}
+
+/* Chỉnh hàng bảng cho đẹp hơn */
+#sampleTable tr {
+  border-bottom: 1px solid #e0e4ee;
 }
