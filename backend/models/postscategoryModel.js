@@ -1,4 +1,4 @@
-const mongoose = require('mongoose');
+zzconst mongoose = require('mongoose');
 
 const postCategorySchema = new mongoose.Schema({
   title: { type: String, required: true },

@@ -16,13 +16,6 @@ exports.createOrder = async (req, res) => {
     if (paymentMethod === 'cod') {
       paymentStatus = 'unpaid';
     }
-    // let paymentStatus = 'pending';
-    // if (paymentMethod === 'momo' || paymentMethod === 'vnpay') {
-    //   paymentStatus = 'paid';
-    // }
-    // if (paymentMethod === 'cod') {
-    //   paymentStatus = 'unpaid';
-    // }
 
     // 1. Lưu thông tin đơn hàng tổng quan khi tạo Order:
     const newOrder = new Order({
