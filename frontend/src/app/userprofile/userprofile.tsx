@@ -2,6 +2,7 @@
 import React, { useEffect, useState } from 'react';
 import './userprofile.css';
 import './addressmanager.css';
+import UserOrders from './orderList';
 import { useShowMessage } from '@/app/utils/useShowMessage';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faUser, faBox, faLock, faRightFromBracket, faCircleQuestion } from '@fortawesome/free-solid-svg-icons';
@@ -17,14 +18,19 @@ interface AddressManagerProps {
   onUpdateAddresses: (newAddresses: Address[]) => void;
   onSaveAddresses?: () => void;
   readOnly?: boolean;
+  onAddAddressSuccess?: () => void;
+  onDeleteAddressSuccess?: () => void;
 }
 
 const AddressManager: React.FC<AddressManagerProps> = ({
   addresses = [],
   onUpdateAddresses,
   onSaveAddresses,
+  onAddAddressSuccess,
+  onDeleteAddressSuccess,
   readOnly = false,
 }) => {
+
   const [cities, setCities] = useState<any[]>([]);
   const [districts, setDistricts] = useState<any[]>([]);
   const [wards, setWards] = useState<any[]>([]);
@@ -77,6 +83,7 @@ const AddressManager: React.FC<AddressManagerProps> = ({
     const updated = addresses.filter(addr => addr.id !== id);
     onUpdateAddresses(updated);
     if (onSaveAddresses) onSaveAddresses();
+  if (onDeleteAddressSuccess) onDeleteAddressSuccess(); 
   };
 
   return (
@@ -128,6 +135,7 @@ const AddressManager: React.FC<AddressManagerProps> = ({
 
                 const updated = [...addresses, newEntry];
                 onUpdateAddresses(updated);
+                if (onAddAddressSuccess) onAddAddressSuccess();
                 if (onSaveAddresses) onSaveAddresses();
 
                 // Reset
@@ -202,6 +210,7 @@ const AddressManager: React.FC<AddressManagerProps> = ({
 
                 const updated = [...addresses, newEntry];
                 onUpdateAddresses(updated);
+                if (onAddAddressSuccess) onAddAddressSuccess();
                 if (onSaveAddresses) onSaveAddresses();
 
                 // Reset
@@ -315,6 +324,16 @@ useEffect(() => {
     } : prev);
   };
 
+    const getGenderLabel = (gender: string) => {
+    switch (gender) {
+      case 'male': return 'Nam';
+      case 'female': return 'Nữ';
+      case 'other': return 'Khác';
+      default: return '';
+    }
+  };
+
+
   const renderUserInfo = () => (
     <div className="form-grid">
       <div className="form-group">
@@ -339,7 +358,7 @@ useEffect(() => {
       </div>
       <div className="form-group">
         <label>Giới tính</label>
-        <input type="text" value={user?.profile?.gender || ''} disabled />
+        <input type="text" value={getGenderLabel(user?.profile?.gender || '')} disabled />
       </div>
       <div className="form-group">
         <label>Ngày sinh</label>
@@ -441,8 +460,15 @@ const renderEditFormNormal = () => (
    */
   const handleSave = () => {
     if (!editUser) return;
+
+    const { firstName, lastName, username } = editUser;
+
+    if (!lastName?.trim() || !firstName?.trim()) {
+      showMessage.error("Họ và tên không được để trống!");
+      return;
+    }
+
     const token = localStorage.getItem('token');
-    const username = editUser.username;
 
     if (!username) {
       showMessage.error('Thiếu username!');
@@ -450,13 +476,14 @@ const renderEditFormNormal = () => (
     }
 
     const profilePayload = {
+      firstName,
+      lastName,
       phone: editUser.profile?.phone || '',
       gender: editUser.profile?.gender || '',
       birthDate: editUser.profile?.birthDate || '',
       addresses: editUser.profile?.addresses || [],
     };
 
-    // Kiểm tra user đã có profile hay chưa
     const hasProfile = !!user?.profile && (
       user.profile.phone ||
       user.profile.gender ||
@@ -481,10 +508,9 @@ const renderEditFormNormal = () => (
         }
         return res.json();
       })
-      .then((profile) => {
-        const updatedUser = { ...editUser, profile };
-        setUser(updatedUser);
-        localStorage.setItem('user', JSON.stringify(updatedUser));
+      .then((data) => {
+        setUser(data);
+        localStorage.setItem('user', JSON.stringify(data));
         setIsEditing(false);
         setEditUser(null);
         showMessage.success('Cập nhật thành công!');
@@ -494,6 +520,7 @@ const renderEditFormNormal = () => (
         showMessage.error(err.message || 'Lỗi khi lưu!');
       });
   };
+
 
   const handleLogout = () => {
     localStorage.removeItem('user');
@@ -560,6 +587,8 @@ const renderEditFormNormal = () => (
                     <AddressManager
                       addresses={editUser?.profile?.addresses || []}
                       onUpdateAddresses={handleEditAddresses}
+                      onAddAddressSuccess={() => showMessage.success('Đã thêm địa chỉ mới!')}
+                      onDeleteAddressSuccess={() => showMessage.success('Đã xoá địa chỉ!')}
                       readOnly={false}
                     />
                   </div>
@@ -571,7 +600,7 @@ const renderEditFormNormal = () => (
               )}
             </>
           )}
-          {currentTab === 'orders' && <div><h3>Đơn hàng (chưa có dữ liệu)</h3></div>}
+          {currentTab === 'orders' && <UserOrders username={user.username} />}
           {currentTab === 'password' && <div><h3>Quên mật khẩu (chưa có dữ liệu)</h3></div>}
         </div>
       </div>

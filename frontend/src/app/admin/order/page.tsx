@@ -40,11 +40,13 @@ type Order = {
   };
   productNames?: string[];
   totalPrice: number;
+  shippingFee: number; 
   paymentStatus: "paid" | "unpaid" | "pending";
   paymentMethod: string;
   orderStatus: "approved" | "waiting" | "processing" | "shipping" | "delivered" | "cancelled";
   createdAt: string;
 };
+
 
 // Xác định các trạng thái hợp lệ tiếp theo
 function getNextStatusOptions(current: Order["orderStatus"]) {
@@ -163,7 +165,13 @@ export default function OrderManagement() {
                           {order.paymentStatus === "paid" ? "Trả" : order.paymentStatus === "pending" ? "Chờ thanh toán" : "Chưa trả"}
                         </span>
                       </td>
-                      <td>{order.totalPrice?.toLocaleString()} đ</td>
+                      <td>
+                      {(order.totalPrice + (order.shippingFee || 0)).toLocaleString()} đ
+                      <br />
+                      <small className="text-muted">
+                        (SP: {order.totalPrice.toLocaleString()} đ + Ship: {order.shippingFee?.toLocaleString()} đ)
+                      </small>
+                    </td>
                       <td>{order.paymentMethod}</td>
                       <td>
                         <span className={`badge ${statusBadge[order.orderStatus] || "bg-secondary"}`}>
