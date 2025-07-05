@@ -30,7 +30,6 @@ const postsRouter = require('./routes/posts');
 const postscategoriesRouter = require('./routes/postscategories');
 
 const orderRoutes = require('./routes/order'); //đơn hàng
-const orderRoutes = require("./routes/order"); //đơn hàng
 const paymentRouter = require("./routes/payment"); //thanh toán
 const orderDetailRoutes = require('./routes/orderdetail'); //đường dẫn đơn hàng chi tiết
 const reviewRoutes = require('./routes/review');

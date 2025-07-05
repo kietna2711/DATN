@@ -103,7 +103,7 @@ export default function ReportManagement() {
         const productMap = new Map();
         data.forEach((order: any) => {
           if (order.orderStatus !== "delivered") return;
-          if (!Array.isArray(order.orderItems)) return; // Thêm dòng này
+          if (!Array.isArray(order.orderItems)) return;
           order.orderItems.forEach((item: any) => {
             const key = item.product._id || item.product;
             if (!productMap.has(key)) {
@@ -115,7 +115,7 @@ export default function ReportManagement() {
                 totalSold: 0,
               });
             }
-            productMap.get(key).totalSold += item.quantity;
+            productMap.get(key).totalSold += item.quantity; // <--- CỘNG DỒN SỐ LƯỢNG BÁN
           });
         });
         const bestSellersArr = Array.from(productMap.values())
@@ -274,15 +274,17 @@ export default function ReportManagement() {
                     <th>Tên sản phẩm</th>
                     <th>Giá tiền</th>
                     <th>Danh mục</th>
+                    <th>Đã bán</th>
                   </tr>
                 </thead>
                 <tbody>
                   {bestSellers.map(item => (
-                    <tr key={item.id}>
-                      <td>{item.id}</td>
+                    <tr key={item._id || item.id}>
+                      <td>{item._id || item.id}</td>
                       <td>{item.name}</td>
-                      <td>{item.price}</td>
+                      <td>{item.price?.toLocaleString()} đ</td>
                       <td>{item.category}</td>
+                      <td>{item.totalSold}</td>
                     </tr>
                   ))}
                 </tbody>
