@@ -1,4 +1,7 @@
 "use client";
+// 
+import { useSearchParams } from "next/navigation";
+// 
 import React, { useState, useEffect } from "react";
 import "./checkout.css";
 import { useAppSelector } from "../store/store";
@@ -11,7 +14,7 @@ import CheckoutPayment from "./CheckoutPayment";
 import CheckoutOrderSummary from "./OrderSummary";
 import { getVouchers } from "../services/voucherService";
 import { validateVoucher } from "../utils/validateVoucher";
-
+// 
 const SHIPPING_FEE = 10000; //phí ship mặc định
 
 interface UserInfo {
@@ -38,6 +41,25 @@ const CheckoutPage: React.FC = () => {
   const [selectedDistrict, setSelectedDistrict] = useState("");
   const [selectedWard, setSelectedWard] = useState("");
 
+  //Chi tiết sp
+  const [buyNowItem, setBuyNowItem] = useState<any | null>(null);
+  const searchParams = useSearchParams();
+  //
+  useEffect(() => {
+    const isBuyNow = searchParams.get("buyNow") === "1";
+    if (isBuyNow) {
+      const itemStr = localStorage.getItem("buyNowItem");
+      if (itemStr) {
+        try {
+          const parsed = JSON.parse(itemStr);
+          setBuyNowItem(parsed);
+        } catch (e) {
+          console.error("Lỗi đọc buyNowItem", e);
+        }
+      }
+    }
+  }, [searchParams]);
+
   // Thông báo lỗi
   const [errors, setErrors] = useState<{ [k: string]: string }>({});
 
@@ -47,7 +69,7 @@ const CheckoutPage: React.FC = () => {
 
   const dispatch = useDispatch();
 
-  // Kiểm tra đăng nhập khi load trang
+  // Kiểm tra đăng nhập khi load trang và tự động lấy profile để đồng bộ địa chỉ
   useEffect(() => {
     const token = localStorage.getItem("token");
     const user = localStorage.getItem("user");
@@ -57,6 +79,22 @@ const CheckoutPage: React.FC = () => {
         const parsedUser: UserInfo = JSON.parse(user);
         setUserInfo(parsedUser);
         setFullName(parsedUser.username || "");
+        // Lấy thông tin profile và địa chỉ đầu tiên (nếu có)
+        fetch(`http://localhost:3000/api/usersProfile/username/${parsedUser.username}`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        })
+          .then(res => res.json())
+          .then(profileData => {
+            if (profileData?.profile?.phone) setPhone(profileData.profile.phone);
+            // LẤY ĐỊA CHỈ ĐẦU TIÊN (nếu có)
+            // const addr = profileData?.profile?.addresses?.[0];
+            // if (addr) {
+            //   setAddress(addr.detail || "");
+            //   setSelectedCity(addr.cityId || "");
+            //   setSelectedDistrict(addr.districtId || "");
+            //   setSelectedWard(addr.wardId || "");
+            // }
+          });
       } catch {
         setUserInfo(null);
       }
@@ -107,7 +145,10 @@ const CheckoutPage: React.FC = () => {
     setSelectedWard("");
   }, [selectedDistrict, districts]);
 
-  const cartItems = useAppSelector((state) => state.cart.items);
+  // const cartItems = useAppSelector((state) => state.cart.items);
+  const cartItemsRedux = useAppSelector((state) => state.cart.items);
+  const cartItems = buyNowItem ? [buyNowItem] : cartItemsRedux;
+  // 
   const handlePaymentChange = (value: string) => {
     setPayment(value);
   };
@@ -263,9 +304,6 @@ const CheckoutPage: React.FC = () => {
       Swal.fire("Lỗi", "Không thể tạo thanh toán VNPAY!", "error");
     }
   };
-
-
-
 
 
   // Khi bấm nút đăng nhập ở trang thanh toán

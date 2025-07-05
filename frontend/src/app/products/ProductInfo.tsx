@@ -115,13 +115,32 @@ const ProductInfo = ({ product }: { product: Products }) => {
     for (let i = 0; i < quantity; ++i) {
       dispatch(addToCart({ product: safeProduct, selectedVariant: currentVariant }));
     }
-    success("Đã thêm vào giỏ hàng!");
+    success("Thanh toán!");
     if (redirectToCart) {
       setTimeout(() => {
-        router.push("/cart");
+        router.push("/checkout");
       }, 350);
     }
   };
+
+  //chi tiết tới thanh toán
+  const handleBuyNow = () => {
+    if (!currentVariant) return;
+
+    const safeProduct = toSerializableProduct(product);
+    const buyNowItem = {
+      product: safeProduct,
+      selectedVariant: currentVariant,
+      quantity: quantity
+    };
+
+    localStorage.setItem("buyNowItem", JSON.stringify(buyNowItem));
+    success("Chuyển sang trang thanh toán...");
+    setTimeout(() => {
+      router.push("/checkout?buyNow=1");
+    }, 350);
+  };
+
 
   return (
     <div className={styles.productInfo_v3_noCard}>
@@ -196,7 +215,7 @@ const ProductInfo = ({ product }: { product: Products }) => {
           </div>
           <button
             className={styles.addToCart_v4}
-            onClick={() => handleAddToCart(false)}
+            onClick={() => handleAddToCart(true)}
           >
             THÊM VÀO GIỎ HÀNG
           </button>
@@ -213,7 +232,7 @@ const ProductInfo = ({ product }: { product: Products }) => {
           </a>
           <button
             className={styles.buyNow_v4}
-            onClick={() => handleAddToCart(true)}
+            onClick={handleBuyNow}
           >
             MUA NGAY
           </button>
