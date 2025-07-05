@@ -7,14 +7,14 @@
 } */
 
 .container_tong {
-  max-width: 1250px;
+  max-width: 1200px;
   margin: 0 auto;
 }
 
 .container_v3 {
   display: flex;
   flex-wrap: wrap;
-  max-width: 1250px;
+  max-width: 1200px;
   margin: 80px auto;
   gap: 36px;
   align-items: flex-start;
@@ -1066,9 +1066,9 @@
 }
 
 .heartIcon {
-  position: absolute;
+  /* position: absolute; */
   top: 20%;
-  right: 11%;
+  right: 0;
   font-size: 22px;
   margin-left: 10px;
   border-radius: 50%;

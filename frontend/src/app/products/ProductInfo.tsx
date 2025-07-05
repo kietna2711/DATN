@@ -127,14 +127,15 @@ const ProductInfo = ({ product }: { product: Products }) => {
     <div className={styles.productInfo_v3_noCard}>
       <div className={styles.productDetail_innerWrap}>
         <div className={styles.titleRow}>
-          <span
+
+          <span className={styles.productTitle}>{product.name}</span>
+            <span
             className={styles.heartIcon}
             title={isFavorite ? "Xóa khỏi yêu thích" : "Thêm vào yêu thích"}
             onClick={toggleFavorite}
           >
             {isFavorite ? <HeartFilled style={{ color: "red" }} /> : <HeartOutlined />}
           </span>
-          <span className={styles.productTitle}>{product.name}</span>
         </div>
         <div className={styles.productPrice}>
           {currentVariant
