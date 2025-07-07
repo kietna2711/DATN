@@ -9,7 +9,7 @@ import axios from "axios";
 const statusOptions = [
   { label: "Duyệt", value: "approved" },
   { label: "Chờ xác nhận", value: "waiting" },
-  { label: "Đang chuẩn bị hàng", value: "processing" },
+  { label: "Chuẩn bị hàng", value: "processing" },
   { label: "Đang giao", value: "shipping" },
   { label: "Đã giao", value: "delivered" },
   { label: "Đã hủy", value: "cancelled" },
