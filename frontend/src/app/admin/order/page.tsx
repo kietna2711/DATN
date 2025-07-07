@@ -76,6 +76,16 @@ export default function OrderManagement() {
       .then(res => setOrders(res.data))
       .catch(() => setOrders([]));
   }, []);
+  useEffect(() => {
+  const interval = setInterval(() => {
+    axios.get("http://localhost:3000/orders")
+      .then(res => setOrders(res.data))
+      .catch(() => setOrders([]));
+  }, 3000); // mỗi 3 giây gọi lại
+
+  return () => clearInterval(interval);
+}, []);
+
 
   useEffect(() => {
     function updateClock() {
