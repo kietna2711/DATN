@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const PostCategory = require('../models/postscategoryModel');
 
-// Lấy danh sách danh mục bài viết
+// ✅ Lấy danh sách danh mục bài viết
 router.get('/', async (req, res) => {
   try {
     const categories = await PostCategory.find();
@@ -12,7 +12,29 @@ router.get('/', async (req, res) => {
   }
 });
 
-// Thêm mới danh mục bài viết
+// ✅ Lấy chi tiết danh mục theo slug
+router.get('/slug/:slug', async (req, res) => {
+  try {
+    const category = await PostCategory.findOne({ slug: req.params.slug });
+    if (!category) return res.status(404).json({ message: 'Category not found' });
+    res.json(category);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// ✅ Lấy chi tiết danh mục theo ID
+router.get('/:id', async (req, res) => {
+  try {
+    const category = await PostCategory.findById(req.params.id);
+    if (!category) return res.status(404).json({ message: 'Not found' });
+    res.json(category);
+  } catch (err) {
+    res.status(400).json({ error: err.message });
+  }
+});
+
+// ✅ Thêm mới danh mục bài viết
 router.post('/', async (req, res) => {
   try {
     const category = new PostCategory(req.body);
@@ -23,7 +45,7 @@ router.post('/', async (req, res) => {
   }
 });
 
-// Sửa danh mục bài viết
+// ✅ Sửa danh mục bài viết
 router.put('/:id', async (req, res) => {
   try {
     const category = await PostCategory.findByIdAndUpdate(req.params.id, req.body, { new: true });
@@ -34,7 +56,7 @@ router.put('/:id', async (req, res) => {
   }
 });
 
-// Xóa danh mục bài viết
+// ✅ Xoá danh mục bài viết
 router.delete('/:id', async (req, res) => {
   try {
     const category = await PostCategory.findByIdAndDelete(req.params.id);

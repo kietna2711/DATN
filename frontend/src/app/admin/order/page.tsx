@@ -184,12 +184,12 @@ export default function OrderManagement() {
                         </span>
                       </td>
                       <td>
-                      {(order.totalPrice + (order.shippingFee || 0)).toLocaleString()} đ
-                      <br />
-                      <small className="text-muted">
-                        (SP: {order.totalPrice.toLocaleString()} đ + Ship: {order.shippingFee?.toLocaleString()} đ)
-                      </small>
-                    </td>
+                        <strong>{order.totalPrice.toLocaleString()} đ</strong>
+                        <br />
+                        <small className="text-muted">
+                          (Tạm tính: {(order.totalPrice - (order.shippingFee || 0)).toLocaleString()} đ + Ship: {order.shippingFee?.toLocaleString()} đ)
+                        </small>
+                      </td>
                       <td>{order.paymentMethod}</td>
                       <td>
                         <span className={`badge ${statusBadge[order.orderStatus] || "bg-secondary"}`}>
