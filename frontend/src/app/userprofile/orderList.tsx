@@ -227,7 +227,7 @@ const UserOrders: React.FC<UserOrdersProps> = ({ username }) => {
 
                   <div className="summary-row">
                     <div>Tạm tính:</div>
-                    <div>{order.totalPrice.toLocaleString('vi-VN')}₫</div>
+                    <div>{(order.totalPrice - order.shippingFee).toLocaleString('vi-VN')}₫</div>
                   </div>
 
                   <div className="summary-row">
@@ -237,7 +237,7 @@ const UserOrders: React.FC<UserOrdersProps> = ({ username }) => {
 
                   <div className="summary-row total">
                     <div>Tổng thanh toán:</div>
-                    <div>{(order.totalPrice + order.shippingFee).toLocaleString('vi-VN')}₫</div>
+                    <div>{order.totalPrice.toLocaleString('vi-VN')}₫</div>
                   </div>
 
                   <div className="summary-row">
