@@ -86,6 +86,7 @@ const CheckoutPage: React.FC = () => {
           .then(res => res.json())
           .then(profileData => {
             if (profileData?.profile?.phone) setPhone(profileData.profile.phone);
+            
             // LẤY ĐỊA CHỈ ĐẦU TIÊN (nếu có)
             // const addr = profileData?.profile?.addresses?.[0];
             // if (addr) {
