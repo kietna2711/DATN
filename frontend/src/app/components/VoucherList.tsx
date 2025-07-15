@@ -38,7 +38,7 @@ export default function VoucherList() {
     <div className={styles.container}>
       <h1 className={styles.title}>Mã Giảm Giá Toàn Shop</h1>
       <div className={styles["voucher-row"]}>
-        {vouchers.slice(0, 4).map((v, i) => (
+        {vouchers.map((v, i) => (
           <div className={styles.voucher} key={v._id || i}>
             <div className={`${styles["voucher-left"]} ${styles["color-red"]}`}>
               <span className={styles["voucher-percent"]}>
@@ -87,7 +87,7 @@ export default function VoucherList() {
         ))}
       </div>
       <p className={styles["footer-note"]}>
-        Lưu ý: Mã giảm giá chỉ áp dụng toàn shop
+        Lưu ý: Mã giảm giá áp dụng toàn shop
       </p>
     </div>
   );
