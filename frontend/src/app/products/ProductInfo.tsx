@@ -123,7 +123,8 @@ const ProductInfo = ({ product }: { product: Products }) => {
     }
   };
 
-  //chi tiết tới thanh toán
+  // Hàm xử lý khi nhấn nút "Mua ngay"
+  //sp chi tiết tới trang thanh toán
   const handleBuyNow = () => {
     if (!currentVariant) return;
 
@@ -231,10 +232,7 @@ const ProductInfo = ({ product }: { product: Products }) => {
             />
             0979896616
           </a>
-          <button
-            className={styles.buyNow_v4}
-            onClick={handleBuyNow}
-          >
+          <button className={styles.buyNow_v4} onClick={handleBuyNow}>
             MUA NGAY
           </button>
         </div>

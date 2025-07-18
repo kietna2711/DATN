@@ -36,10 +36,12 @@ export default function ProductItem({ product }: { product: Products }) {
     };
     dispatch(addToCart({ product: safeProduct, selectedVariant }));
     success("Đã thêm vào giỏ hàng!");
+    // Chuyển hướng đến trang GH sau khi thêm sp
     setTimeout(() => {
       router.push('/cart');
     }, 300);
   };
+
 
   return (
     <div className={styles.product}>
