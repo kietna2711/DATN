@@ -11,16 +11,29 @@ interface Props {
   payment: string;
   handlePaymentChange: (v: string) => void;
   errors: { [k: string]: string };
+  isShippingInfoFilled: boolean; // 👈 Cập nhật Props trong CheckoutPayment
 }
 
 const CheckoutPayment: React.FC<Props> = ({
   payment,
   handlePaymentChange,
   errors,
+  isShippingInfoFilled,
 }) => (
   <div className="column">
     <h3>Vận chuyển</h3>
-    <input className="nhaptt" value="Vui lòng nhập thông tin giao hàng" readOnly />
+
+    <input
+      className="nhaptt"
+      value={isShippingInfoFilled ? "Thông tin đã nhập đầy đủ" : "Vui lòng nhập thông tin giao hàng"}
+      readOnly
+      style={{
+        backgroundColor: isShippingInfoFilled ? "#e3f7e3" : "#fdf0f0",
+        color: isShippingInfoFilled ? "#2e7d32" : "#c62828",
+        fontWeight: "bold"
+      }}
+    />
+
     <h4>Thanh toán</h4>
     {errors.payment && <div className="error">{errors.payment}</div>}
     <br />
