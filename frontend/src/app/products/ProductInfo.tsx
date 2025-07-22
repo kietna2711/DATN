@@ -115,7 +115,7 @@ const ProductInfo = ({ product }: { product: Products }) => {
     for (let i = 0; i < quantity; ++i) {
       dispatch(addToCart({ product: safeProduct, selectedVariant: currentVariant }));
     }
-    success("Chuyển sang trang giỏ hàng!");
+    success("Đã thêm vào giỏ hàng.");
     if (redirectToCart) {
       setTimeout(() => {
         router.push("/cart");
