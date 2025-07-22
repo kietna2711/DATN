@@ -96,30 +96,52 @@ exports.updateOrderStatus = async (req, res) =>{
   }
 };
 
-// GET: Kiểm tra trạng thái đơn hàng (bổ sung để tránh lỗi route)
+// ✅ GET: Kiểm tra trạng thái đơn hàng sau thanh toán (dành cho VNPay & Momo)
 exports.getOrderStatus = async (req, res) => {
-  try {
-    const { orderId } = req.params;
-    const { resultCode } = req.query;
+  const { orderId } = req.params;
+  const { vnp_ResponseCode, resultCode } = req.query;
 
-    const order = await Order.findOne({ orderId: orderId });
+  try {
+    const order = await Order.findOne({ orderId });
+
     if (!order) {
       return res.status(404).json({ message: "Không tìm thấy đơn hàng" });
     }
-    // Nếu đang pending và resultCode=0 (thành công), cập nhật trạng thái thanh toán sang paid
-    if (order.paymentStatus === "pending" && resultCode === "0") {
+
+    // Nếu đã thanh toán, không làm gì
+    if (order.paymentStatus === "paid") {
+      return res.status(200).json({ status: "paid" });
+    }
+
+    // ✅ Nếu thanh toán VNPAY thành công
+    if (vnp_ResponseCode === "00") {
       order.paymentStatus = "paid";
       await order.save();
+      return res.status(200).json({ status: "paid" });
     }
-    if (order.paymentStatus === "pending" && resultCode && resultCode !== "0") {
-      order.paymentStatus = "unpaid";
+
+    // ✅ Nếu thanh toán Momo thành công
+    if (resultCode === "0") {
+      order.paymentStatus = "paid";
       await order.save();
+      return res.status(200).json({ status: "paid" });
     }
-    res.json({ status: order.paymentStatus });
+
+    // ❌ Nếu thanh toán thất bại
+    if (vnp_ResponseCode || resultCode) {
+      order.paymentStatus = "failed";
+      await order.save();
+      return res.status(200).json({ status: "failed" });
+    }
+
+    // ⏳ Nếu chưa có callback
+    return res.status(200).json({ status: "pending" });
   } catch (err) {
-    res.status(500).json({ message: "Lỗi server", error: err.message });
+    console.error("Get order status error:", err);
+    res.status(500).json({ message: "Lỗi server", detail: err.message });
   }
 };
+
 
 exports.getOrders = async (req, res) => {
   try {
@@ -161,3 +183,10 @@ exports.updateOrderStatus = async (req, res) => {
   }
 };
 
+module.exports = {
+  createOrder,
+  getAllOrders,
+  getOrders,
+  updateOrderStatus,
+  getOrderStatus, // dùng version mới nhất ở trên
+};

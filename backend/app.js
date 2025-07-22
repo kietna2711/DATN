@@ -30,6 +30,7 @@ const postsRouter = require('./routes/posts');
 const postscategoriesRouter = require('./routes/postscategories');
 const orderRoutes = require("./routes/order"); //đơn hàng
 const paymentRouter = require("./routes/payment"); //thanh toán
+const vnpayCreateRouter = require("./routes/vnpayCreate"); //vnpay thanh toán
 const orderDetailRoutes = require('./routes/orderdetail'); //đường dẫn đơn hàng chi tiết
 const reviewRoutes = require('./routes/review');
 const usersProfileRoutes = require('./routes/userprofile'); // Đường dẫn đến routes usersProfile
@@ -115,6 +116,7 @@ app.use("/reviews", reviewRoutes);
 app.use('/api/usersProfile', usersProfileRoutes);
 app.use("/payment", paymentRouter); //Momo, thanh toán
 app.use(require('./routes/payment')); //IPN
+app.use(vnpayCreateRouter); //vnpay thanh toán
 // app.use("/payment", require("./routes/payment")); //đường dẫn file routes/payment.js
 app.use("/orders", orderRoutes);
 app.use("/orderdetails", orderDetailRoutes); //đường dẫn đơn hàng chi tiết
@@ -189,5 +191,6 @@ cron.schedule('*/1 * * * *', async () => {
     console.error('[CRON] Lỗi khi tự động tắt voucher:', err);
   }
 });
+
 
 module.exports = app;

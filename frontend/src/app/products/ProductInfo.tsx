@@ -115,10 +115,10 @@ const ProductInfo = ({ product }: { product: Products }) => {
     for (let i = 0; i < quantity; ++i) {
       dispatch(addToCart({ product: safeProduct, selectedVariant: currentVariant }));
     }
-    success("Thanh toán!");
+    success("Chuyển sang trang giỏ hàng!");
     if (redirectToCart) {
       setTimeout(() => {
-        router.push("/checkout");
+        router.push("/cart");
       }, 350);
     }
   };
@@ -136,7 +136,7 @@ const ProductInfo = ({ product }: { product: Products }) => {
     };
 
     localStorage.setItem("buyNowItem", JSON.stringify(buyNowItem));
-    success("Chuyển sang trang thanh toán...");
+    success("Chuyển sang trang thanh toán...!");
     setTimeout(() => {
       router.push("/checkout?buyNow=1");
     }, 350);
