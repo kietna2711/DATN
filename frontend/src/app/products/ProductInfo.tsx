@@ -115,10 +115,10 @@ const ProductInfo = ({ product }: { product: Products }) => {
     for (let i = 0; i < quantity; ++i) {
       dispatch(addToCart({ product: safeProduct, selectedVariant: currentVariant }));
     }
-    success("Thanh toán!");
+    success("Đã thêm vào giỏ hàng.");
     if (redirectToCart) {
       setTimeout(() => {
-        router.push("/checkout");
+        router.push("/cart");
       }, 350);
     }
   };
