@@ -1,44 +1,41 @@
-"use client";
+'use client';
 
-import Slider from "react-slick";
-import "slick-carousel/slick/slick.css";
-import "slick-carousel/slick/slick-theme.css";
-import styles from "@/app/styles/bearstories.module.css";
+import { useEffect, useState } from 'react';
+import Slider from 'react-slick';
+import 'slick-carousel/slick/slick.css';
+import 'slick-carousel/slick/slick-theme.css';
+import styles from '@/app/styles/bearstories.module.css';
 
-const stories = [
-  {
-    img: "https://bemori.vn/wp-content/uploads/2025/05/thumb-goi-y-qua-16-cho-be-mam-non.webp",
-    alt: "June 1st Gift",
-    title: "Gợi Ý Quà 1/6 Cho Bé Mầm Non: Gấu Bông Dưới 100K Đẹp, Tiết Kiệm",
-    link: "#",
-  },
-  {
-    img: "https://bemori.vn/wp-content/uploads/2025/05/Thumb-bai-viet.webp",
-    alt: "Name Printed Bears",
-    title: "Ngày Của Bé – Deal Siêu To: Túi Mù Khổng Lồ 399K Phá Đảo Mùa Hè",
-    link: "#",
-  },
-  {
-    img: "https://bemori.vn/wp-content/uploads/2025/04/thumb-gau-bong-in-ten-gia-bao-nhieu.webp",
-    alt: "Graduation Bears",
-    title: "Gấu Bông In Tên Giá Bao Nhiêu Tiền? Cập Nhật Bảng Giá Mới Nhất",
-    link: "#",
-  },
-  {
-    img: "https://bemori.vn/wp-content/uploads/2025/04/thumb-bst-gau-tot-nghiep-hoat-hinh.webp",
-    alt: "Graduation Bears",
-    title: "Gấu Bông Tốt Nghiệp Hoạt Hình: Món Quà “Must-Have” Cho Lễ Ra Trường",
-    link: "#",
-  },
-  {
-    img: "https://upload.bemori.vn/chuyen-nha-gau/feedback-tui-mu-khong-lo/thumb-tui-mu-khong-lo.webp",
-    alt: "Graduation Bears",
-    title: "Khám Phá Blindbox Khổng Lồ 399K Của Bemori Có Gì Hấp Dẫn?",
-    link: "#",
-  },
-];
+interface Post {
+  _id: string;
+  title: string;
+  slug: string;
+  img?: string;
+}
 
 export default function BearStories() {
+  const [posts, setPosts] = useState<Post[]>([]);
+  const [error, setError] = useState('');
+
+  useEffect(() => {
+    const fetchPosts = async () => {
+      try {
+        const res = await fetch('http://localhost:3000/api/posts/by-category-slug/chuyen-nha-gau', {
+          cache: 'no-store',
+        });
+
+        if (!res.ok) throw new Error('Không thể tải bài viết');
+
+        const data = await res.json();
+        setPosts(data.items || []);
+      } catch (err: any) {
+        setError(err.message || 'Lỗi khi tải dữ liệu');
+      }
+    };
+
+    fetchPosts();
+  }, []);
+
   const settings = {
     infinite: true,
     slidesToShow: 3,
@@ -46,7 +43,7 @@ export default function BearStories() {
     arrows: true,
     dots: false,
     autoplay: true,
-    autoplaySpeed: 2500,
+    autoplaySpeed: 3000,
     responsive: [
       { breakpoint: 992, settings: { slidesToShow: 2 } },
       { breakpoint: 768, settings: { slidesToShow: 1 } },
@@ -56,13 +53,23 @@ export default function BearStories() {
   return (
     <section className={styles.bgsContainer}>
       <h2 className={styles.bgsHeader}>Chuyện Nhà Gấu</h2>
+
+      {error && <p style={{ color: 'red', textAlign: 'center' }}>{error}</p>}
+
       <Slider {...settings} className={styles.bgsCarousel}>
-        {stories.map((story, index) => (
-          <div key={index} className={styles.bgsSlide}>
-            <img src={story.img} alt={story.alt} />
+        {posts.map((post) => (
+          <div key={post._id} className={styles.bgsSlide}>
+            <a href={`/posts/detail/${post.slug}`}>
+              <img
+                src={`http://localhost:3000/images/${post.img || 'default.jpg'}`}
+                alt={post.title}
+              />
+            </a>
             <div className={styles.bgsCaption}>
-              <p>{story.title}</p>
-              <a href={story.link}>Xem thêm</a>
+              <a href={`/posts/detail/${post.slug}`}>
+                <p>{post.title}</p>
+              </a>
+              <a href={`/posts/detail/${post.slug}`}>Xem thêm</a>
             </div>
           </div>
         ))}
