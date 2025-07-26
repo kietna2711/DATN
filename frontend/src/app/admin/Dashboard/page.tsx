@@ -88,7 +88,7 @@ export default function Dashboard() {
         const months = Array.from({ length: currentMonth }, (_, i) => i + 1);
         const revenueArr = months.map(month => {
           const found = data.find((item: any) => item.month === month);
-          return found ? found.total / 1000000 : 0;
+          return found ? found.total : 0; // Không chia cho 1_000_000
         });
         setRevenueData(revenueArr);
         setLabels(months.map(m => `Tháng ${m}`));
@@ -101,13 +101,26 @@ export default function Dashboard() {
       .then(data => setOrders(data));
   }, []);
 
-  // Dữ liệu mẫu cho line chart (có thể thay bằng dữ liệu thực tế nếu muốn)
+  // Tạo mảng các tháng thực tế
+  const now = new Date();
+  const currentMonth = now.getMonth() + 1;
+  const months = Array.from({ length: currentMonth }, (_, i) => i + 1);
+
+  // Tạo mảng số đơn hàng từng tháng thực tế từ dữ liệu orders
+  const ordersCountByMonth = months.map(month => {
+    return orders.filter(order => {
+      const orderDate = new Date(order.createdAt);
+      return orderDate.getMonth() + 1 === month;
+    }).length;
+  });
+
+  // Biểu đồ đơn hàng theo tháng thực tế
   const lineData = {
-    labels: ["Tháng 1", "Tháng 2", "Tháng 3", "Tháng 4", "Tháng 5", "Tháng 6"],
+    labels: months.map(m => `Tháng ${m}`),
     datasets: [
       {
         label: "Đơn hàng",
-        data: [12, 19, 3, 5, 2, 3],
+        data: ordersCountByMonth,
         borderColor: "#007bff",
         backgroundColor: "rgba(0,123,255,0.2)",
         tension: 0.4,
@@ -163,6 +176,28 @@ export default function Dashboard() {
       .then(res => res.json())
       .then(data => setCustomers(data));
   }, []);
+
+  // Tính số đơn hàng từng tháng
+  const ordersByMonth = months.map(month => {
+    return orders.filter(order => {
+      const orderDate = new Date(order.createdAt);
+      return orderDate.getMonth() + 1 === month;
+    });
+  });
+
+  const lineOptions = {
+    scales: {
+      y: {
+        beginAtZero: true,
+        ticks: {
+          stepSize: 1, // Hiển thị từng đơn vị
+          callback: function(tickValue: string | number, index: number, ticks: any[]) {
+            return typeof tickValue === "number" && Number.isInteger(tickValue) ? tickValue : null;
+          }
+        }
+      }
+    }
+  };
 
   return (
     <main className="app-content">
@@ -307,29 +342,57 @@ export default function Dashboard() {
           </div>
         </div>
         {/* Right */}
-        <div className="col-md-12 col-lg-6">
-          <div className="row">
-            <div className="col-md-12">
-              <div className="tile">
-                <h3 className="tile-title">Dữ liệu 6 tháng đầu vào</h3>
-                <div className="embed-responsive embed-responsive-16by9">
-                  <Line data={lineData} />
-                </div>
-              </div>
-            </div>
-            <div className="col-md-12">
-              <div className="tile">
-                <h3 className="tile-title">Thống kê 6 tháng doanh thu</h3>
-                <div className="embed-responsive embed-responsive-16by9">
-                  <Bar data={barData} />
-                </div>
-                <div style={{ textAlign: "center", marginTop: 10 }}>
-                  <b>Tổng doanh thu 6 tháng: {totalRevenue.toLocaleString()} triệu</b>
-                </div>
-              </div>
-            </div>
-          </div>
+<div className="col-md-12 col-lg-6">
+  <div className="row">
+    <div className="col-md-12">
+      <div className="tile">
+        <h3 className="tile-title" style={{ textAlign: "center", marginTop: 12 }}>Dữ liệu 6 tháng đầu vào</h3>
+        <Line data={lineData} options={lineOptions} />
+      </div>
+    </div>
+    <div className="col-md-12">
+      <div className="tile">
+        <h3 className="tile-title" style={{ textAlign: "center", marginTop: 12 }}>Thống kê 6 tháng doanh thu</h3>
+        <Bar data={barData} />
+        <div style={{ textAlign: "center", marginTop: 10 }}>
+          <b>
+            Tổng doanh thu 6 tháng: {totalRevenue.toLocaleString()} đ
+          </b>
         </div>
+      </div>
+    </div>
+    {/* Bảng đơn hàng theo tháng */}
+    <div className="col-md-12">
+      <div className="tile">
+        <h3 className="tile-title">Tình trạng đơn hàng theo tháng</h3>
+        <div>
+          <table className="table table-bordered">
+            <thead>
+              <tr>
+                <th>Tháng</th>
+                <th>Số đơn hàng</th>
+                <th>Tổng tiền</th>
+              </tr>
+            </thead>
+            <tbody>
+              {months.map((month, idx) => {
+                const monthOrders = ordersByMonth[idx];
+                const totalMonth = monthOrders.reduce((sum, order) => sum + (order.totalPrice || 0), 0);
+                return (
+                  <tr key={month}>
+                    <td>Tháng {month}</td>
+                    <td>{monthOrders.length}</td>
+                    <td>{totalMonth.toLocaleString()} đ</td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
       </div>
       <div className="text-center" style={{ fontSize: 13 }}>
         <p>

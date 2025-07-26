@@ -7,44 +7,39 @@ const passport = require('passport');
 const reviewController = require('../controllers/reviewController');
 const jwt = require('jsonwebtoken');
 const nodemailer = require('nodemailer');
-const crypto = require('crypto');
 const bcrypt = require('bcrypt');
 
-// Đăng ký tài khoản với xác thực email
+// Biến toàn cục lưu tạm thông tin đăng ký
+global.tempRegister = global.tempRegister || {};
+
+// Đăng ký: chỉ gửi OTP, không lưu user
 router.post('/register', async (req, res) => {
   try {
-    const { email, ...userData } = req.body;
-    // Kiểm tra email đã tồn tại chưa
+    const { email, firstName, lastName, username, password } = req.body;
     const exist = await User.findOne({ email });
     if (exist) {
-      // Nếu là tài khoản Google hoặc đã xác thực, báo lỗi luôn
-      if (exist.isVerified || exist.googleId) {
-        return res.status(400).json({ message: "Email này đã tồn tại" });
-      } else {
-        // Nếu user chưa xác thực, xóa user cũ để cho phép đăng ký lại
-        await User.deleteOne({ email });
-      }
+      return res.status(400).json({ message: "Email này đã tồn tại" });
     }
-    // Sinh token xác thực
-    const verifyToken = crypto.randomBytes(32).toString('hex');
-    // Gửi mail xác thực TRƯỚC
+    // Sinh OTP
+    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+    // Gửi OTP qua email
     try {
-      await sendVerifyMail(email, verifyToken);
+      await sendVerifyOTP(email, otp);
     } catch (mailErr) {
-      console.error("Lỗi gửi mail:", mailErr);
-      return res.status(400).json({ message: "Email không tồn tại hoặc không gửi được email xác thực!" });
+      return res.status(400).json({ message: "Không gửi được email xác thực!" });
     }
-    // Nếu gửi mail thành công mới tạo user
-    await User.create({
-      ...userData,
+    // Lưu thông tin đăng ký tạm thời
+    global.tempRegister[email] = {
       email,
-      password: await bcrypt.hash(userData.password, 10),
-      isVerified: false,
-      verifyToken
-    });
-    res.json({ message: "Đã gửi email xác thực. Vui lòng kiểm tra email để hoàn tất đăng ký!" });
+      firstName,
+      lastName,
+      username,
+      password,
+      otp,
+      otpExpire: Date.now() + 10 * 60 * 1000 // 10 phút
+    };
+    res.json({ message: "Đã gửi mã xác thực về email. Vui lòng kiểm tra email để hoàn tất đăng ký!" });
   } catch (err) {
-    console.error("Lỗi đăng ký:", err);
     res.status(500).json({ message: "Đăng ký thất bại!" });
   }
 });
@@ -55,7 +50,6 @@ router.post('/login', login);
 //Lấy thông tin 1 user theo token
 router.get('/userinfo', verifyToken, getUser);
 
-// mới thêm
 // Lấy tất cả user
 router.get('/', async (req, res) => {
   try {
@@ -65,21 +59,19 @@ router.get('/', async (req, res) => {
     res.status(500).send(err.message);
   }
 });
-// thêm 
+
+// Thêm review
 router.post('/reviews', verifyToken, reviewController.createReview);
 
 // Toggle visible
 router.patch('/:id/toggle-visibility', async (req, res) => {
-  console.log("PATCH request for: ", req.params.id); //xem thông báo ở terminal
   try {
     const user = await User.findById(req.params.id);
     if (!user) return res.status(404).send('User not found');
-    user.visible = !user.visible;//đảo trạng thái 
-    user.status = user.visible ? "Hoạt động" : "Khóa"; //visible true "hoạt động", false "Khóa"
+    user.visible = !user.visible;
+    user.status = user.visible ? "Hoạt động" : "Khóa";
     await user.save();
-    console.log("New visible:", user.visible); // xem thông báo ở terminal
     res.json({ visible: user.visible, status: user.status });
-    console.log("New status:", user.status); // xem thông báo ở terminal
   } catch (err) {
     res.status(500).send(err.message);
   }
@@ -122,36 +114,12 @@ router.get('/auth/google/callback',
   }
 );
 
-// Xác thực email
-router.get('/verify-email', async (req, res) => {
-  const { token, email } = req.query;
-  try {
-    const user = await User.findOne({ email, verifyToken: token });
-    if (!user) return res.status(400).send('Link xác thực không hợp lệ hoặc đã hết hạn!');
-    user.isVerified = true;
-    user.verifyToken = undefined;
-    await user.save();
-    // Trả về trang xác nhận có nút đăng nhập
-    res.send(`
-      <html>
-        <head>
-          <title>Xác thực thành công</title>
-          <meta charset="utf-8" />
-          <meta http-equiv="refresh" content="2;url=http://localhost:3007/login" />
-        </head>
-        <body style="font-family:sans-serif;text-align:center;margin-top:80px;">
-          <h2 style="color:green;">✅ Xác thực thành công!</h2>
-          <p>Tài khoản của bạn đã được kích hoạt.<br>Đang chuyển tới trang đăng nhập...</p>
-        </body>
-      </html>
-    `);
-  } catch (err) {
-    console.error("Lỗi xác thực email:", err);
-    res.status(500).send('Lỗi xác thực email.');
-  }
-});
+// XÓA toàn bộ phần xác thực email bằng link (token)
+// KHÔNG còn router.get('/verify-email', ...)
+// KHÔNG còn sendVerifyMail
 
-async function sendVerifyMail(email, token) {
+// Chỉ giữ xác thực OTP qua email
+async function sendVerifyOTP(email, otp) {
   const transporter = nodemailer.createTransport({
     service: 'gmail',
     auth: {
@@ -159,17 +127,15 @@ async function sendVerifyMail(email, token) {
       pass: process.env.EMAIL_PASS,
     },
   });
-  const link = `http://localhost:3000/users/verify-email?token=${token}&email=${email}`;
   await transporter.sendMail({
     from: process.env.EMAIL_USER,
     to: email,
-    subject: 'Xác thực đăng ký tài khoản',
+    subject: 'Mã xác thực đăng ký tài khoản',
     html: `
       <div style="font-family:sans-serif;">
-        <p>Nhấn nút dưới đây để xác thực tài khoản:</p>
-        <a href="${link}" style="display:inline-block;padding:12px 32px;background:#4caf50;color:#fff;text-decoration:none;border-radius:5px;font-size:16px;">
-          Xác nhận tài khoản
-        </a>
+        <p>Mã xác thực đăng ký tài khoản của bạn là:</p>
+        <div style="font-size:24px;font-weight:bold;color:#d63384;margin:16px 0;">${otp}</div>
+        <p>Mã này có hiệu lực trong 10 phút.</p>
       </div>
     `,
   });
@@ -241,6 +207,28 @@ router.get('/new-this-week', async (req, res) => {
   } catch (err) {
     res.status(500).json({ message: "Lỗi lấy khách hàng mới trong tuần" });
   }
+});
+
+// Xác thực OTP đăng ký
+router.post('/verify-otp-register', async (req, res) => {
+  const { email, otp } = req.body;
+  const temp = global.tempRegister[email];
+  if (!temp || temp.otp !== otp || temp.otpExpire < Date.now()) {
+    return res.status(400).json({ message: "Mã OTP không đúng hoặc đã hết hạn!" });
+  }
+  // Lưu user vào DB
+  const hashPassword = await bcrypt.hash(temp.password, 10);
+  await User.create({
+    email: temp.email,
+    firstName: temp.firstName,
+    lastName: temp.lastName,
+    username: temp.username,
+    password: hashPassword,
+    isVerified: true
+  });
+  // Xóa dữ liệu tạm
+  delete global.tempRegister[email];
+  res.json({ message: "Xác thực tài khoản thành công!" });
 });
 
 module.exports = router;

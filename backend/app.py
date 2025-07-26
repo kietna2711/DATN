@@ -2,7 +2,6 @@ from flask import Flask, request, jsonify, send_file
 from bearbot import bear_reply
 from recommend import recommend_products
 from chatbot import chatbot_reply
-from gift_message import create_gift_message
 from image_ai import predict_image
 from flask_cors import CORS
 from gtts import gTTS
@@ -19,19 +18,14 @@ def recommend():
     return jsonify(suggestions)
 
 @app.route("/api/chatbot", methods=["POST"])
-def chatbot():
-    data = request.json
+def chatbot_api():
+    data = request.get_json()
     message = data.get("message", "")
-    reply = chatbot_reply(message)
-    return jsonify({"reply": reply})
+    result = chatbot_reply(message)
+    print("User hỏi:", message)
+    print("Bot trả lời:", result)
+    return jsonify(result)
 
-@app.route("/api/gift-message", methods=["POST"])
-def gift_message():
-    data = request.json
-    name = data.get("name", "")
-    occasion = data.get("occasion", "")
-    message = create_gift_message(name, occasion)
-    return jsonify({"message": message})
 
 @app.route("/api/predict-image", methods=["POST"])
 def predict_image_api():

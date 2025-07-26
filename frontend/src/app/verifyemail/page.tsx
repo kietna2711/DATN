@@ -1,6 +1,6 @@
 "use client";
 import React, { useRef, useState, useEffect } from "react";
-import "./verify.css";
+import "./verifyemail.css";
 import { useRouter } from "next/navigation";
 import { useShowMessage } from "../utils/useShowMessage";
 
@@ -19,15 +19,24 @@ export default function Verify() {
     }
   }, [resendSeconds]);
 
-  // Xử lý gửi lại mã OTP (không cần email)
+  // Xử lý gửi lại mã OTP (có email)
   const handleResend = async (e: React.MouseEvent) => {
     e.preventDefault();
     if (resendSeconds > 0 || resendLoading) return;
     setResendLoading(true);
     setError("");
-    // Gửi yêu cầu gửi lại OTP (không gửi email)
-    // Ví dụ: chỉ gọi API gửi lại OTP cho user hiện tại (nếu có)
-    // await fetch("http://localhost:3000/users/send-otp", { ... });
+    const email = new URLSearchParams(window.location.search).get("email");
+    if (!email) {
+      setError("Không tìm thấy email!");
+      setResendLoading(false);
+      return;
+    }
+    // Gửi lại OTP cho đăng ký
+    await fetch("http://localhost:3000/users/send-otp", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email, type: "register" }),
+    });
     showMessage.success("Đã gửi lại mã xác thực!");
     setResendSeconds(60);
     setResendLoading(false);
@@ -65,23 +74,27 @@ export default function Verify() {
       return;
     }
 
-    const email = new URLSearchParams(window.location.search).get("email");
-    // Gửi OTP lên backend để xác thực (không gửi email)
-    const res = await fetch("http://localhost:3000/users/verify-otp", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email, otp }),
-    });
-    const data = await res.json();
-    if (res.ok) {
-      showMessage.success("Xác thực thành công!");
-      setTimeout(() => {
-        router.push(`/reset-password?otp=${otp}`);
-      }, 1200);
-    } else {
-      setError(data.message || "Mã OTP không đúng hoặc đã hết hạn!");
-    }
-  };
+  const email = new URLSearchParams(window.location.search).get("email");
+  if (!email) {
+    setError("Không tìm thấy email!");
+    return;
+  }
+  // Gửi OTP lên backend để xác thực email đăng ký
+  const res = await fetch("http://localhost:3000/users/verify-otp-register", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ email, otp }),
+  });
+  const data = await res.json();
+  if (res.ok) {
+    showMessage.success("Xác thực email thành công! Bạn có thể đăng nhập.");
+    setTimeout(() => {
+      router.push("/login");
+    }, 1200);
+  } else {
+    setError(data.message || "Mã OTP không đúng hoặc đã hết hạn!");
+  }
+};
 
   return (
     <div className="container">
@@ -134,9 +147,9 @@ export default function Verify() {
               : resendLoading
               ? "Đang gửi..."
               : "Gửi lại mã"}
-                </a>
-              </form>
-            </div>
-          </div> 
-      );
-    }
+          </a>
+        </form>
+      </div>
+    </div>
+  );
+}

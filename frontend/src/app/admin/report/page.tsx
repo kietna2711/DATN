@@ -261,38 +261,7 @@ export default function ReportManagement() {
           </div>
         </div>
       </div>
-      {/* Best sellers */}
-      <div className="row">
-        <div className="col-md-12">
-          <div className="tile">
-            <h3 className="tile-title">SẢN PHẨM BÁN CHẠY</h3>
-            <div className="tile-body">
-              <table className="table table-hover table-bordered">
-                <thead>
-                  <tr>
-                    <th>Mã sản phẩm</th>
-                    <th>Tên sản phẩm</th>
-                    <th>Giá tiền</th>
-                    <th>Danh mục</th>
-                    <th>Đã bán</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {bestSellers.map(item => (
-                    <tr key={item._id || item.id}>
-                      <td>{item._id || item.id}</td>
-                      <td>{item.name}</td>
-                      <td>{item.price?.toLocaleString()} đ</td>
-                      <td>{item.category}</td>
-                      <td>{item.totalSold}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </div>
-        </div>
-      </div>
+     
       {/* Orders */}
       <div className="row">
         <div className="col-md-12">
@@ -352,46 +321,7 @@ export default function ReportManagement() {
           </div>
         </div>
       </div>
-      {/* Out of stock */}
-      <div className="row">
-        <div className="col-md-12">
-          <div className="tile">
-            <h3 className="tile-title">SẢN PHẨM ĐÃ HẾT</h3>
-            <div className="tile-body">
-              <table className="table table-hover table-bordered">
-                <thead>
-                  <tr>
-                    <th>Mã sản phẩm</th>
-                    <th>Tên sản phẩm</th>
-                    <th>Ảnh</th>
-                    <th>Số lượng</th>
-                    <th>Tình trạng</th>
-                    <th>Giá tiền</th>
-                    <th>Danh mục</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {outOfStockProducts.map(item => (
-                    <tr key={item.id}>
-                      <td>{item.id}</td>
-                      <td>{item.name}</td>
-                      <td>
-                        <img src={item.img} alt={item.name} width="100px" />
-                      </td>
-                      <td>{item.quantity}</td>
-                      <td>
-                        <span className="badge bg-danger">{item.status}</span>
-                      </td>
-                      <td>{item.price}</td>
-                      <td>{item.category}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </div>
-        </div>
-      </div>
+  
       {/* New customers */}
       <div className="row">
         <div className="col-md-12">
@@ -424,18 +354,15 @@ export default function ReportManagement() {
       <div className="row">
         <div className="col-md-6">
           <div className="tile">
-            <h3 className="tile-title">DỮ LIỆU HÀNG THÁNG</h3>
-            <div className="embed-responsive embed-responsive-16by9">
-              <Line data={lineData} />
-            </div>
+                <h3 className="tile-title" style={{ textAlign: "center", marginTop: 12 }}>DỮ LIỆU HÀNG THÁNG</h3>
+            <Line data={lineData} />
           </div>
         </div>
         <div className="col-md-6">
           <div className="tile">
-            <h3 className="tile-title">THỐNG KÊ DOANH THU THEO THÁNG</h3>
-            <div className="embed-responsive embed-responsive-16by9">
-              <Bar data={updatedBarData} />
-            </div>
+             <h3 className="tile-title" style={{ textAlign: "center", marginTop: 12 }}>THỐNG KÊ DOANH THU THEO THÁNG</h3>
+            <Bar data={updatedBarData} />
+           
           </div>
         </div>
       </div>
