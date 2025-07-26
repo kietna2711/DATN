@@ -10,7 +10,10 @@ import { faUser, faBox, faLock, faRightFromBracket, faCircleQuestion } from '@fo
 // AddressManager component
 interface Address {
   id: string;
-  detail: string;
+  detail: string;      // tên đường, số nhà
+  ward: string;        // phường, xã
+  district: string;    // quận, huyện
+  city: string;        // tỉnh, thành phố
 }
 
 interface AddressManagerProps {
@@ -65,18 +68,34 @@ const AddressManager: React.FC<AddressManagerProps> = ({
   };
   const [newAddress, setNewAddress] = useState('');
 
-  const handleAddAddress = () => {
-    if (readOnly) return;
-    if (newAddress.trim() === '') return;
-    const newEntry: Address = {
-      id: Date.now().toString(),
-      detail: newAddress.trim(),
-    };
-    const updated = [...addresses, newEntry];
-    onUpdateAddresses(updated);
-    setNewAddress('');
-    if (onSaveAddresses) onSaveAddresses();
+const handleAddAddress = () => {
+  if (readOnly) return;
+  if (!detailAddress || !selectedCity || !selectedDistrict || !selectedWard) return;
+
+  const city = cities.find(c => c.Id === selectedCity)?.Name || '';
+  const district = districts.find(d => d.Id === selectedDistrict)?.Name || '';
+  const ward = wards.find(w => w.Id === selectedWard)?.Name || '';
+
+  const newEntry: Address = {
+    id: Date.now().toString(),
+    detail: detailAddress.trim(),
+    ward,
+    district,
+    city,
   };
+
+  const updated = [...addresses, newEntry];
+  onUpdateAddresses(updated);
+  if (onAddAddressSuccess) onAddAddressSuccess();
+  if (onSaveAddresses) onSaveAddresses();
+
+  setDetailAddress('');
+  setSelectedCity('');
+  setDistricts([]);
+  setSelectedDistrict('');
+  setWards([]);
+  setSelectedWard('');
+};
 
   const handleDeleteAddress = (id: string) => {
     if (readOnly) return;
@@ -130,8 +149,13 @@ const AddressManager: React.FC<AddressManagerProps> = ({
                 const district = districts.find(d => d.Id === selectedDistrict)?.Name;
                 const ward = wards.find(w => w.Id === selectedWard)?.Name;
 
-                const full = `${detailAddress}, ${ward}, ${district}, ${city}`;
-                const newEntry = { id: Date.now().toString(), detail: full };
+                const newEntry: Address = {
+                  id: Date.now().toString(),
+                  detail: detailAddress.trim(),
+                  ward: ward || '',
+                  district: district || '',
+                  city: city || '',
+                };
 
                 const updated = [...addresses, newEntry];
                 onUpdateAddresses(updated);
@@ -156,7 +180,7 @@ const AddressManager: React.FC<AddressManagerProps> = ({
           <ul className="address-list">
             {addresses.map(addr => (
               <li key={addr.id}>
-                {addr.detail}
+                {`${addr.detail}, ${addr.ward}, ${addr.district}, ${addr.city}`}
                 {!readOnly && (
                   <button
                     className="delete-btn"
@@ -205,8 +229,14 @@ const AddressManager: React.FC<AddressManagerProps> = ({
                 const district = districts.find(d => d.Id === selectedDistrict)?.Name;
                 const ward = wards.find(w => w.Id === selectedWard)?.Name;
 
-                const full = `${detailAddress}, ${ward}, ${district}, ${city}`;
-                const newEntry = { id: Date.now().toString(), detail: full };
+                const newEntry: Address = {
+                  id: Date.now().toString(),
+                  detail: detailAddress.trim(),
+                  ward: ward || '',
+                  district: district || '',
+                  city: city || '',
+                };
+
 
                 const updated = [...addresses, newEntry];
                 onUpdateAddresses(updated);
@@ -323,7 +353,7 @@ useEffect(() => {
       profile: { ...prev.profile, addresses: newAddresses }
     } : prev);
   };
-
+     //chuyển định dạng giới tính
     const getGenderLabel = (gender: string) => {
     switch (gender) {
       case 'male': return 'Nam';
@@ -332,6 +362,15 @@ useEffect(() => {
       default: return '';
     }
   };
+  // Hàm định dạng ngày dạng yyyy-mm-dd => dd/mm/yyyy
+    const formatDate = (dateStr: string): string => {
+      const date = new Date(dateStr);
+      if (isNaN(date.getTime())) return '';
+      const day = date.getDate().toString().padStart(2, '0');
+      const month = (date.getMonth() + 1).toString().padStart(2, '0');
+      const year = date.getFullYear();
+      return `${day}/${month}/${year}`; 
+    };
 
 
   const renderUserInfo = () => (
@@ -362,7 +401,7 @@ useEffect(() => {
       </div>
       <div className="form-group">
         <label>Ngày sinh</label>
-        <input type="text" value={user?.profile?.birthDate ? user.profile.birthDate.slice(0, 10) : ''} disabled />
+        <input type="text" value={user?.profile?.birthDate ? formatDate(user.profile.birthDate) : ''} disabled />
       </div>
     </div>
   );
@@ -467,7 +506,20 @@ const renderEditFormNormal = () => (
       showMessage.error("Họ và tên không được để trống!");
       return;
     }
+    if (!editUser.profile?.phone?.trim()) {
+      showMessage.error("Vui lòng nhập số điện thoại!");
+      return;
+    }
 
+    if (!editUser.profile?.gender) {
+      showMessage.error("Vui lòng chọn giới tính!");
+      return;
+    }
+
+    if (!editUser.profile?.birthDate) {
+      showMessage.error("Vui lòng chọn ngày sinh!");
+      return;
+    }
     const token = localStorage.getItem('token');
 
     if (!username) {
@@ -508,9 +560,22 @@ const renderEditFormNormal = () => (
         }
         return res.json();
       })
-      .then((data) => {
-        setUser(data);
-        localStorage.setItem('user', JSON.stringify(data));
+        .then(() => {
+        // ✅ Gọi lại API để lấy user mới nhất từ server
+        return fetch(`http://localhost:3000/api/usersProfile/username/${username}`, {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          }
+        });
+      })
+      .then(res => {
+        if (!res.ok) throw new Error('Không thể lấy lại thông tin người dùng sau khi lưu');
+        return res.json();
+      })
+      .then((freshUser) => {
+        setUser(freshUser);
+        localStorage.setItem('user', JSON.stringify(freshUser));
         setIsEditing(false);
         setEditUser(null);
         showMessage.success('Cập nhật thành công!');

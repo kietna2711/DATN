@@ -3,6 +3,8 @@ import { useState, useEffect } from 'react';
 import Sidebar from '../admin/Sidebar/page';
 import Navbar from '../admin/Navbar/page';
 import Dashboard from './profile/page';
+import PostCategoriesPage from '../admin/postscategories/page';
+
 
 export default function AdminPage() {
   const [section, setSection] = useState('dashboard');
@@ -20,7 +22,7 @@ export default function AdminPage() {
   }, []);
 
   return (
-        
-      <Dashboard/>  
+           
+    <Dashboard/> 
   );
 }

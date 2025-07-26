@@ -150,20 +150,28 @@ const orderDetailModel = require('./models/orderDetailModel');
 
 // Cronjob: CHẠY MỖI GIỜ để tự động kích hoạt voucher đến ngày bắt đầu
 cron.schedule('*/1 * * * *', async () => {
-  const now = new Date();
-  console.log('CRON TEST:', now);
+  // Chuyển thời gian hiện tại sang giờ Việt Nam (UTC+7)
+  const nowUTC = new Date();
+  const nowVN = new Date(nowUTC.getTime() + 7 * 60 * 60 * 1000);
+  console.log('CRON TEST UTC:', nowUTC);
+  console.log('CRON TEST VN:', nowVN);
   const vouchers = await Voucher.find({
-    active: false,
-    startDate: { $lte: now },
-    endDate: { $gte: now }
+    active: false
   });
-  console.log('Voucher đủ điều kiện kích hoạt:', vouchers.length);
+  // console.log('Voucher có active: false:', vouchers.map(v => ({
+  //   discountCode: v.discountCode,
+  //   startDate: v.startDate,
+  //   endDate: v.endDate,
+  //   active: v.active
+  // })));
+  const eligibleVouchers = vouchers.filter(v => v.startDate <= nowVN && v.endDate >= nowVN);
+  console.log('Voucher đủ điều kiện kích hoạt (giờ VN):', eligibleVouchers.map(v => v.discountCode));
   try {
     const result = await Voucher.updateMany(
       {
         active: false,
-        startDate: { $lte: now },
-        endDate: { $gte: now }
+        startDate: { $lte: nowVN },
+        endDate: { $gte: nowVN }
       },
       { $set: { active: true } }
     );

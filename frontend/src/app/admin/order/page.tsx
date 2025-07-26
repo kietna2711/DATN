@@ -11,7 +11,7 @@ import axios from "axios";
 const statusOptions = [
   { label: "Duyệt", value: "approved" },
   { label: "Chờ xác nhận", value: "waiting" },
-  { label: "Đang chuẩn bị hàng", value: "processing" },
+  { label: "Chuẩn bị hàng", value: "processing" },
   { label: "Đang giao", value: "shipping" },
   { label: "Đã giao", value: "delivered" },
   { label: "Đã hủy", value: "cancelled" },
@@ -82,6 +82,16 @@ export default function OrderManagement() {
       .then(res => setOrders(res.data))
       .catch(() => setOrders([]));
   }, []);
+  useEffect(() => {
+  const interval = setInterval(() => {
+    axios.get("http://localhost:3000/orders")
+      .then(res => setOrders(res.data))
+      .catch(() => setOrders([]));
+  }, 3000); // mỗi 3 giây gọi lại
+
+  return () => clearInterval(interval);
+}, []);
+
 
 
   // Cập nhật đồng hồ mỗi giây
@@ -174,12 +184,12 @@ export default function OrderManagement() {
                         </span>
                       </td>
                       <td>
-                      {(order.totalPrice + (order.shippingFee || 0)).toLocaleString()} đ
-                      <br />
-                      <small className="text-muted">
-                        (SP: {order.totalPrice.toLocaleString()} đ + Ship: {order.shippingFee?.toLocaleString()} đ)
-                      </small>
-                    </td>
+                        <strong>{order.totalPrice.toLocaleString()} đ</strong>
+                        <br />
+                        <small className="text-muted">
+                          (Tạm tính: {(order.totalPrice - (order.shippingFee || 0)).toLocaleString()} đ + Ship: {order.shippingFee?.toLocaleString()} đ)
+                        </small>
+                      </td>
                       <td>{order.paymentMethod}</td>
                       <td>
                         <span className={`badge ${statusBadge[order.orderStatus] || "bg-secondary"}`}>

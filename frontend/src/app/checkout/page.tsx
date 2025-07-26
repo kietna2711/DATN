@@ -1,4 +1,7 @@
 "use client";
+// 
+import { useSearchParams } from "next/navigation";
+// 
 import React, { useState, useEffect } from "react";
 import "./checkout.css";
 import { useAppSelector } from "../store/store";
@@ -11,7 +14,7 @@ import CheckoutPayment from "./CheckoutPayment";
 import CheckoutOrderSummary from "./OrderSummary";
 import { getVouchers } from "../services/voucherService";
 import { validateVoucher } from "../utils/validateVoucher";
-
+// 
 const SHIPPING_FEE = 10000; //phí ship mặc định
 
 interface UserInfo {
@@ -38,6 +41,25 @@ const CheckoutPage: React.FC = () => {
   const [selectedDistrict, setSelectedDistrict] = useState("");
   const [selectedWard, setSelectedWard] = useState("");
 
+  //Chi tiết sp
+  const [buyNowItem, setBuyNowItem] = useState<any | null>(null);
+  const searchParams = useSearchParams();
+  //
+  useEffect(() => {
+    const isBuyNow = searchParams.get("buyNow") === "1";
+    if (isBuyNow) {
+      const itemStr = localStorage.getItem("buyNowItem");
+      if (itemStr) {
+        try {
+          const parsed = JSON.parse(itemStr);
+          setBuyNowItem(parsed);
+        } catch (e) {
+          console.error("Lỗi đọc buyNowItem", e);
+        }
+      }
+    }
+  }, [searchParams]);
+
   // Thông báo lỗi
   const [errors, setErrors] = useState<{ [k: string]: string }>({});
 
@@ -45,18 +67,53 @@ const CheckoutPage: React.FC = () => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [userInfo, setUserInfo] = useState<UserInfo | null>(null);
 
+  // Redux dispatch
   const dispatch = useDispatch();
 
-  // Kiểm tra đăng nhập khi load trang
+  // State lưu tên để mapping sau khi có data
+  const [selectedCityName, setSelectedCityName] = useState("");
+  const [selectedDistrictName, setSelectedDistrictName] = useState("");
+  const [selectedWardName, setSelectedWardName] = useState("");
+
+  // Lấy data địa chỉ VN từ GitHub
   useEffect(() => {
+    axios
+      .get("https://raw.githubusercontent.com/kenzouno1/DiaGioiHanhChinhVN/master/data.json")
+      .then((response) => {
+        setCities(response.data);
+      })
+      .catch((error) => console.error("Error fetching data:", error));
+  }, []);
+
+  // Khi có dữ liệu địa giới + user, thì mapping địa chỉ
+  useEffect(() => {
+    if (!cities.length) return;
+
     const token = localStorage.getItem("token");
     const user = localStorage.getItem("user");
+
     if (token && user) {
       setIsLoggedIn(true);
       try {
         const parsedUser: UserInfo = JSON.parse(user);
         setUserInfo(parsedUser);
         setFullName(parsedUser.username || "");
+
+        fetch(`http://localhost:3000/api/usersProfile/username/${parsedUser.username}`, {
+          headers: { 'Authorization': `Bearer ${token}` },
+        })
+          .then((res) => res.json())
+          .then((profileData) => {
+            if (profileData?.profile?.phone) setPhone(profileData.profile.phone);
+            const addr = profileData?.profile?.addresses?.[0];
+            if (addr) {
+              setAddress(addr.detail || "");
+              // Lưu tên để mapping sau
+              setSelectedCityName(addr.city || "");
+              setSelectedDistrictName(addr.district || "");
+              setSelectedWardName(addr.ward || "");
+            }
+          });
       } catch {
         setUserInfo(null);
       }
@@ -65,53 +122,85 @@ const CheckoutPage: React.FC = () => {
       setUserInfo(null);
       setFullName("");
     }
-  }, []);
+  }, [cities]);
 
-  // Lấy data địa chỉ VN
+  //B1 Sau khi đã có selectedCityName, tìm ID tương ứng và set
   useEffect(() => {
-    axios
-      .get(
-        "https://raw.githubusercontent.com/kenzouno1/DiaGioiHanhChinhVN/master/data.json"
-      )
-      .then((response) => {
-        setCities(response.data);
-      })
-      .catch((error) => console.error("Error fetching data:", error));
-  }, []);
+    if (!cities.length || !selectedCityName) return;
+    const city = cities.find((c) => c.Name === selectedCityName);
+    if (city) {
+      setSelectedCity(city.Id);
+    }
+  }, [cities, selectedCityName]);
 
-  // Khi chọn tỉnh/thành phố
+  // B2 Khi selectedCity đổi, cập nhật danh sách quận/huyện
   useEffect(() => {
     if (!selectedCity) {
       setDistricts([]);
       setSelectedDistrict("");
-      setWards([]);
-      setSelectedWard("");
       return;
     }
-    const cityObj = cities.find((c) => c.Id === selectedCity);
-    setDistricts(cityObj?.Districts || []);
-    setSelectedDistrict("");
-    setWards([]);
-    setSelectedWard("");
+    const city = cities.find((c) => c.Id === selectedCity);
+    if (city) {
+      setDistricts(city.Districts || []);
+    }
   }, [selectedCity, cities]);
 
-  // Khi chọn quận/huyện
+  // B3 Sau khi đã có selectedDistrictName, tìm ID tương ứng và set
+  useEffect(() => {
+    if (!districts.length || !selectedDistrictName) return;
+    const district = districts.find((d) => d.Name === selectedDistrictName);
+    if (district) {
+      setSelectedDistrict(district.Id);
+    }
+  }, [districts, selectedDistrictName]);
+
+  // B4 Khi selectedDistrict đổi, cập nhật danh sách phường/xã
   useEffect(() => {
     if (!selectedDistrict) {
       setWards([]);
       setSelectedWard("");
       return;
     }
-    const districtObj = districts.find((d) => d.Id === selectedDistrict);
-    setWards(districtObj?.Wards || []);
-    setSelectedWard("");
-  }, [selectedDistrict, districts]);
+    const city = cities.find((c) => c.Id === selectedCity);
+    const district = city?.Districts.find((d) => d.Id === selectedDistrict);
+    if (district) {
+      setWards(district.Wards || []);
+    }
+  }, [selectedDistrict, selectedCity, cities]);
 
-  const cartItems = useAppSelector((state) => state.cart.items);
+  //B5 Sau khi đã có selectedWardName, tìm ID tương ứng và set
+  useEffect(() => {
+    if (!wards.length || !selectedWardName) return;
+    const ward = wards.find((w) => w.Name === selectedWardName);
+    if (ward) {
+      setSelectedWard(ward.Id);
+    }
+  }, [wards, selectedWardName]);
+
+  // thay đổi dòng Vui lòng nhập thông tin giao hàng- truyền Props từ hàm này vào CheckoutPayment
+  const isShippingInfoFilled = () => {
+    return (
+      fullName.trim() &&
+      phone.trim() &&
+      /^(0[0-9]{9,10})$/.test(phone.trim()) &&
+      address.trim() &&
+      selectedCity &&
+      selectedDistrict &&
+      selectedWard
+    );
+  };
+
+
+  // const cartItems = useAppSelector((state) => state.cart.items);
+  const cartItemsRedux = useAppSelector((state) => state.cart.items);
+  const cartItems = buyNowItem ? [buyNowItem] : cartItemsRedux;
+  // 
   const handlePaymentChange = (value: string) => {
     setPayment(value);
   };
 
+  
   // Validate đơn hàng
   const validate = () => {
     const newErrors: { [k: string]: string } = {};
@@ -265,9 +354,6 @@ const CheckoutPage: React.FC = () => {
   };
 
 
-
-
-
   // Khi bấm nút đăng nhập ở trang thanh toán
   const handleLoginRedirect = () => {
     localStorage.setItem("redirectAfterLogin", window.location.pathname);
@@ -346,8 +432,11 @@ const CheckoutPage: React.FC = () => {
                 text: "Cảm ơn bạn đã mua hàng.",
                 icon: "success"
               }).then(() => {
-                dispatch(clearCart());
-                window.location.href = "/";
+                if (!buyNowItem) {
+                  dispatch(clearCart());
+                }
+                localStorage.removeItem("buyNowItem");
+                window.location.href = "/"; // quay về trang chủ
               });
             } catch (err) {
               swalWithBootstrapButtons.fire({
@@ -377,7 +466,10 @@ const CheckoutPage: React.FC = () => {
         try {
           await saveOrder();
           Swal.fire("Thanh toán thành công", "Cảm ơn bạn đã mua hàng!", "success").then(() => {
-            dispatch(clearCart());
+            if (!buyNowItem) {
+                  dispatch(clearCart());
+                }
+                localStorage.removeItem("buyNowItem");
             window.location.href = "/";
           });
         } catch (err) {
@@ -424,6 +516,7 @@ const CheckoutPage: React.FC = () => {
             payment={payment}
             handlePaymentChange={handlePaymentChange}
             errors={errors}
+            isShippingInfoFilled={!!isShippingInfoFilled()}//truyền từ trên xuống đổi dòng vận chuyển
           />
         </div>
       </form>

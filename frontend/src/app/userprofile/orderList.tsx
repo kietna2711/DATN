@@ -73,6 +73,17 @@ const UserOrders: React.FC<UserOrdersProps> = ({ username }) => {
     if (username) fetchOrders();
   }, [username]);
 
+   useEffect(() => {
+      if (!username) return;
+
+      const interval = setInterval(() => {
+        fetchOrders(); // gọi lại API mỗi X giây
+      }, 3000); // cứ 3 giây gọi lại 1 lần
+
+      return () => clearInterval(interval); // clear khi unmount
+    }, [username]);
+
+
   useEffect(() => {
     const visibleMap: { [id: string]: boolean } = {};
     orders.forEach(order => {
@@ -216,7 +227,7 @@ const UserOrders: React.FC<UserOrdersProps> = ({ username }) => {
 
                   <div className="summary-row">
                     <div>Tạm tính:</div>
-                    <div>{order.totalPrice.toLocaleString('vi-VN')}₫</div>
+                    <div>{(order.totalPrice - order.shippingFee).toLocaleString('vi-VN')}₫</div>
                   </div>
 
                   <div className="summary-row">
@@ -226,7 +237,7 @@ const UserOrders: React.FC<UserOrdersProps> = ({ username }) => {
 
                   <div className="summary-row total">
                     <div>Tổng thanh toán:</div>
-                    <div>{(order.totalPrice + order.shippingFee).toLocaleString('vi-VN')}₫</div>
+                    <div>{order.totalPrice.toLocaleString('vi-VN')}₫</div>
                   </div>
 
                   <div className="summary-row">
