@@ -13,6 +13,7 @@ import CategoryManagement from '../admin/categories/page';
 import ReportManagement from '../admin/report/page';
 import Sidebar from '../admin/Sidebar/page';
 import Navbar from '../admin/Navbar/page';
+import PostCategoriesPage from '../admin/postscategories/page';
 
 export default function AdminPage() {
   const [section, setSection] = useState('dashboard');
@@ -42,6 +43,7 @@ export default function AdminPage() {
         {section === 'reviews' && <ReviewManagement />}
         {section === 'comments' && <CommentManagement />}
         {section === 'posts' && <PostManagement />}
+        {section === 'postscategories' && <PostCategoriesPage />}
         {section === 'discounts' && <DiscountManagement />}
         {section === 'categories' && <CategoryManagement />}
         {section === 'report' && <ReportManagement />}

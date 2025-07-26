@@ -1,5 +1,8 @@
+export const dynamic = 'force-dynamic'; //Bắt buộc SSR, tránh lỗi khi dùng params.slug trong dynamic routes
 import './postsDetail.css';
 import InstagramSection from '../../../components/InstagramSection';
+import SidebarBaiVietMoi from './SidebarBaiVietMoi';
+// import CommentForm from './CommentForm';
 
 interface Post {
   _id: string;
@@ -9,7 +12,6 @@ interface Post {
   createdAt: string;
 }
 
-// ✅ Hàm xử lý đường dẫn ảnh để thêm domain đầy đủ
 function adjustImageSrc(html: string): string {
   return html.replace(
     /<img\s+[^>]*src="(?!http)([^"]+)"[^>]*>/g,
@@ -21,54 +23,33 @@ function adjustImageSrc(html: string): string {
 }
 
 async function getPost(slug: string): Promise<Post | null> {
-  const res = await fetch(`http://localhost:3000/api/posts/slug/${slug}`, {
-    cache: 'no-store',
-  });
+  const res = await fetch(`http://localhost:3000/api/posts/slug/${slug}`, { cache: 'no-store' });
   if (!res.ok) return null;
   return res.json();
 }
 
 async function getRecentPosts(): Promise<Post[]> {
-  const res = await fetch('http://localhost:3000/api/posts', {
-    cache: 'no-store',
-  });
+  const res = await fetch('http://localhost:3000/api/posts', { cache: 'no-store' });
   const data = await res.json();
-  const sorted = data.items.sort(
-    (a: Post, b: Post) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-  );
-  return sorted.slice(0, 5);
+  return data.items
+    .sort((a: Post, b: Post) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+    .slice(0, 5);
 }
 
-export default async function PostDetailPage({ params }: { params: { slug: string } }) {
-  const post = await getPost(params.slug);
+const PostDetailPage = async ({ params }: { params: { slug: string } }) => {
+  const slug = params.slug; // Lấy slug từ params
+  const post = await getPost(slug);
   const recentPosts = await getRecentPosts();
 
   if (!post) {
-    return (
-      <div className="container">
-        <p style={{ color: 'red' }}>Không tìm thấy bài viết</p>
-      </div>
-    );
+    return <div className="container"><p style={{ color: 'red' }}>Không tìm thấy bài viết</p></div>;
   }
 
   return (
     <>
       <div className="container">
-        {/* Sidebar bên trái */}
-        <aside className="sidebar">
-          <div className="sidebar-header">
-            <div className="sidebar-title">BÀI VIẾT MỚI</div>
-          </div>
-          <ul className="sidebar-menu">
-            {recentPosts.map((item) => (
-              <li key={item._id} className="menu-item">
-                <a href={`/posts/detail/${item.slug}`}>{item.title}</a>
-              </li>
-            ))}
-          </ul>
-        </aside>
+        <SidebarBaiVietMoi recentPosts={recentPosts} />
 
-        {/* Nội dung chính */}
         <div className="main-content">
           <h1>{post.title}</h1>
           <div className="meta">
@@ -82,9 +63,7 @@ export default async function PostDetailPage({ params }: { params: { slug: strin
             dangerouslySetInnerHTML={{ __html: adjustImageSrc(post.content) }}
           />
 
-          {/* Phần chia sẻ & bình luận */}
           <div className="share-comment-container">
-            {/* Social Share */}
             <div className="share-section">
               <span>Chia sẻ</span>
               <div className="social-icons">
@@ -96,48 +75,18 @@ export default async function PostDetailPage({ params }: { params: { slug: strin
               </div>
 
               <div className="custom-buttons">
-                <button>Dịch Vụ Nổi Bật Chỉ Có Tại Bemori</button>
+                <button>Dịch Vụ Nổi Bật Chỉ Có Tại Mimi Bear</button>
                 <button>Video Nhà Gấu</button>
               </div>
             </div>
-
-            {/* Comment Form */}
-            <div className="comment-section">
-              <h3>Để lại một bình luận</h3>
-              <p className="note">
-                Email của bạn sẽ không được hiển thị công khai. Các trường bắt buộc được đánh dấu
-                <span className="required">*</span>
-              </p>
-
-              <form className="comment-form">
-                <label htmlFor="comment">Bình luận <span className="required">*</span></label>
-                <textarea id="comment" rows={6}></textarea>
-
-                <label htmlFor="name">Tên <span className="required">*</span></label>
-                <input type="text" id="name" />
-
-                <label htmlFor="email">Email <span className="required">*</span></label>
-                <input type="email" id="email" />
-
-                <label htmlFor="website">Trang web</label>
-                <input type="url" id="website" />
-
-                <div className="checkbox">
-                  <input type="checkbox" id="save-info" />
-                  <label htmlFor="save-info">
-                    Lưu tên của tôi, email, và trang web trong trình duyệt này cho lần bình luận kế tiếp của tôi.
-                  </label>
-                </div>
-
-                <button type="submit" className="submit-btn">Gửi bình luận</button>
-              </form>
-            </div>
+            {/* <CommentForm /> */}
           </div>
         </div>
       </div>
 
-      {/* Phần Instagram */}
       <InstagramSection />
     </>
   );
-}
+};
+
+export default PostDetailPage;
