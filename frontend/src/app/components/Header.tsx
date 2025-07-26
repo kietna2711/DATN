@@ -18,6 +18,8 @@ import { useRouter } from "next/navigation";
 import { Products } from "../types/productD";
 import useFavoriteCount from "../hooks/useFavoriteCount";
 import { useAppSelector } from "../store/store";
+import { PostCategory } from '../types/postscategory';
+import { getPostCategories } from '../services/postscategory';
 import Link from "next/link";
 
 type Props = {
@@ -34,6 +36,15 @@ const Header: React.FC<Props> = ({ categories }) => {
   const inputRef = useRef<HTMLInputElement>(null);
   const suggestionBoxRef = useRef<HTMLDivElement>(null);
   const favoriteCount = useFavoriteCount();
+  // Lấy danh mục bài viết
+  const [postCategories, setPostCategories] = useState<PostCategory[]>([]);
+  useEffect(() => {
+    const fetchData = async () => {
+      const data = await getPostCategories();
+      setPostCategories(data);
+    };
+    fetchData();
+  }, []);
 
 // Lấy số sản phẩm khác nhau trong giỏ hàng (không phải tổng quantity)
 const cartCount = useAppSelector((state) => state.cart.items.length);
@@ -393,6 +404,22 @@ const cartCount = useAppSelector((state) => state.cart.items.length);
                   <a href="/products">Sản phẩm</a>
                 </div>
               </li>
+
+              <li className={styles["has-submenu"]}>
+                <div className={styles["menu-item"]}>
+                  <a href="/posts">Bài viết</a>
+                  <span className={styles["icon-down"]}><DownOutlined /></span>
+                </div>
+                <ul className={styles["submenu"]}>
+                  <li><a href="/posts">Tất cả bài viết</a></li>
+                  {postCategories.map((cat) => (
+                    <li key={cat._id}>
+                      <a href={`/posts/categories/${cat.slug}`}>{cat.name}</a>
+                    </li>
+                  ))}
+                </ul>
+              </li>
+
               {visibleCategories.map((item) => {
                 const visibleSub = item.subcategories?.filter((sub) => !sub.hidden) || [];
                 const hasSub = visibleSub.length > 0;
