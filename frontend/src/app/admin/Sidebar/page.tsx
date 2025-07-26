@@ -8,11 +8,13 @@ export default function Sidebar({ currentSection }: { currentSection: string }) 
     { key: "products", label: "Quản lý sản phẩm", icon: "bx bx-cube" },
     { key: "users", label: "Quản lý khách hàng", icon: "bx bx-user" },
     { key: "categories", label: "Quản lý danh mục", icon: "bx bx-category" },
-    { key: "order", label: "Quản lý đơn hàng", icon: "bx bx-receipt" },
-    // { key: "posts", label: "Quản lý bài viết", icon: "bx bx-news" },
-    // { key: "comments", label: "Quản lý bình luận", icon: "bx bx-comment-detail" },
-    { key: "evaluate", label: "Quản lý đánh giá", icon: "bx bx-star" },
-    { key: "discount", label: "Quản lý mã giảm giá", icon: "bx bx-gift" },
+    { key: "orders", label: "Quản lý đơn hàng", icon: "bx bx-receipt" },
+    { key: "posts", label: "Quản lý bài viết", icon: "bx bx-news" },
+    { key: "postscategories", label: "Danh mục bài viết", icon: "bx bx-news" },
+    { key: "comments", label: "Quản lý bình luận", icon: "bx bx-comment-detail" },
+    { key: "reviews", label: "Quản lý đánh giá", icon: "bx bx-star" },
+    { key: "discounts", label: "Quản lý mã giảm giá", icon: "bx bx-gift" },
+
     { key: "report", label: "Báo cáo doanh thu", icon: "bx bx-bar-chart-alt-2" },
     // { key: "settings", label: "Cài đặt hệ thống", icon: "bx bx-cog" }
   ];
