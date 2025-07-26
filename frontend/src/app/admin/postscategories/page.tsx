@@ -1,6 +1,10 @@
 'use client';
 import { useEffect, useState } from 'react';
 import { useShowMessage } from '@/app/utils/useShowMessage';
+import "bootstrap/dist/css/bootstrap.min.css";
+import "@fortawesome/fontawesome-free/css/all.min.css";
+import "boxicons/css/boxicons.min.css";
+import "../admin.css";
 
 interface PostCategory {
   _id: string;
