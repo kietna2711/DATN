@@ -21,15 +21,21 @@ var categoriesRouter = require('./routes/categories');
 var productsRouter = require('./routes/products');
 const variantsRouter = require('./routes/variants');
 const subcategoryRouter = require('./routes/subcategory');
-const paymentRouter = require("./routes/payment"); //thanh toán
-const orderRoutes = require("./routes/order"); //đơn hàng
+const vouchersRouter = require('./routes/vouchers');
+
+
+
+
 const postsRouter = require('./routes/posts');
 const postscategoriesRouter = require('./routes/postscategories');
-
-const authenticateToken = require('./middleware/auth');
+const orderRoutes = require("./routes/order"); //đơn hàng
+const paymentRouter = require("./routes/payment"); //thanh toán
+const orderDetailRoutes = require('./routes/orderdetail'); //đường dẫn đơn hàng chi tiết
 const reviewRoutes = require('./routes/review');
 const usersProfileRoutes = require('./routes/userprofile'); // Đường dẫn đến routes usersProfile
 const favoriteRouter = require('./routes/favorites');
+const authenticateToken = require('./middleware/auth');
+
 
 var app = express();
 
@@ -94,6 +100,8 @@ app.use('/categories', categoriesRouter);
 app.use('/products', productsRouter);
 app.use('/variants', variantsRouter);
 app.use('/subcategory', subcategoryRouter);
+app.use('/vouchers', vouchersRouter);
+
 
 // không cần token khi thanh toán momo
 app.use("/payment", paymentRouter);
@@ -109,10 +117,12 @@ app.use("/payment", paymentRouter); //Momo, thanh toán
 app.use(require('./routes/payment')); //IPN
 // app.use("/payment", require("./routes/payment")); //đường dẫn file routes/payment.js
 app.use("/orders", orderRoutes);
+app.use("/orderdetails", orderDetailRoutes); //đường dẫn đơn hàng chi tiết
 
-app.use(authenticateToken); // Bảo vệ các route sau khi xác thực token
 app.use('/favorites', favoriteRouter);
 app.use("/reviews", require("./routes/review"));
+app.use(authenticateToken); 
+
 
 
 // catch 404 and forward to error handler
@@ -130,5 +140,62 @@ app.use(function(err, req, res, next) {
   res.render('error');
 });
 
+const cron = require('node-cron');
+const Voucher = require('./models/voucherModel');
+const orderDetailModel = require('./models/orderDetailModel');
+
+// Cronjob: CHẠY MỖI GIỜ để tự động kích hoạt voucher đến ngày bắt đầu
+cron.schedule('*/1 * * * *', async () => {
+  // Chuyển thời gian hiện tại sang giờ Việt Nam (UTC+7)
+  const nowUTC = new Date();
+  const nowVN = new Date(nowUTC.getTime() + 7 * 60 * 60 * 1000);
+  console.log('CRON TEST UTC:', nowUTC);
+  console.log('CRON TEST VN:', nowVN);
+  const vouchers = await Voucher.find({
+    active: false
+  });
+  // console.log('Voucher có active: false:', vouchers.map(v => ({
+  //   discountCode: v.discountCode,
+  //   startDate: v.startDate,
+  //   endDate: v.endDate,
+  //   active: v.active
+  // })));
+  const eligibleVouchers = vouchers.filter(v => v.startDate <= nowVN && v.endDate >= nowVN);
+  console.log('Voucher đủ điều kiện kích hoạt (giờ VN):', eligibleVouchers.map(v => v.discountCode));
+  try {
+    const result = await Voucher.updateMany(
+      {
+        active: false,
+        startDate: { $lte: nowVN },
+        endDate: { $gte: nowVN }
+      },
+      { $set: { active: true } }
+    );
+    if (result.modifiedCount > 0) {
+      console.log(`[CRON] Đã tự động kích hoạt ${result.modifiedCount} voucher đến ngày bắt đầu.`);
+    }
+  } catch (err) {
+    console.error('[CRON] Lỗi khi tự động kích hoạt voucher:', err);
+  }
+});
+
+// Cronjob: CHẠY MỖI GIỜ để tự động tắt voucher khi hết hạn
+cron.schedule('*/1 * * * *', async () => {
+  const now = new Date();
+  try {
+    const result = await Voucher.updateMany(
+      {
+        active: true,
+        endDate: { $lt: now }
+      },
+      { $set: { active: false } }
+    );
+    if (result.modifiedCount > 0) {
+      console.log(`[CRON] Đã tự động tắt ${result.modifiedCount} voucher hết hạn.`);
+    }
+  } catch (err) {
+    console.error('[CRON] Lỗi khi tự động tắt voucher:', err);
+  }
+});
 
 module.exports = app;

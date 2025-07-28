@@ -405,9 +405,23 @@ useEffect(() => {
                         ) : null}
                       </td>
                       <td>{p.desc}</td>
-                      <td>{typeof p.price === "number" ? p.price.toLocaleString() + "đ" : "Không xác định"}</td>
-                      <td>{p.quantity}</td>
-                      <td>{p.size}</td>
+                      <td>
+                        {p.variants && p.variants.length > 0
+                          ? p.variants[0].price.toLocaleString() + "đ"
+                          : (typeof p.price === "number" ? p.price.toLocaleString() + "đ" : "Không xác định")}
+                      </td>
+                      <td>
+                        {p.variants && p.variants.length > 0
+                          ? p.variants[0].quantity
+                          : p.quantity}
+                      </td>
+                      <td>
+                        {p.variants && p.variants.length > 0
+                          ? p.variants.map((v, idx) => (
+                              <div key={idx}>{v.size}</div>
+                            ))
+                          : p.size}
+                      </td>
                       <td>{p.category}</td>
                       <td>{p.status}</td>
                       <td className="table-td-center">
@@ -472,7 +486,7 @@ useEffect(() => {
                   onChange={handleChange}
                 />
               </div>
-              <div className="form-group col-md-6">
+              {/* <div className="form-group col-md-6">
                 <label className="control-label">Giá</label>
                 <input
                   className="form-control"
@@ -482,7 +496,7 @@ useEffect(() => {
                   value={form.price}
                   onChange={handleChange}
                 />
-              </div>
+              </div> */}
               <div className="form-group col-md-6">
                 <label className="control-label">Danh mục</label>
                 <select
@@ -683,7 +697,19 @@ useEffect(() => {
                             formData.append("categoryId", createForm.category);
                             formData.append("status", createForm.status);
                             formData.append("variants", JSON.stringify(createVariants));
-                            // ...ảnh chính, thumbnails như cũ...
+                            formData.append("price", String(createForm.price)); // Đừng quên price!
+
+                            // Ảnh chính
+                            if (createMainImageFile) {
+                              formData.append("img", createMainImageFile);
+                            }
+
+                            // Ảnh thumbnail
+                            thumbnailInputs.forEach((input) => {
+                              if (input.file) {
+                                formData.append("thumbnails", input.file);
+                              }
+                            });
 
                             const res = await fetch("http://localhost:3000/products", {
                               method: "POST",
@@ -780,6 +806,7 @@ useEffect(() => {
                                       ...createForm,
                                       image: URL.createObjectURL(file),
                                     });
+                                    setCreateMainImageFile(file); // Lưu file vào state
                                   }
                                 }}
                               />

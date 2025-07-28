@@ -1,4 +1,7 @@
 "use client";
+// 
+import { useSearchParams } from "next/navigation";
+// 
 import React, { useState, useEffect } from "react";
 import "./checkout.css";
 import { useAppSelector } from "../store/store";
@@ -9,7 +12,9 @@ import Swal from "sweetalert2";
 import CheckoutInfo from "./CheckoutInfo";
 import CheckoutPayment from "./CheckoutPayment";
 import CheckoutOrderSummary from "./OrderSummary";
-
+import { getVouchers } from "../services/voucherService";
+import { validateVoucher } from "../utils/validateVoucher";
+// 
 const SHIPPING_FEE = 10000; //phí ship mặc định
 
 interface UserInfo {
@@ -24,6 +29,9 @@ const CheckoutPage: React.FC = () => {
   const [note, setNote] = useState("");
   const [payment, setPayment] = useState("");
   const [coupon, setCoupon] = useState("");
+  const [discount, setDiscount] = useState(0);
+  const [voucherMessage, setVoucherMessage] = useState("");
+  const [appliedVoucher, setAppliedVoucher] = useState<any>(null);
 
   // Địa chỉ động
   const [cities, setCities] = useState<any[]>([]);
@@ -33,6 +41,25 @@ const CheckoutPage: React.FC = () => {
   const [selectedDistrict, setSelectedDistrict] = useState("");
   const [selectedWard, setSelectedWard] = useState("");
 
+  //Chi tiết sp
+  const [buyNowItem, setBuyNowItem] = useState<any | null>(null);
+  const searchParams = useSearchParams();
+  //
+  useEffect(() => {
+    const isBuyNow = searchParams.get("buyNow") === "1";
+    if (isBuyNow) {
+      const itemStr = localStorage.getItem("buyNowItem");
+      if (itemStr) {
+        try {
+          const parsed = JSON.parse(itemStr);
+          setBuyNowItem(parsed);
+        } catch (e) {
+          console.error("Lỗi đọc buyNowItem", e);
+        }
+      }
+    }
+  }, [searchParams]);
+
   // Thông báo lỗi
   const [errors, setErrors] = useState<{ [k: string]: string }>({});
 
@@ -40,18 +67,53 @@ const CheckoutPage: React.FC = () => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [userInfo, setUserInfo] = useState<UserInfo | null>(null);
 
+  // Redux dispatch
   const dispatch = useDispatch();
 
-  // Kiểm tra đăng nhập khi load trang
+  // State lưu tên để mapping sau khi có data
+  const [selectedCityName, setSelectedCityName] = useState("");
+  const [selectedDistrictName, setSelectedDistrictName] = useState("");
+  const [selectedWardName, setSelectedWardName] = useState("");
+
+  // Lấy data địa chỉ VN từ GitHub
   useEffect(() => {
+    axios
+      .get("https://raw.githubusercontent.com/kenzouno1/DiaGioiHanhChinhVN/master/data.json")
+      .then((response) => {
+        setCities(response.data);
+      })
+      .catch((error) => console.error("Error fetching data:", error));
+  }, []);
+
+  // Khi có dữ liệu địa giới + user, thì mapping địa chỉ
+  useEffect(() => {
+    if (!cities.length) return;
+
     const token = localStorage.getItem("token");
     const user = localStorage.getItem("user");
+
     if (token && user) {
       setIsLoggedIn(true);
       try {
         const parsedUser: UserInfo = JSON.parse(user);
         setUserInfo(parsedUser);
         setFullName(parsedUser.username || "");
+
+        fetch(`http://localhost:3000/api/usersProfile/username/${parsedUser.username}`, {
+          headers: { 'Authorization': `Bearer ${token}` },
+        })
+          .then((res) => res.json())
+          .then((profileData) => {
+            if (profileData?.profile?.phone) setPhone(profileData.profile.phone);
+            const addr = profileData?.profile?.addresses?.[0];
+            if (addr) {
+              setAddress(addr.detail || "");
+              // Lưu tên để mapping sau
+              setSelectedCityName(addr.city || "");
+              setSelectedDistrictName(addr.district || "");
+              setSelectedWardName(addr.ward || "");
+            }
+          });
       } catch {
         setUserInfo(null);
       }
@@ -60,53 +122,85 @@ const CheckoutPage: React.FC = () => {
       setUserInfo(null);
       setFullName("");
     }
-  }, []);
+  }, [cities]);
 
-  // Lấy data địa chỉ VN
+  //B1 Sau khi đã có selectedCityName, tìm ID tương ứng và set
   useEffect(() => {
-    axios
-      .get(
-        "https://raw.githubusercontent.com/kenzouno1/DiaGioiHanhChinhVN/master/data.json"
-      )
-      .then((response) => {
-        setCities(response.data);
-      })
-      .catch((error) => console.error("Error fetching data:", error));
-  }, []);
+    if (!cities.length || !selectedCityName) return;
+    const city = cities.find((c) => c.Name === selectedCityName);
+    if (city) {
+      setSelectedCity(city.Id);
+    }
+  }, [cities, selectedCityName]);
 
-  // Khi chọn tỉnh/thành phố
+  // B2 Khi selectedCity đổi, cập nhật danh sách quận/huyện
   useEffect(() => {
     if (!selectedCity) {
       setDistricts([]);
       setSelectedDistrict("");
-      setWards([]);
-      setSelectedWard("");
       return;
     }
-    const cityObj = cities.find((c) => c.Id === selectedCity);
-    setDistricts(cityObj?.Districts || []);
-    setSelectedDistrict("");
-    setWards([]);
-    setSelectedWard("");
+    const city = cities.find((c) => c.Id === selectedCity);
+    if (city) {
+      setDistricts(city.Districts || []);
+    }
   }, [selectedCity, cities]);
 
-  // Khi chọn quận/huyện
+  // B3 Sau khi đã có selectedDistrictName, tìm ID tương ứng và set
+  useEffect(() => {
+    if (!districts.length || !selectedDistrictName) return;
+    const district = districts.find((d) => d.Name === selectedDistrictName);
+    if (district) {
+      setSelectedDistrict(district.Id);
+    }
+  }, [districts, selectedDistrictName]);
+
+  // B4 Khi selectedDistrict đổi, cập nhật danh sách phường/xã
   useEffect(() => {
     if (!selectedDistrict) {
       setWards([]);
       setSelectedWard("");
       return;
     }
-    const districtObj = districts.find((d) => d.Id === selectedDistrict);
-    setWards(districtObj?.Wards || []);
-    setSelectedWard("");
-  }, [selectedDistrict, districts]);
+    const city = cities.find((c) => c.Id === selectedCity);
+    const district = city?.Districts.find((d) => d.Id === selectedDistrict);
+    if (district) {
+      setWards(district.Wards || []);
+    }
+  }, [selectedDistrict, selectedCity, cities]);
 
-  const cartItems = useAppSelector((state) => state.cart.items);
+  //B5 Sau khi đã có selectedWardName, tìm ID tương ứng và set
+  useEffect(() => {
+    if (!wards.length || !selectedWardName) return;
+    const ward = wards.find((w) => w.Name === selectedWardName);
+    if (ward) {
+      setSelectedWard(ward.Id);
+    }
+  }, [wards, selectedWardName]);
+
+  // thay đổi dòng Vui lòng nhập thông tin giao hàng- truyền Props từ hàm này vào CheckoutPayment
+  const isShippingInfoFilled = () => {
+    return (
+      fullName.trim() &&
+      phone.trim() &&
+      /^(0[0-9]{9,10})$/.test(phone.trim()) &&
+      address.trim() &&
+      selectedCity &&
+      selectedDistrict &&
+      selectedWard
+    );
+  };
+
+
+  // const cartItems = useAppSelector((state) => state.cart.items);
+  const cartItemsRedux = useAppSelector((state) => state.cart.items);
+  const cartItems = buyNowItem ? [buyNowItem] : cartItemsRedux;
+  // 
   const handlePaymentChange = (value: string) => {
     setPayment(value);
   };
 
+  
   // Validate đơn hàng
   const validate = () => {
     const newErrors: { [k: string]: string } = {};
@@ -130,7 +224,7 @@ const CheckoutPage: React.FC = () => {
     },
     0
   );
-  const totalWithShipping = total + SHIPPING_FEE;
+  const totalWithShipping = total + SHIPPING_FEE - discount;
 
   // Hàm xử lý lưu đơn hàng về backend (CÓ GỬI TOKEN, dùng cho COD & thanh toán thường)
   const saveOrder = async () => {
@@ -146,7 +240,7 @@ const CheckoutPage: React.FC = () => {
     };
     const items = cartItems.map(item => ({
       productId: item.product._id,
-      productName: item.product.name,
+      productName: item.product.name, //tên sản phẩm
       variant: item.selectedVariant ? item.selectedVariant.size : undefined,
       quantity: item.quantity,
       price: item.selectedVariant ? item.selectedVariant.price : item.product.price,
@@ -217,10 +311,88 @@ const CheckoutPage: React.FC = () => {
     }
   };
 
+
+  // --- HÀM GỬI ĐƠN HÀNG ĐỂ LẤY LINK THANH TOÁN VNPAY (THÊM MỚI) ---
+  const handleOnlineOrderVnpay = async () => {
+    const orderId = "order" + Date.now() + Math.floor(Math.random() * 1000000); // Luôn duy nhất
+    const shippingInfo = {
+      name: fullName,
+      phone,
+      address: `${address}, ${wards.find(w => w.Id === selectedWard)?.Name || ""}, ${districts.find(d => d.Id === selectedDistrict)?.Name || ""}, ${cities.find(c => c.Id === selectedCity)?.Name || ""}`,
+      note,
+      city: cities.find(c => c.Id === selectedCity)?.Name || "",
+      district: districts.find(d => d.Id === selectedDistrict)?.Name || "",
+      ward: wards.find(w => w.Id === selectedWard)?.Name || "",
+    };
+    const items = cartItems.map(item => ({
+      productId: item.product._id,
+      productName: item.product.name,
+      variant: item.selectedVariant ? item.selectedVariant.size : undefined,
+      quantity: item.quantity,
+      price: item.selectedVariant ? item.selectedVariant.price : item.product.price,
+      image: item.product.images?.[0],
+    }));
+
+    try {
+      const res = await axios.post("http://localhost:3000/payment/vnpay", {
+        amount: totalWithShipping,
+        orderId,
+        orderInfo: "Thanh toán đơn hàng MimiBear qua VNPAY",
+        items,
+        shippingInfo,
+        coupon,
+        shippingFee: SHIPPING_FEE,
+      }, {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        }
+      });
+      window.location.href = res.data.paymentUrl;
+    } catch (err) {
+      Swal.fire("Lỗi", "Không thể tạo thanh toán VNPAY!", "error");
+    }
+  };
+
+
   // Khi bấm nút đăng nhập ở trang thanh toán
   const handleLoginRedirect = () => {
     localStorage.setItem("redirectAfterLogin", window.location.pathname);
     window.location.href = "/login";
+  };
+
+  // Hàm áp dụng mã giảm giá
+  const handleApplyCoupon = async () => {
+    setVoucherMessage("");
+    setDiscount(0);
+    setAppliedVoucher(null);
+    if (!coupon.trim()) {
+      setVoucherMessage("Vui lòng nhập mã giảm giá");
+      return;
+    }
+    try {
+      const vouchers = await getVouchers();
+      const voucher = vouchers.find(v => v.discountCode.toLowerCase() === coupon.trim().toLowerCase());
+      if (!voucher) {
+        setVoucherMessage("Mã giảm giá không tồn tại");
+        return;
+      }
+      const result = validateVoucher({
+        voucher,
+        cartItems,
+        total,
+      });
+      if (!result.valid) {
+        setVoucherMessage(result.message || "Mã giảm giá không hợp lệ");
+        setDiscount(0);
+        setAppliedVoucher(null);
+      } else {
+        setDiscount(result.discount || 0);
+        setVoucherMessage("Áp dụng mã giảm giá thành công!");
+        setAppliedVoucher(voucher);
+      }
+    } catch (err) {
+      setVoucherMessage("Có lỗi khi kiểm tra mã giảm giá");
+    }
   };
 
   // Xử lý đặt hàng
@@ -260,8 +432,11 @@ const CheckoutPage: React.FC = () => {
                 text: "Cảm ơn bạn đã mua hàng.",
                 icon: "success"
               }).then(() => {
-                dispatch(clearCart());
-                window.location.href = "/";
+                if (!buyNowItem) {
+                  dispatch(clearCart());
+                }
+                localStorage.removeItem("buyNowItem");
+                window.location.href = "/"; // quay về trang chủ
               });
             } catch (err) {
               swalWithBootstrapButtons.fire({
@@ -283,12 +458,18 @@ const CheckoutPage: React.FC = () => {
       } else if (payment === "momo") {
         // THANH TOÁN ONLINE MOMO: chuyển sang cổng thanh toán
         await handleOnlineOrderMomo();
+      } else if(payment === "vnpay") {
+        // thanh toán online VNPAY
+        await handleOnlineOrderVnpay();
       } else {
-        // Các phương thức khác (ví dụ: vnpay, zalopay, thanh toán thông thường)
+        // Các phương thức khác (ví dụ: zalopay, thanh toán thông thường)
         try {
           await saveOrder();
           Swal.fire("Thanh toán thành công", "Cảm ơn bạn đã mua hàng!", "success").then(() => {
-            dispatch(clearCart());
+            if (!buyNowItem) {
+                  dispatch(clearCart());
+                }
+                localStorage.removeItem("buyNowItem");
             window.location.href = "/";
           });
         } catch (err) {
@@ -335,6 +516,7 @@ const CheckoutPage: React.FC = () => {
             payment={payment}
             handlePaymentChange={handlePaymentChange}
             errors={errors}
+            isShippingInfoFilled={!!isShippingInfoFilled()}//truyền từ trên xuống đổi dòng vận chuyển
           />
         </div>
       </form>
@@ -346,6 +528,9 @@ const CheckoutPage: React.FC = () => {
         SHIPPING_FEE={SHIPPING_FEE}
         totalWithShipping={totalWithShipping}
         handleOrder={handleOrder}
+        onApplyCoupon={handleApplyCoupon}
+        discount={discount}
+        voucherMessage={voucherMessage}
       />
     </div>
   );

@@ -20,14 +20,14 @@ const ProductInfo = ({ product }: { product: Products }) => {
   const productId = (product._id ?? product._id)?.toString();
   const { error, success } = useShowMessage();
 
-   const userStr = typeof window !== "undefined" ? localStorage.getItem("user") : null;
+  const userStr = typeof window !== "undefined" ? localStorage.getItem("user") : null;
   const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
   let userId: string | null = null;
   if (userStr) {
     try {
       const userObj = JSON.parse(userStr);
       userId = userObj._id || userObj.id;
-    } catch {}
+    } catch { }
   }
   const isLoggedIn = !!userId && !!token;
 
@@ -67,7 +67,7 @@ const ProductInfo = ({ product }: { product: Products }) => {
     // eslint-disable-next-line
   }, [variants]);
 
- const toggleFavorite = async () => {
+  const toggleFavorite = async () => {
     if (isLoggedIn && userId && token) {
       if (isFavorite) {
         await removeFavorite(productId, userId, token);
@@ -76,7 +76,8 @@ const ProductInfo = ({ product }: { product: Products }) => {
       } else {
         await addFavorite(productId, userId, token);
         setIsFavorite(true);
-        success('Đã thêm vào yêu thích')
+        success('Đã thêm vào yêu thích');
+
       }
       window.dispatchEvent(new Event("favoriteChanged"));
     } else {
@@ -86,11 +87,12 @@ const ProductInfo = ({ product }: { product: Products }) => {
       if (exists) {
         updatedFavorites = favorites.filter((item: Products) => ((item._id ?? item.id)?.toString() !== productId));
         setIsFavorite(false);
-        error("Đã xóa khỏi yêu thích");
+        success('Đã xóa khỏi yêu thích');
       } else {
         updatedFavorites = [...favorites, product];
         setIsFavorite(true);
-        success('Đã thêm vào yêu thích')
+        success('Đã thêm vào yêu thích');
+
       }
       localStorage.setItem("favorites", JSON.stringify(updatedFavorites));
       window.dispatchEvent(new Event("favoriteChanged"));
@@ -113,7 +115,7 @@ const ProductInfo = ({ product }: { product: Products }) => {
     for (let i = 0; i < quantity; ++i) {
       dispatch(addToCart({ product: safeProduct, selectedVariant: currentVariant }));
     }
-    success("Đã thêm vào giỏ hàng!");
+    success("Đã thêm vào giỏ hàng.");
     if (redirectToCart) {
       setTimeout(() => {
         router.push("/cart");
@@ -121,18 +123,39 @@ const ProductInfo = ({ product }: { product: Products }) => {
     }
   };
 
+  // Hàm xử lý khi nhấn nút "Mua ngay"
+  //sp chi tiết tới trang thanh toán
+  const handleBuyNow = () => {
+    if (!currentVariant) return;
+
+    const safeProduct = toSerializableProduct(product);
+    const buyNowItem = {
+      product: safeProduct,
+      selectedVariant: currentVariant,
+      quantity: quantity
+    };
+
+    localStorage.setItem("buyNowItem", JSON.stringify(buyNowItem));
+    success("Chuyển sang trang thanh toán...");
+    setTimeout(() => {
+      router.push("/checkout?buyNow=1");
+    }, 350);
+  };
+
+
   return (
     <div className={styles.productInfo_v3_noCard}>
       <div className={styles.productDetail_innerWrap}>
         <div className={styles.titleRow}>
-          <span
+
+          <span className={styles.productTitle}>{product.name}</span>
+            <span
             className={styles.heartIcon}
             title={isFavorite ? "Xóa khỏi yêu thích" : "Thêm vào yêu thích"}
             onClick={toggleFavorite}
           >
             {isFavorite ? <HeartFilled style={{ color: "red" }} /> : <HeartOutlined />}
           </span>
-          <span className={styles.productTitle}>{product.name}</span>
         </div>
         <div className={styles.productPrice}>
           {currentVariant
@@ -194,7 +217,7 @@ const ProductInfo = ({ product }: { product: Products }) => {
           </div>
           <button
             className={styles.addToCart_v4}
-            onClick={() => handleAddToCart(false)}
+            onClick={() => handleAddToCart(true)}
           >
             THÊM VÀO GIỎ HÀNG
           </button>
@@ -209,10 +232,7 @@ const ProductInfo = ({ product }: { product: Products }) => {
             />
             0979896616
           </a>
-          <button
-            className={styles.buyNow_v4}
-            onClick={() => handleAddToCart(true)}
-          >
+          <button className={styles.buyNow_v4} onClick={handleBuyNow}>
             MUA NGAY
           </button>
         </div>

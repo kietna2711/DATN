@@ -11,7 +11,6 @@ import styles from "@/app/styles/producthot.module.css";
 import { Products } from "@/app/types/productD";
 import ProductItem from "@/app/components/ProductItem";
 import { useRouter } from "next/navigation"; // Thêm dòng này
-import router from "next/router";
 
 type ProductHotProps = {
   props: {
@@ -20,12 +19,6 @@ type ProductHotProps = {
     products: Products[];
   };
 };
-
-  // Hàm chuyển hướng tới trang sản phẩm mới
-  const handleFindNewProduct = () => {
-    router.push("/products?new=true");
-  };
-
 
 export default function ProductNew({ props }: ProductHotProps) {
   const { title, description, products } = props;

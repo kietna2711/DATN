@@ -6,6 +6,8 @@ import "boxicons/css/boxicons.min.css";
 import "../admin.css";
 import axios from "axios";
 
+
+
 const statusOptions = [
   { label: "Duyệt", value: "approved" },
   { label: "Chờ xác nhận", value: "waiting" },
@@ -29,6 +31,8 @@ const paymentBadge: Record<string, string> = {
   "pending": "bg-warning",
   "unpaid": "bg-danger",
 };
+
+
 
 type Order = {
   _id: string;
@@ -67,10 +71,12 @@ function getNextStatusOptions(current: Order["orderStatus"]) {
   }
 }
 
+
 export default function OrderManagement() {
   const [orders, setOrders] = useState<Order[]>([]);
   const [clock, setClock] = useState("");
 
+  // Lấy danh sách đơn hàng từ backend
   useEffect(() => {
     axios.get("http://localhost:3000/orders")
       .then(res => setOrders(res.data))
@@ -87,6 +93,8 @@ export default function OrderManagement() {
 }, []);
 
 
+
+  // Cập nhật đồng hồ mỗi giây
   useEffect(() => {
     function updateClock() {
       const today = new Date();
