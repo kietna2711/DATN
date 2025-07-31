@@ -207,58 +207,6 @@ return [
     setSending(false);
 }
 
-const handlePaste = async (e: React.ClipboardEvent) => {
-  const items = e.clipboardData.items;
-  for (let i = 0; i < items.length; i++) {
-    if (items[i].type.indexOf("image") !== -1) {
-      const file = items[i].getAsFile();
-      if (file) {
-        // Tạo URL tạm để hiển thị ảnh
-        const imageUrl = URL.createObjectURL(file);
-        setMessages(msgs => [
-          ...msgs,
-          { role: "user", content: "Đã gửi ảnh", image: imageUrl },
-        ]);
-        const formData = new FormData();
-        formData.append("image", file);
-        fetch("http://localhost:3001/api/predict-image", { method: "POST", body: formData })
-          .then(res => res.json())
-          .then(data => {
-            if (data.product) {
-              let productMessage = `${data.product.name}\nGiá: ${data.product.price?.toLocaleString()} đ\n${data.product.description || ""}`;
-              setMessages(msgs => [
-                ...msgs,
-                {
-                  role: "bot",
-                  content: productMessage,
-                  image: data.product.image_url
-                    ? `http://localhost:3000/images/${data.product.image_url}`
-                    : undefined
-                }
-              ]);
-            } else {
-              setMessages(msgs => [
-                ...msgs,
-                { role: "bot", content: "Không tìm thấy sản phẩm tương tự." }
-              ]);
-            }
-          })
-          .catch(() => {
-            setMessages(msgs => [
-              ...msgs,
-              { role: "bot", content: "Có lỗi khi nhận diện ảnh." }
-            ]);
-          })
-          .finally(() => {
-            setLoading(false);
-          });
-      }
-      e.preventDefault();
-      break;
-    }
-  }
-};
-
   const startVoice = () => {
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
     if (!SpeechRecognition) {
@@ -891,7 +839,7 @@ const handlePaste = async (e: React.ClipboardEvent) => {
             borderTop: `1px solid ${PINK}`,
             background: WHITE
           }}>
-            <div onPaste={handlePaste}>
+            <div>
               <Input
                 placeholder="Nhập tin nhắn..."
                 size="large"
@@ -921,7 +869,7 @@ const handlePaste = async (e: React.ClipboardEvent) => {
                                 key={`cat-${idx}-sub-${subIdx}`}
                                 onClick={() => {
                                   setShowChat(true);
-                                  sendMessage(`Danh mục: ${cat.name} - ${sub.name}`);
+                                  sendMessage(sub.name);
                                 }}
                               >
                                 {sub.name}

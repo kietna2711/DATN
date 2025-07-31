@@ -34,19 +34,13 @@ def chatbot_reply(message: str) -> dict:
     message_lower = message.lower()
     products = list(products_collection.find())
 
-    # Tìm các sản phẩm có tên chứa trong câu hỏi (tối đa 4 sản phẩm)
+    # Ưu tiên: Nếu câu hỏi chứa tên sản phẩm, trả về sản phẩm luôn
     matched_products = [
         p for p in products
         if p.get("name", "").lower() in message_lower or message_lower in p.get("name", "").lower()
     ]
     if matched_products:
         ai_reply = ask_ai(message)
-        if ai_reply.strip() in [
-            "Xin lỗi, mình chưa hiểu ý bạn.",
-            "Xin lỗi, hệ thống AI đang bận hoặc hết lượt miễn phí.",
-            "Em chưa hiểu ý Anh/Chị, vui lòng hỏi lại nhé!"
-        ]:
-            return {"type": "text", "content": ai_reply}
         result = []
         for p in matched_products[:4]:
             images = p.get("images", [])
@@ -74,23 +68,13 @@ def chatbot_reply(message: str) -> dict:
             "products": result
         }
 
-    # Nếu người dùng chọn một danh mục (ví dụ: "Danh mục: Gấu Bông Quà Tặng")
-    if message_lower.startswith("danh mục:"):
-        cat_name = message[len("Danh mục:"):].strip()
-        if "-" in cat_name:
-            cat_name = cat_name.split("-")[0].strip()
-        cat_name = cat_name.lower()
-
-        category = categories_collection.find_one({"name": {"$regex": cat_name, "$options": "i"}})
-        ai_reply = ask_ai(message)
-        if ai_reply.strip() in [
-            "Xin lỗi, mình chưa hiểu ý bạn.",
-            "Xin lỗi, hệ thống AI đang bận hoặc hết lượt miễn phí.",
-            "Em chưa hiểu ý Anh/Chị, vui lòng hỏi lại nhé!"
-        ]:
-            return {"type": "text", "content": ai_reply}
-        if category:
-            prods = list(products_collection.find({"categoryId": category["_id"]}).limit(4))
+    # Ưu tiên: Nếu câu hỏi chứa tên danh mục hoặc subcategory, trả về danh mục luôn
+    categories = list(categories_collection.find())
+    subcategories = list(subcategories_collection.find())
+    for cat in categories:
+        if cat.get("name", "").lower() in message_lower or message_lower in cat.get("name", "").lower():
+            ai_reply = ask_ai(message)
+            prods = list(products_collection.find({"categoryId": cat["_id"]}).limit(4))
             if prods:
                 result = []
                 for p in prods:
@@ -119,49 +103,40 @@ def chatbot_reply(message: str) -> dict:
                     "products": result
                 }
             else:
-                return {"type": "text", "content": f"Hiện chưa có sản phẩm nào trong sản phẩm {category['name']}."}
-        else:
-            subcat = subcategories_collection.find_one({"name": {"$regex": cat_name, "$options": "i"}})
+                return {"type": "text", "content": f"Hiện chưa có sản phẩm nào trong danh mục {cat['name']}."}
+    for subcat in subcategories:
+        if subcat.get("name", "").lower() in message_lower or message_lower in subcat.get("name", "").lower():
             ai_reply = ask_ai(message)
-            if ai_reply.strip() in [
-                "Xin lỗi, mình chưa hiểu ý bạn.",
-                "Xin lỗi, hệ thống AI đang bận hoặc hết lượt miễn phí.",
-                "Em chưa hiểu ý Anh/Chị, vui lòng hỏi lại nhé!"
-            ]:
-                return {"type": "text", "content": ai_reply}
-            if subcat:
-                prods = list(products_collection.find({"subcategoryId": subcat["_id"]}).limit(4))
-                if prods:
-                    result = []
-                    for p in prods:
-                        images = p.get("images", [])
-                        image_url = f"http://localhost:3000/images/{images[0]}" if images else None
-                        variants = list(variants_collection.find({"productId": p["_id"]}))
-                        sizes = []
-                        prices = []
-                        for v in variants:
-                            sz = v.get("size")
-                            pr = v.get("price")
-                            if sz:
-                                sizes.append(sz)
-                            if pr is not None:
-                                prices.append(pr)
-                        result.append({
-                            "_id": str(p["_id"]),
-                            "name": p.get("name"),
-                            "sizes": sizes,
-                            "price": prices,
-                            "image": image_url
-                        })
-                    return {
-                        "type": "products",
-                        "content": ai_reply,
-                        "products": result
-                    }
-                else:
-                    return {"type": "text", "content": f"Hiện chưa có sản phẩm nào trong sản phẩm {subcat['name']}."}
+            prods = list(products_collection.find({"subcategoryId": subcat["_id"]}).limit(4))
+            if prods:
+                result = []
+                for p in prods:
+                    images = p.get("images", [])
+                    image_url = f"http://localhost:3000/images/{images[0]}" if images else None
+                    variants = list(variants_collection.find({"productId": p["_id"]}))
+                    sizes = []
+                    prices = []
+                    for v in variants:
+                        sz = v.get("size")
+                        pr = v.get("price")
+                        if sz:
+                            sizes.append(sz)
+                        if pr is not None:
+                            prices.append(pr)
+                    result.append({
+                        "_id": str(p["_id"]),
+                        "name": p.get("name"),
+                        "sizes": sizes,
+                        "price": prices,
+                        "image": image_url
+                    })
+                return {
+                    "type": "products",
+                    "content": ai_reply,
+                    "products": result
+                }
             else:
-                return {"type": "text", "content": "Không tìm thấy sản phẩm này."}
+                return {"type": "text", "content": f"Hiện chưa có sản phẩm nào trong danh mục {subcat['name']}."}
 
     # Nếu người dùng hỏi về danh mục
     if "danh mục" in message_lower:

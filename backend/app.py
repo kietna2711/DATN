@@ -2,7 +2,6 @@ from flask import Flask, request, jsonify, send_file
 from bearbot import bear_reply
 from recommend import recommend_products
 from chatbot import chatbot_reply
-from image_ai import predict_image
 from flask_cors import CORS
 from gtts import gTTS
 from io import BytesIO
@@ -26,14 +25,6 @@ def chatbot_api():
     print("Bot trả lời:", result)
     return jsonify(result)
 
-
-@app.route("/api/predict-image", methods=["POST"])
-def predict_image_api():
-    if "image" not in request.files:
-        return jsonify({"result": "Không có file ảnh"}), 400
-    file = request.files["image"]
-    result = predict_image(file)
-    return jsonify({"result": result})
 
 @app.route("/api/bear-voice", methods=["POST"])
 def bear_voice():
