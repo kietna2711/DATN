@@ -9,6 +9,7 @@ interface Post {
   slug: string;
   shortDesc: string;
   img?: string;
+  hidden?: boolean; // 👈 Thêm trường này để kiểm tra bài viết bị ẩn
 }
 
 export default function CategoryPage({ params }: { params: Promise<{ slug: string }> }) {
@@ -28,7 +29,11 @@ export default function CategoryPage({ params }: { params: Promise<{ slug: strin
         if (!res.ok) throw new Error('Failed to fetch posts');
 
         const data = await res.json();
-        setPosts(data.items);
+
+        // 👇 Chỉ lấy bài viết không bị ẩn
+        const visiblePosts = data.items.filter((post: Post) => !post.hidden);
+
+        setPosts(visiblePosts);
         setCategoryTitle(data.categoryTitle || '');
       } catch (err: any) {
         setError(err.message || 'Đã xảy ra lỗi');

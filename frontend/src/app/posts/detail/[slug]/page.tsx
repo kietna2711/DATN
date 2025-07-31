@@ -1,8 +1,8 @@
-export const dynamic = 'force-dynamic'; //Bắt buộc SSR, tránh lỗi khi dùng params.slug trong dynamic routes
+export const dynamic = 'force-dynamic';
+
 import './postsDetail.css';
 import InstagramSection from '../../../components/InstagramSection';
 import SidebarBaiVietMoi from './SidebarBaiVietMoi';
-// import CommentForm from './CommentForm';
 
 interface Post {
   _id: string;
@@ -10,6 +10,7 @@ interface Post {
   slug: string;
   content: string;
   createdAt: string;
+  hidden?: boolean; // ✅ thêm dòng này
 }
 
 function adjustImageSrc(html: string): string {
@@ -32,17 +33,23 @@ async function getRecentPosts(): Promise<Post[]> {
   const res = await fetch('http://localhost:3000/api/posts', { cache: 'no-store' });
   const data = await res.json();
   return data.items
+    .filter((post: Post) => !post.hidden) // ✅ lọc bài viết không bị ẩn
     .sort((a: Post, b: Post) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
     .slice(0, 5);
 }
 
 const PostDetailPage = async ({ params }: { params: { slug: string } }) => {
-  const slug = params.slug; // Lấy slug từ params
+  const slug = params.slug;
   const post = await getPost(slug);
   const recentPosts = await getRecentPosts();
 
-  if (!post) {
-    return <div className="container"><p style={{ color: 'red' }}>Không tìm thấy bài viết</p></div>;
+  // ✅ kiểm tra nếu không tìm thấy hoặc bị ẩn
+  if (!post || post.hidden) {
+    return (
+      <div className="container">
+        <p style={{ color: 'red' }}>Không tìm thấy bài viết hoặc bài viết đã bị ẩn</p>
+      </div>
+    );
   }
 
   return (

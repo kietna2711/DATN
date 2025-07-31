@@ -9,6 +9,13 @@ interface Post {
   slug: string;
   shortDesc: string;
   img?: string;
+  hidden?: boolean; // ẩn bài viết
+  category?: {
+    _id: string;
+    title: string;
+    slug: string;
+    hidden?: boolean; // ẩn danh mục
+  };
 }
 
 export default function AllPostsPage() {
@@ -25,7 +32,13 @@ export default function AllPostsPage() {
         if (!res.ok) throw new Error('Failed to fetch posts');
 
         const data = await res.json();
-        setPosts(data.items);
+
+        // ✅ Lọc các bài viết không bị ẩn và danh mục không bị ẩn
+        const visiblePosts = data.items.filter(
+          (post: Post) => !post.hidden && !post.category?.hidden
+        );
+
+        setPosts(visiblePosts);
       } catch (err: any) {
         setError(err.message || 'Đã xảy ra lỗi');
       }
