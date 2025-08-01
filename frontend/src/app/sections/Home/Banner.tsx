@@ -20,6 +20,7 @@
         { icon: "http://localhost:3000/images/icon-menu2.png", label: "GIAO HÀNG SIÊU TỐC" },
         { icon: "http://localhost:3000/images/icon-menu1.png", label: "BỌC HỘP QUÀ XINH" },
         { icon: "http://localhost:3000/images/icon-menu3.png", label: "TẶNG THIỆP Ý NGHĨA" },
+        { icon: "http://localhost:3000/images/icon-menu4.png", label: "GIẶT GẤU CHUYÊN NGHIỆP" },
         { icon: "http://localhost:3000/images/icon-menu5.png", label: "NÉN NHỜ GẤU BÔNG" },
     ];
 

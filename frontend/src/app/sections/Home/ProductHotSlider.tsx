@@ -6,10 +6,10 @@ import "swiper/css";
 import "swiper/css/navigation";
 import "swiper/css/autoplay";
 
-import slideStyles from "@/app/styles/productitemslide.module.css"; // <-- slide-specific CSS
-import itemStyles from "@/app/styles/productitem.module.css";      // <-- section/container CSS
-import ProductItemSlide from "../../components/ProductItemSlide";
+import styles from "@/app/styles/productitem.module.css";
+import ProductItem from "../../components/ProductItem";
 import { Products } from "../../types/productD";
+
 
 type ProductHotSliderProps = {
   props: {
@@ -23,8 +23,8 @@ export default function ProductHotSlider({ props }: ProductHotSliderProps) {
 
   return (
     <section>
-      <div className={itemStyles.container_product}>
-        <p className={itemStyles.tieude}>{title}</p>
+      <div className={styles.container_product}>
+        <p className={styles.tieude}>{title}</p>
         <Swiper
           modules={[Navigation, Autoplay]}
           navigation
@@ -36,11 +36,11 @@ export default function ProductHotSlider({ props }: ProductHotSliderProps) {
             768: { slidesPerView: 3 },
             1024: { slidesPerView: 4 },
           }}
-          className={itemStyles.gb_products}
+          className={styles.gb_products}
         >
           {products.map((product) => (
-            <SwiperSlide key={product._id} className={slideStyles.slide}>
-              <ProductItemSlide product={product} />
+            <SwiperSlide key={product._id}>
+              <ProductItem product={product} />
             </SwiperSlide>
           ))}
         </Swiper>
