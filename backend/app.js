@@ -33,6 +33,7 @@ const orderRoutes = require('./routes/order'); //đơn hàng
 const paymentRouter = require("./routes/payment"); //thanh toán
 const orderDetailRoutes = require('./routes/orderdetail'); //đường dẫn đơn hàng chi tiết
 const reviewRoutes = require('./routes/review');
+const giftRoutes = require('./routes/giftoption');
 const usersProfileRoutes = require('./routes/userprofile'); // Đường dẫn đến routes usersProfile
 const favoriteRouter = require('./routes/favorites');
 const authenticateToken = require('./middleware/auth');
@@ -125,6 +126,8 @@ app.use("/orderdetails", orderDetailRoutes); //đường dẫn đơn hàng chi t
 
 app.use('/favorites', favoriteRouter);
 app.use("/reviews", require("./routes/review"));
+app.use("/giftoption", giftRoutes);
+
 app.use(authenticateToken); 
 
 

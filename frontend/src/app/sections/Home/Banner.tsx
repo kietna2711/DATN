@@ -59,6 +59,7 @@
                 lg={4}
                 style={{ textAlign: "center" }}
                 >
+                    <a href="/Giftbox" className={styles.featureLink}>
                 <img
                     src={feature.icon}
                     alt={feature.label}
@@ -75,6 +76,7 @@
                     (e.currentTarget.style.transform = "scale(1)")
                     }
                 />
+                </a>
                 <div
                     style={{
                     color: "#f15cae",

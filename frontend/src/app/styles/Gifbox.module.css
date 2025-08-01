@@ -1,0 +1,111 @@
+.container {
+  padding: 1.5rem;
+  max-width: 64rem;
+  margin: 0 auto;
+}
+
+.heading {
+  font-size: 1.5rem;
+  font-weight: bold;
+  margin-bottom: 1rem;
+  text-align: center;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 1rem;
+}
+
+.giftCard {
+  border-radius: 0.75rem;
+  padding: 1rem;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  cursor: pointer;
+  transition: transform 0.2s ease;
+}
+
+.giftCard:hover {
+  transform: scale(1.05);
+}
+
+.title {
+  font-weight: 600;
+  font-size: 1.125rem;
+  margin-bottom: 0.5rem;
+}
+
+.description {
+  font-size: 0.875rem;
+  color: #4b5563;
+}
+
+.selected {
+  outline: 3px solid #ec4899; /* Tailwind ring-pink-400 */
+}
+
+.result {
+  margin-top: 1.5rem;
+  padding-top: 1rem;
+  border-top: 1px solid #e5e7eb;
+  text-align: center;
+  font-weight: 500;
+}
+
+.selectedText {
+  color: #ec4899;
+}
+
+/* Màu động tuỳ thuộc vào gift.color */
+.pink {
+  background-color: #ffe4e6;
+}
+
+.green {
+  background-color: #d1fae5;
+}
+
+.blue {
+  background-color: #dbeafe;
+}
+.occasions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 24px;
+  justify-content: center;
+}
+
+.occasionsLabel {
+  font-weight: 600;
+  color: #f15cae;
+  margin-right: 8px;
+}
+
+.occasionBtn {
+  background: #fff0f6;
+  border: 1px solid #f15cae;
+  color: #f15cae;
+  padding: 8px 16px;
+  border-radius: 20px;
+  cursor: pointer;
+  font-size: 15px;
+  transition: background 0.2s, color 0.2s;
+}
+
+.occasionBtn:hover,
+.occasionSelected {
+  background: #f15cae;
+  color: #fff;
+  border-color: #f15cae;
+}
+
+.occasionTag {
+  margin-top: 8px;
+  font-size: 13px;
+  color: #f15cae;
+  background: #fff0f6;
+  border-radius: 12px;
+  padding: 2px 10px;
+  display: inline-block;
+}
