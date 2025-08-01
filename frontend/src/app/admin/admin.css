@@ -15818,6 +15818,8 @@ text-align:center;
 
 /* Hàng hover & viền */
 #sampleTable tr {
+
+  border-bottom: 1px solid #e0e4ee;
   border-bottom: 1px solid #e0e0e0;
 }
 #sampleTable tbody tr:hover {
@@ -15848,5 +15850,5 @@ text-align:center;
   overflow: hidden;
   text-overflow: ellipsis;
   line-height: 1.3;
-  box-sizing: border-box;
+  box-sizing: border-box
 }

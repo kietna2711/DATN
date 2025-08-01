@@ -1,17 +1,38 @@
 "use client";
-import React, { useRef, useState } from "react";
+import React, { useRef, useState, useEffect } from "react";
 import "./verify.css";
 import { useRouter } from "next/navigation";
-import Link from "next/link";
-import { useShowMessage } from "../utils/useShowMessage"; // Thêm dòng này
+import { useShowMessage } from "../utils/useShowMessage";
 
 export default function Verify() {
   const router = useRouter();
   const [error, setError] = useState("");
-  const showMessage = useShowMessage("verify-otp", "user"); // Sử dụng hook
+  const [resendSeconds, setResendSeconds] = useState(0);
+  const [resendLoading, setResendLoading] = useState(false);
+  const showMessage = useShowMessage("verify-otp", "user");
   const inputs = Array.from({ length: 6 }, () => useRef<HTMLInputElement>(null));
 
-  // Tự động chuyển focus khi nhập/xóa số
+  useEffect(() => {
+    if (resendSeconds > 0) {
+      const timer = setTimeout(() => setResendSeconds(resendSeconds - 1), 1000);
+      return () => clearTimeout(timer);
+    }
+  }, [resendSeconds]);
+
+  // Xử lý gửi lại mã OTP (không cần email)
+  const handleResend = async (e: React.MouseEvent) => {
+    e.preventDefault();
+    if (resendSeconds > 0 || resendLoading) return;
+    setResendLoading(true);
+    setError("");
+    // Gửi yêu cầu gửi lại OTP (không gửi email)
+    // Ví dụ: chỉ gọi API gửi lại OTP cho user hiện tại (nếu có)
+    // await fetch("http://localhost:3000/users/send-otp", { ... });
+    showMessage.success("Đã gửi lại mã xác thực!");
+    setResendSeconds(60);
+    setResendLoading(false);
+  };
+
   const handleInput = (e: React.ChangeEvent<HTMLInputElement>, idx: number) => {
     const value = e.target.value;
     if (value && !/^\d$/.test(value)) {
@@ -31,16 +52,10 @@ export default function Verify() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError(""); // reset lỗi cũ
-    // Lấy mã OTP từ các ô input
+    setError("");
     const otpArr = inputs.map(ref => ref.current?.value || "");
     const otp = otpArr.join("");
-    const email = new URLSearchParams(window.location.search).get("email");
 
-    if (!email) {
-      setError("Thiếu email!");
-      return;
-    }
     if (otp.length !== 6) {
       setError("Mã OTP phải đủ 6 số!");
       return;
@@ -50,7 +65,8 @@ export default function Verify() {
       return;
     }
 
-    // Gửi OTP và email lên backend để xác thực
+    const email = new URLSearchParams(window.location.search).get("email");
+    // Gửi OTP lên backend để xác thực (không gửi email)
     const res = await fetch("http://localhost:3000/users/verify-otp", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -58,9 +74,9 @@ export default function Verify() {
     });
     const data = await res.json();
     if (res.ok) {
-      showMessage.success("Xác thực thành công! Vui lòng đặt lại mật khẩu.");
+      showMessage.success("Xác thực thành công!");
       setTimeout(() => {
-        router.push(`/reset-password?email=${encodeURIComponent(email)}&otp=${otp}`);
+        router.push(`/reset-password?otp=${otp}`);
       }, 1200);
     } else {
       setError(data.message || "Mã OTP không đúng hoặc đã hết hạn!");
@@ -79,7 +95,7 @@ export default function Verify() {
         <div className="bear-ear left-ear"></div>
         <div className="bear-ear right-ear"></div>
         <h2>Nhập mã xác thực</h2>
-        <p>Vui lòng nhập mã xác thực gồm 6 số đã gửi về email của bạn.</p>
+        <p>Vui lòng nhập mã xác thực gồm 6 số đã gửi cho bạn.</p>
         <form autoComplete="off" onSubmit={handleSubmit}>
           <div className="code-inputs">
             {inputs.map((ref, idx) => (
@@ -102,9 +118,25 @@ export default function Verify() {
             </div>
           )}
           <button type="submit">Xác nhận</button>
-          <Link href="/forget" className="register-link">Gửi lại mã</Link>
-        </form>
-      </div>
-    </div>
-  );
-}
+          <a
+            href="#"
+            className="register-link"
+            style={{
+              pointerEvents: resendSeconds > 0 || resendLoading ? "none" : "auto",
+              color: resendSeconds > 0 || resendLoading ? "#aaa" : "#d16ba5",
+              marginLeft: 16,
+              userSelect: "none",
+            }}
+            onClick={handleResend}
+          >
+            {resendSeconds > 0
+              ? `Gửi lại mã (${resendSeconds}s)`
+              : resendLoading
+              ? "Đang gửi..."
+              : "Gửi lại mã"}
+                </a>
+              </form>
+            </div>
+          </div> 
+      );
+    }

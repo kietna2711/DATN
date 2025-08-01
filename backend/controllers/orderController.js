@@ -59,23 +59,10 @@ exports.createOrder = async (req, res) => {
 exports.getAllOrders = async (req, res) => {
   try {
     const orders = await Order.find().sort({ createdAt: -1 });
-    // Thêm tên sản phẩm cho mỗi đơn hàng
-    const ordersWithProducts = await Promise.all(
-      orders.map(async (order) => {
-        // Tìm các OrderDetail thuộc order này
-        const details = await OrderDetail.find({ orderId: order.orderId || order._id });
-        // Nếu trong OrderDetail đã lưu productName thì dùng luôn
-        // Nếu productName không có, bạn cần populate từ Product model
-        const productNames = details.map(d => d.productName || "Sản phẩm đã xóa");
-        return {
-          ...order.toObject(),
-          productNames,
-        };
-      })
-    );
-    res.json(ordersWithProducts);
+
+    res.json(orders);
   } catch (err) {
-    res.status(500).json({ message: "Lỗi server", error: err.message });
+    res.status(500).json({ message: "Lỗi lấy tất cả đơn hàng" });
   }
 };
 
@@ -158,6 +145,15 @@ exports.updateOrderStatus = async (req, res) => {
     res.json(order);
   } catch (error) {
     res.status(500).json({ error: "Server error" });
+  }
+};
+
+exports.getLatestOrders = async (req, res) => {
+  try {
+    const orders = await Order.find().sort({ createdAt: -1 }).limit(10);
+    res.json(orders);
+  } catch (err) {
+    res.status(500).json({ message: "Lỗi lấy đơn hàng mới nhất" });
   }
 };
 

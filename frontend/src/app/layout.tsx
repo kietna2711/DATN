@@ -6,6 +6,7 @@ import Footer from "./components/Footer";
 import { Category } from "./types/categoryD";
 import { Providers } from "./providers";
 import "./globals.css";
+import AIChatBox from "@/components/AIChatBox";
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   const [categories, setCategories] = useState<Category[]>([]);
@@ -35,6 +36,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           <main>{children}</main>
           {!isAdmin && <Footer />}
         </Providers>
+      <AIChatBox />
       </body>
     </html>
   );

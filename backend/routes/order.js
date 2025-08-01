@@ -1,4 +1,4 @@
-  const express = require("express");
+const express = require("express");
   const router = express.Router();
   const ordersController = require("../controllers/orderController");
   const authenticateToken = require('../middleware/auth');
@@ -10,7 +10,7 @@
   router.get("/status/:orderId", ordersController.getOrderStatus);
 
   // GET /orders - Lấy danh sách đơn hàng (dùng cho React admin)
-  router.get("/", ordersController.getOrders);
+  router.get("/", ordersController.getAllOrders);
 
   // PUT /orders/:id - Cập nhật trạng thái đơn hàng (nếu cần)
   router.put("/:id", ordersController.updateOrderStatus);
