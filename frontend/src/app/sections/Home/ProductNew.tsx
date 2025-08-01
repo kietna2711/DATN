@@ -8,8 +8,9 @@ import "swiper/css";
 import "swiper/css/navigation";
 import "swiper/css/autoplay";
 import styles from "@/app/styles/producthot.module.css";
+import itemStyles from "@/app/styles/productitemslide.module.css"; 
 import { Products } from "@/app/types/productD";
-import ProductItem from "@/app/components/ProductItem";
+import ProductItemSlide from "@/app/components/ProductItemSlide";
 import { useRouter } from "next/navigation"; // Thêm dòng này
 
 type ProductHotProps = {
@@ -53,7 +54,7 @@ export default function ProductNew({ props }: ProductHotProps) {
           >
             {products.map((product, idx) => (
               <SwiperSlide key={`${product._id ?? "prod"}-${idx}`}>
-                <ProductItem product={product} />
+                <ProductItemSlide product={product} />
               </SwiperSlide>
             ))}
           </Swiper>
