@@ -5,6 +5,7 @@ const PostCategory = require('../models/postscategoryModel');
 const slugify = require('slugify');
 const multer = require("multer");
 const path = require("path");
+const fs = require('fs');
 
 // ✅ Cấu hình multer
 const storage = multer.diskStorage({
@@ -16,7 +17,23 @@ const storage = multer.diskStorage({
     cb(null, uniqueName);
   },
 });
+
+// Xoá file nếu tồn tại
 const upload = multer({ storage });
+const deleteFileIfExists = (filename) => {
+  const filepath = path.join(__dirname, '../public/images', filename);
+  try {
+    if (fs.existsSync(filepath)) {
+      fs.unlinkSync(filepath);
+      console.log(`Đã xóa file: ${filepath}`);
+    } else {
+      console.warn(`File không tồn tại: ${filepath}`);
+    }
+  } catch (err) {
+    console.error("Lỗi khi xoá file:", err.message);
+  }
+};
+
 
 // ✅ GET tất cả bài viết (có lọc)
 router.get('/', async (req, res) => {
@@ -167,12 +184,23 @@ router.put("/:id", upload.fields([
 // ✅ DELETE bài viết
 router.delete('/:id', async (req, res) => {
   try {
-    const post = await Post.findByIdAndDelete(req.params.id);
-    if (!post) return res.status(404).json({ message: 'Not found' });
-    res.json({ message: 'Deleted successfully' });
+    const post = await Post.findById(req.params.id);
+    if (!post) return res.status(404).json({ message: "Không tìm thấy bài viết" });
+
+    // Xóa ảnh chính nếu có
+    if (post.img) deleteFileIfExists(post.img);
+
+    // Xóa ảnh phụ nếu có
+    if (post.images && post.images.length > 0) {
+      post.images.forEach(filename => deleteFileIfExists(filename));
+    }
+
+    await Post.findByIdAndDelete(req.params.id);
+    res.json({ message: "Xóa bài viết thành công" });
   } catch (err) {
-    res.status(400).json({ error: err.message });
+    res.status(500).json({ message: "Lỗi server", error: err.message });
   }
 });
+
 
 module.exports = router;
