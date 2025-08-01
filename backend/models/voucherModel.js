@@ -18,7 +18,13 @@ const voucherSchema = new mongoose.Schema({
   maxDiscount: { type: Number, default: null },                 // Số tiền giảm tối đa cho 1 đơn hàng (VND)
   usageLimit: { type: Number, default: null },                  // Tổng số lượt dùng tối đa
   used: { type: Number, default: 0 },                           // Đã dùng bao nhiêu lượt
-  active: { type: Boolean, default: true }                      // Kích hoạt mã hay không
+  active: { type: Boolean, default: true }                     
+  
+  
+  // Kích hoạt mã hay không
 });
+
+
+
 
 module.exports = mongoose.model('vouchers', voucherSchema);
