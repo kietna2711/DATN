@@ -5,7 +5,7 @@ export default function Sidebar({ currentSection }: { currentSection: string }) 
   const menu = [
     { key: "profile", label: "Hồ sơ", icon: "bx bx-user-circle" },
     { key: "Dashboard", label: "Bảng điều khiển", icon: "bx bx-home-circle" },
-    { key: "Products", label: "Quản lý sản phẩm", icon: "bx bx-cube" },
+    { key: "products", label: "Quản lý sản phẩm", icon: "bx bx-cube" },
     { key: "users", label: "Quản lý khách hàng", icon: "bx bx-user" },
     { key: "categories", label: "Quản lý danh mục", icon: "bx bx-category" },
     { key: "order", label: "Quản lý đơn hàng", icon: "bx bx-receipt" },

@@ -209,7 +209,9 @@ export default function DiscountEditPage() {
     try {
       await editVoucher(form._id!, dataToSave);
       showSuccess("Cập nhật thành công", "Mã giảm giá đã được cập nhật!");
-      window.location.href = "/admin/discount";
+      setTimeout(() => {
+        window.location.href = "/admin/discount";
+      }, 1200);
     } catch (err: any) {
       setError(err.message || "Lỗi khi cập nhật mã giảm giá");
     } finally {
