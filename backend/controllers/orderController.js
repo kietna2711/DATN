@@ -55,33 +55,33 @@ exports.createOrder = async (req, res) => {
   }
 };
 
-// GET: lấy tất cả đơn hàng (ADMIN)
-exports.getAllOrders = async (req, res) => {
-  try {
-    const orders = await Order.find().sort({ createdAt: -1 });
+// GET: lấy tất cả đơn hàng 
+// exports.getAllOrders = async (req, res) => {
+//   try {
+//     const orders = await Order.find().sort({ createdAt: -1 });
 
-    res.json(orders);
-  } catch (err) {
-    res.status(500).json({ message: "Lỗi lấy tất cả đơn hàng" });
-  }
-};
+//     res.json(orders);
+//   } catch (err) {
+//     res.status(500).json({ message: "Lỗi lấy tất cả đơn hàng" });
+//   }
+// };
 
-// PUT: Cập nhật trạng thái đơn hàng (ADMIN)
-exports.updateOrderStatus = async (req, res) =>{
-  try{
-    const { orderId } = req.params;
-    const { orderStatus } = req.body; //
-    const order = await Order.findOneAndUpdate(
-      { $or: [ { orderId }, { _id: orderId } ] },
-      { orderStatus },
-      { new: true }
-    );
-    if (!order) return res.status(404).json({ message: "Không tìm thấy đơn hàng" });
-    res.json(order);
-  } catch(err){
-    res.status(500).json({ message: "Lỗi server", error: err.message });
-  }
-};
+// PUT: Cập nhật trạng thái đơn hàng 
+// exports.updateOrderStatus = async (req, res) =>{
+//   try{
+//     const { orderId } = req.params;
+//     const { orderStatus } = req.body; //
+//     const order = await Order.findOneAndUpdate(
+//       { $or: [ { orderId }, { _id: orderId } ] },
+//       { orderStatus },
+//       { new: true }
+//     );
+//     if (!order) return res.status(404).json({ message: "Không tìm thấy đơn hàng" });
+//     res.json(order);
+//   } catch(err){
+//     res.status(500).json({ message: "Lỗi server", error: err.message });
+//   }
+// };
 
 // GET: Kiểm tra trạng thái đơn hàng (bổ sung để tránh lỗi route)
 exports.getOrderStatus = async (req, res) => {
@@ -108,6 +108,7 @@ exports.getOrderStatus = async (req, res) => {
   }
 };
 
+// GET: lấy tất cả đơn hàng (ADMIN )
 exports.getOrders = async (req, res) => {
   try {
     const orders = await Order.find().sort({ createdAt: -1 });
@@ -132,21 +133,33 @@ exports.getOrders = async (req, res) => {
   }
 };
 
+// PUT: Cập nhật trạng thái đơn hàng (Admin)
 exports.updateOrderStatus = async (req, res) => {
   try {
     const { orderStatus } = req.body;
     const { id } = req.params;
-    const order = await Order.findOneAndUpdate(
-      { $or: [{ orderId: id }, { _id: id }] },
-      { orderStatus },
-      { new: true }
-    );
+
+    const order = await Order.findOne({
+      $or: [{ orderId: id }, { _id: id }]
+    });
+
     if (!order) return res.status(404).json({ error: "Order not found" });
+
+    order.orderStatus = orderStatus;
+
+    // 👉 Nếu chuyển sang "delivered" mà chưa thanh toán thì cập nhật luôn
+    if (orderStatus === 'delivered' && order.paymentStatus !== 'paid') {
+      order.paymentStatus = 'paid';
+    }
+
+    await order.save();
+
     res.json(order);
   } catch (error) {
     res.status(500).json({ error: "Server error" });
   }
 };
+
 
 exports.getLatestOrders = async (req, res) => {
   try {

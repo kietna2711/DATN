@@ -456,13 +456,12 @@ const cartCount = useAppSelector((state) => state.cart.items.length);
             <CloseOutlined />
           </button>
         </div>
-        
-    {username && (
-     <a href={`/userprofile/${encodeURIComponent(username)}`}>
+
+      <a href={username ? `/userprofile/${encodeURIComponent(username)}` : "/login"}>
         <div className={styles["mobile-account"]}>
-          <UserOutlined /> Tài khoản
+          <UserOutlined /> {username ? `Xin chào, ${username}` : "Tài khoản"}
         </div>
-     </a>)}
+      </a>
 
         <div className={styles["mobile-search-box"]}>
           <form onSubmit={handleSearch} style={{ position: "relative" }}>
