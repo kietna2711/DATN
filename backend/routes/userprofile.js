@@ -147,24 +147,21 @@ router.put('/update-status/:orderId', async (req, res) => {
     if (!order) return res.status(404).json({ error: 'Không tìm thấy đơn hàng' });
 
     const currentStatus = order.orderStatus;
-    const paymentMethod = order.paymentMethod.toLowerCase();
     const paymentStatus = order.paymentStatus;
 
-    // ✅ Trường hợp: Huỷ đơn khi đang chờ xác nhận
+    //  Trường hợp: Huỷ đơn khi đang chờ xác nhận
     if (currentStatus === 'waiting') {
       order.orderStatus = 'cancelled';
     }
 
-    // ✅ Trường hợp: Xác nhận đã nhận hàng khi đang giao
+    //  Trường hợp: Xác nhận đã nhận hàng khi đang giao
     else if (currentStatus === 'shipping') {
       order.orderStatus = 'delivered';
 
-      // ✅ Nếu là COD thì chuyển sang đã thanh toán
-      if (paymentMethod === 'cod' && paymentStatus !== 'paid') {
+      //  Nếu chưa thanh toán thì cập nhật sang đã thanh toán
+      if (paymentStatus !== 'paid') {
         order.paymentStatus = 'paid';
       }
-
-      // ✅ Nếu là momo thì không đổi paymentStatus vì đã là 'paid'
     }
 
     await order.save();
@@ -175,6 +172,7 @@ router.put('/update-status/:orderId', async (req, res) => {
     return res.status(500).json({ error: 'Lỗi server khi cập nhật trạng thái' });
   }
 });
+
 
 
 module.exports = router;

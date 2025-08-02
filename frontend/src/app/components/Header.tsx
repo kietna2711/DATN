@@ -456,37 +456,43 @@ const cartCount = useAppSelector((state) => state.cart.items.length);
             <CloseOutlined />
           </button>
         </div>
-        
-    {username && (
-    <div className={styles["mobile-account"]}>
-    <a href={`/userprofile/${encodeURIComponent(username)}`}>
-      <UserOutlined /> Tài khoản
-    </a>
+        {username ? (
+          <div className={styles["mobile-account"]}>
+            <a href={`/userprofile/${encodeURIComponent(username)}`}>
+              <UserOutlined /> Xin chào, {username}
+            </a>
 
-    <a href="/favorites" className={styles.favoriteIconWrap} title="Yêu thích">
-      <HeartOutlined style={{ fontSize: 20, color: "#e87ebd", cursor: "pointer" }} />
-      {favoriteCount > 0 && <span className={styles.favoriteBadge}>{favoriteCount}</span>}
-    </a>
+            <a href="/favorites" className={styles.favoriteIconWrap} title="Yêu thích">
+              <HeartOutlined style={{ fontSize: 20, color: "#e87ebd", cursor: "pointer" }} />
+              {favoriteCount > 0 && <span className={styles.favoriteBadge}>{favoriteCount}</span>}
+            </a>
 
-    <a href="/cart" title="Giỏ hàng" style={{ position: "relative" }}>
-      {cartCount > 0 ? (
-        <Badge
-          count={cartCount}
-          color="#e87ebd"
-          style={{
-            fontWeight: "bold",
-            backgroundColor: "#e87ebd",
-            boxShadow: "0 0 0 2px #fff",
-          }}
-        >
-          <ShoppingOutlined style={{ fontSize: 20, color: "#e87ebd", cursor: "pointer" }} />
-        </Badge>
-      ) : (
-        <ShoppingOutlined style={{ fontSize: 20, color: "#e87ebd", cursor: "pointer" }} />
-      )}
-    </a>
-  </div>
-)}
+            <a href="/cart" title="Giỏ hàng" style={{ position: "relative" }}>
+              {cartCount > 0 ? (
+                <Badge
+                  count={cartCount}
+                  color="#e87ebd"
+                  style={{
+                    fontWeight: "bold",
+                    backgroundColor: "#e87ebd",
+                    boxShadow: "0 0 0 2px #fff",
+                  }}
+                >
+                  <ShoppingOutlined style={{ fontSize: 20, color: "#e87ebd", cursor: "pointer" }} />
+                </Badge>
+              ) : (
+                <ShoppingOutlined style={{ fontSize: 20, color: "#e87ebd", cursor: "pointer" }} />
+              )}
+            </a>
+          </div>
+        ) : (
+          <a href="/login">
+            <div className={styles["mobile-account"]}>
+              <UserOutlined /> Tài khoản
+            </div>
+          </a>
+        )}
+
 
         <div className={styles["mobile-search-box"]}>
           <form onSubmit={handleSearch} style={{ position: "relative" }}>
