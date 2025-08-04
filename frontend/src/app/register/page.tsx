@@ -113,6 +113,8 @@ export default function Register() {
         showMessage.success(
           `Đăng ký thành công cho ${email}. Vui lòng kiểm tra email để lấy mã xác thực!`
         );
+        // Tặng 1 lượt quay cho tài khoản mới
+        localStorage.setItem("turns", "1");
         // Chuyển hướng sang trang xác thực email OTP
         router.push(`/verifyemail?email=${encodeURIComponent(email)}`);
       }

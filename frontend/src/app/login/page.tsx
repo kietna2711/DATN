@@ -56,6 +56,9 @@ export default function Login() {
       localStorage.setItem("token", data.token);
       window.dispatchEvent(new Event("userChanged"));
 
+      // Thông báo thành công
+      showMessage.success("Đăng nhập thành công!");
+
       // Chuyển trang phù hợp
       if (data.user.role === "admin") {
         window.location.href = "/admin";

@@ -37,6 +37,7 @@ const usersProfileRoutes = require('./routes/userprofile'); // Đường dẫn �
 const favoriteRouter = require('./routes/favorites');
 const authenticateToken = require('./middleware/auth');
 const statisticsRouter = require('./routes/statistics');
+const prizesRouter = require('./routes/prizes');
 
 
 var app = express();
@@ -119,15 +120,19 @@ app.use("/payment", paymentRouter); //Momo, thanh toán
 app.use(require('./routes/payment')); //IPN
 // app.use("/payment", require("./routes/payment")); //đường dẫn file routes/payment.js
 app.use("/orders", orderRoutes);
-
 app.use('/api/statistics', statisticsRouter);
 app.use("/orderdetails", orderDetailRoutes); //đường dẫn đơn hàng chi tiết
 
 app.use('/favorites', favoriteRouter);
 app.use("/reviews", require("./routes/review"));
 app.use(authenticateToken); 
+app.use('/api/prizes', prizesRouter);
 
-
+// Express example
+app.get('/products/:id', async (req, res) => {
+  const product = await Product.findById(req.params.id);
+  res.json(product);
+});
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {

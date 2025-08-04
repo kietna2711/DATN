@@ -10,6 +10,7 @@ import {
   CloseOutlined,
   SearchOutlined,
   DownOutlined,
+  GiftOutlined,
 } from "@ant-design/icons";
 import styles from "../styles/header.module.css";
 import { Category } from "../types/categoryD";
@@ -24,9 +25,10 @@ import Link from "next/link";
 
 type Props = {
   categories: Category[];
+  onOpenWheel: () => void;
 };
 
-const Header: React.FC<Props> = ({ categories }) => {
+const Header: React.FC<Props> = ({ categories, onOpenWheel }) => {
   const [mobileMenuActive, setMobileMenuActive] = useState(false);
   const [mobileOpenIndex, setMobileOpenIndex] = useState<number | null>(null);
   const router = useRouter();
@@ -382,7 +384,30 @@ const cartCount = useAppSelector((state) => state.cart.items.length);
                 </>
               )}
             </div>
-
+            <button
+  onClick={onOpenWheel}
+  style={{
+    marginLeft: 16,
+    padding: 0,
+    width: 48,
+    height: 48,
+    borderRadius: "50%",
+    background: "radial-gradient(circle at center, #ffd6e0 0%, #ffb6b9 100%)",
+    boxShadow: "0 2px 8px #f8bbd0",
+    border: "none",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    cursor: "pointer",
+  }}
+  title="Vòng quay may mắn"
+>
+<img
+  src="https://cdn-icons-png.flaticon.com/512/2917/2917995.png"
+  alt="Vòng quay may mắn"
+  style={{ width: 28, height: 28 }}
+/>
+</button>
           </div>
           <button className={styles["menu-btn"]} onClick={openMobileMenu}>
             <MenuOutlined />

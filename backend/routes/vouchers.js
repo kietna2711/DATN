@@ -7,8 +7,8 @@ const authenticateToken = require("../middleware/auth");
 router.get('/', voucherController.getAllVouchers);
 
 router.get('/:id', voucherController.getVoucherById);
-router.post('/', authenticateToken, verifyToken, voucherController.addVoucher);
-router.put('/:id', authenticateToken, verifyToken, voucherController.editVoucher);
+router.post('/',voucherController.addVoucher);
+router.put('/:id', voucherController.editVoucher);
 // (Có thể bổ sung delete nếu cần)
 
 module.exports = router;
