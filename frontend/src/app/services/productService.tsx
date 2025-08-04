@@ -40,6 +40,7 @@ export async function getDetail(id: string): Promise<Products | null> {
   }
 }
 
+// Sản phẩm mới
 export const getProductsNew = async (): Promise<Products[]> => {
   const res = await fetch("http://localhost:3000/products");
   if (!res.ok) throw new Error("Lỗi khi tải sản phẩm mới");
@@ -56,6 +57,7 @@ export const getProductsNew = async (): Promise<Products[]> => {
   return latestProducts;
 };
 
+// Sản phẩm hot
 export const getProductsHot = async (): Promise<Products[]> => {
   const res = await fetch("http://localhost:3000/products");
   if (!res.ok) throw new Error("Lỗi khi tải sản phẩm hot");
