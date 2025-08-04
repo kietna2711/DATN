@@ -55,10 +55,10 @@ router.post('/', async (req, res) => {
   }
 });
 
-// ✅ Sửa danh mục bài viết
+// ✅ Sửa danh mục bài viết + tự động cập nhật trạng thái bài viết theo
 router.put('/:id', async (req, res) => {
   try {
-    const { title, slug } = req.body;
+    const { title, slug, hidden } = req.body;
 
     // Nếu có title mới mà không có slug → tự sinh slug
     if (!slug && title) {
@@ -73,14 +73,29 @@ router.put('/:id', async (req, res) => {
       }
     }
 
-    const updated = await PostCategory.findByIdAndUpdate(req.params.id, req.body, { new: true });
+    // Cập nhật danh mục
+    const updated = await PostCategory.findByIdAndUpdate(
+      req.params.id,
+      req.body,
+      { new: true }
+    );
     if (!updated) return res.status(404).json({ message: 'Not found' });
+
+    // ✅ Nếu trường hidden được gửi lên → cập nhật toàn bộ bài viết thuộc danh mục này
+    if (typeof hidden === 'boolean') {
+      const Post = require('../models/postModel'); // 👉 đảm bảo đã có model Post
+      await Post.updateMany(
+        { categoryId: req.params.id },
+        { hidden: hidden }
+      );
+    }
 
     res.json(updated);
   } catch (err) {
     res.status(400).json({ error: err.message });
   }
 });
+
 
 // ✅ Xoá danh mục bài viết
 router.delete('/:id', async (req, res) => {

@@ -431,7 +431,21 @@ const renderEditFormNormal = () => (
     </div>
     <div className="form-group">
       <label htmlFor="phone">Số điện thoại</label>
-      <input type="text" id="phone" name="phone" value={editUser?.profile?.phone || ''} onChange={handleProfileEditChange} />
+      <input
+        type="text"
+        id="phone"
+        name="phone"
+        value={editUser?.profile?.phone || ''}
+        onChange={(e) => {
+          const value = e.target.value;
+          // Chỉ giữ lại số và tối đa 10 ký tự
+          if (/^\d{0,10}$/.test(value)) {
+            handleProfileEditChange(e); // giữ nguyên logic cập nhật state
+          }
+        }}
+        placeholder="Nhập số điện thoại (10 chữ số)"
+        maxLength={10}
+      />
     </div>
     <div className="form-group">
       <label htmlFor="gender">Giới tính</label>
@@ -469,7 +483,21 @@ const renderEditFormNormal = () => (
       </div>
       <div className="form-group">
         <label htmlFor="phone">Số điện thoại</label>
-        <input type="text" id="phone" name="phone" value={editUser?.profile?.phone || ''} onChange={handleProfileEditChange} />
+        <input
+          type="text"
+          id="phone"
+          name="phone"
+          value={editUser?.profile?.phone || ''}
+          onChange={(e) => {
+            const value = e.target.value;
+            // Chỉ giữ lại số và tối đa 10 ký tự
+            if (/^\d{0,10}$/.test(value)) {
+              handleProfileEditChange(e); // giữ nguyên logic cập nhật state
+            }
+          }}
+          placeholder="Nhập số điện thoại (10 chữ số)"
+          maxLength={10}
+        />
       </div>
       <div className="form-group">
         <label htmlFor="gender">Giới tính</label>
@@ -511,8 +539,14 @@ const renderEditFormNormal = () => (
       showMessage.error("Họ và tên không được để trống!");
       return;
     }
-    if (!editUser.profile?.phone?.trim()) {
+    const phone = editUser.profile?.phone?.trim();
+    if (!phone) {
       showMessage.error("Vui lòng nhập số điện thoại!");
+      return;
+    }
+
+    if (!/^\d{10}$/.test(phone)) {
+      showMessage.error("Số điện thoại phải gồm đúng 10 chữ số!");
       return;
     }
 

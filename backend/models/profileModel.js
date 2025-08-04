@@ -12,7 +12,7 @@ const profileSchema = new mongoose.Schema({
   username: { type: String, required: true, unique: true },
   phone: String,
   gender: String,
-  birthDate: String,
+  birthDate: Date,
   addresses: [addressSchema],
 }, { timestamps: true });
 

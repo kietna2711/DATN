@@ -10,7 +10,7 @@ const express = require("express");
   router.get("/status/:orderId", ordersController.getOrderStatus);
 
   // GET /orders - Lấy danh sách đơn hàng (dùng cho React admin)
-  router.get("/", ordersController.getAllOrders);
+  router.get("/", ordersController.getOrders);
 
   // PUT /orders/:id - Cập nhật trạng thái đơn hàng (nếu cần)
   router.put("/:id", ordersController.updateOrderStatus);

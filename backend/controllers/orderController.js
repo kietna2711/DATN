@@ -55,7 +55,7 @@ exports.createOrder = async (req, res) => {
   }
 };
 
-// GET: lấy tất cả đơn hàng (ADMIN)
+//GET: lấy tất cả đơn hàng 
 exports.getAllOrders = async (req, res) => {
   try {
     const orders = await Order.find().sort({ createdAt: -1 });
@@ -66,7 +66,7 @@ exports.getAllOrders = async (req, res) => {
   }
 };
 
-// PUT: Cập nhật trạng thái đơn hàng (ADMIN)
+//PUT: Cập nhật trạng thái đơn hàng 
 exports.updateOrderStatus = async (req, res) =>{
   try{
     const { orderId } = req.params;
@@ -108,6 +108,7 @@ exports.getOrderStatus = async (req, res) => {
   }
 };
 
+// GET: lấy tất cả đơn hàng (ADMIN )
 exports.getOrders = async (req, res) => {
   try {
     const orders = await Order.find().sort({ createdAt: -1 });
@@ -132,21 +133,33 @@ exports.getOrders = async (req, res) => {
   }
 };
 
+// PUT: Cập nhật trạng thái đơn hàng (Admin)
 exports.updateOrderStatus = async (req, res) => {
   try {
     const { orderStatus } = req.body;
     const { id } = req.params;
-    const order = await Order.findOneAndUpdate(
-      { $or: [{ orderId: id }, { _id: id }] },
-      { orderStatus },
-      { new: true }
-    );
+
+    const order = await Order.findOne({
+      $or: [{ orderId: id }, { _id: id }]
+    });
+
     if (!order) return res.status(404).json({ error: "Order not found" });
+
+    order.orderStatus = orderStatus;
+
+    // 👉 Nếu chuyển sang "delivered" mà chưa thanh toán thì cập nhật luôn
+    if (orderStatus === 'delivered' && order.paymentStatus !== 'paid') {
+      order.paymentStatus = 'paid';
+    }
+
+    await order.save();
+
     res.json(order);
   } catch (error) {
     res.status(500).json({ error: "Server error" });
   }
 };
+
 
 exports.getLatestOrders = async (req, res) => {
   try {
