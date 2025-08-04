@@ -49,6 +49,8 @@ const Header: React.FC<Props> = ({ categories }) => {
 // Lấy số sản phẩm khác nhau trong giỏ hàng (không phải tổng quantity)
 const cartCount = useAppSelector((state) => state.cart.items.length);
   // Debounce search input
+
+  // Hàm xử lý tìm kiếm
   useEffect(() => {
     if (!searchValue.trim()) {
       setSuggestions([]);
@@ -72,6 +74,15 @@ const cartCount = useAppSelector((state) => state.cart.items.length);
 
     return () => clearTimeout(handler);
   }, [searchValue]);
+
+  // Hàm xử lý tìm kiếm khi nhấn Enter hoặc click vào biểu tượng tìm kiếm
+   const handleSearchAction = () => {
+    if (searchValue.trim()) {
+      router.push(`/products?search=${encodeURIComponent(searchValue.trim())}`);
+      setMobileMenuActive(false);
+      setShowSuggestions(false);
+    }
+  };
 
   // Đóng suggestion khi click ngoài
   useEffect(() => {
@@ -97,13 +108,6 @@ const cartCount = useAppSelector((state) => state.cart.items.length);
   const userMenuRef = useRef<HTMLDivElement>(null);
 
 
-  const handleSearchAction = () => {
-    if (searchValue.trim()) {
-      router.push(`/products?search=${encodeURIComponent(searchValue.trim())}`);
-      setMobileMenuActive(false);
-      setShowSuggestions(false);
-    }
-  };
 
   const handleSearch = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();

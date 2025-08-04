@@ -34,18 +34,19 @@ const getAllProducts = async (req, res) => {
     let query = {};
     let options = {};
 
+    // sẩn phẩm theo tên
     if (name) {
       query.name = new RegExp(name, 'i');
     }
-
+    // Sản phẩm hot
     if (hot) {
       query.hot = parseInt(hot);
     }
-
+    // sản phẩm theo danh mục
     if (idsubcate) {
       query.subcategoryId = idsubcate;
     }
-
+    // sản phẩm theo danh mục
     if (idcate) {
       query.categoryId = idcate;
     }
