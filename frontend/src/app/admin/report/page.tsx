@@ -29,19 +29,6 @@ ChartJS.register(
 );
 // Nếu muốn dùng biểu đồ, cài thêm react-chartjs-2 và chart.js
 
-const lineData = {
-  labels: ["Tháng 1", "Tháng 2", "Tháng 3", "Tháng 4", "Tháng 5", "Tháng 6"],
-  datasets: [
-    {
-      label: "Đơn hàng",
-      data: [12, 19, 3, 5, 2, 3],
-      borderColor: "#007bff",
-      backgroundColor: "rgba(0,123,255,0.2)",
-      tension: 0.4,
-    },
-  ],
-};
-
 const barData = {
   labels: [],
   datasets: [
@@ -65,6 +52,59 @@ export default function ReportManagement() {
   const [newEmployees, setNewEmployees] = useState<any[]>([]);
   const [newCustomers, setNewCustomers] = useState<any[]>([]);
   const [orderDetails, setOrderDetails] = useState<any[]>([]);
+
+  const [monthLabels, setMonthLabels] = useState<string[]>([]);
+  const [ordersCountByMonth, setOrdersCountByMonth] = useState<number[]>([]);
+
+useEffect(() => {
+  fetch("http://localhost:3000/orders")
+    .then(res => res.json())
+    .then(data => {
+      setOrders(data);
+
+      // Tính số đơn hàng đã giao từng tháng
+      const now = new Date();
+      const currentMonth = now.getMonth() + 1;
+      const months = Array.from({ length: currentMonth }, (_, i) => i + 1);
+      const counts = months.map(month => {
+  return data.filter(order => {
+    const orderDate = new Date(order.createdAt);
+    return orderDate.getMonth() + 1 === month;
+  }).length;
+});
+
+      setOrdersCountByMonth(counts);
+      setMonthLabels(months.map(m => `Tháng ${m}`));
+    });
+}, []);
+
+const lineData = {
+  labels: monthLabels,
+  datasets: [
+    {
+      label: "Đơn hàng đã giao",
+      data: ordersCountByMonth,
+      borderColor: "#007bff",
+      backgroundColor: "rgba(0,123,255,0.2)",
+      tension: 0.4,
+    },
+  ],
+};
+
+const lineOptions = {
+  scales: {
+    y: {
+      ticks: {
+        stepSize: 1, // Hiển thị số nguyên
+        callback: function (value: number | string) {
+          return Number(value); // Loại bỏ phần thập phân
+        }
+      },
+      beginAtZero: true
+    }
+  }
+};
+
 
   useEffect(() => {
     fetch("http://localhost:3000/api/statistics/revenue")
@@ -355,7 +395,7 @@ export default function ReportManagement() {
         <div className="col-md-6">
           <div className="tile">
                 <h3 className="tile-title" style={{ textAlign: "center", marginTop: 12 }}>DỮ LIỆU HÀNG THÁNG</h3>
-            <Line data={lineData} />
+            <Line data={lineData} options={lineOptions} />
           </div>
         </div>
         <div className="col-md-6">

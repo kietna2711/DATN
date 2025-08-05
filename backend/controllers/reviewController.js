@@ -143,7 +143,6 @@ exports.createReview = async (req, res) => {
       rating,
       comment,
       username: user.username || "Ẩn danh",
-      name: user.name || "",
       status: "visible",
       createdAt: new Date()
     });
