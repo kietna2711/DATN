@@ -37,6 +37,7 @@ const LuckyWheel: React.FC<{ visible: boolean; onClose: () => void }> = ({ visib
   const [showResultModal, setShowResultModal] = useState(false);
   const messageApi = useShowMessage('', '');
   const dispatch = useAppDispatch();
+  const wheelContainerRef = useRef<HTMLDivElement>(null);
 
   interface Product {
     [x: string]: any;
@@ -59,7 +60,7 @@ const LuckyWheel: React.FC<{ visible: boolean; onClose: () => void }> = ({ visib
     // add other voucher properties if needed
   }
   
-  useEffect(() => {
+useEffect(() => {
     Promise.all([
       fetch("http://localhost:3000/products").then(res => res.json()),
       fetch("http://localhost:3000/vouchers").then(res => res.json())
@@ -141,10 +142,13 @@ const LuckyWheel: React.FC<{ visible: boolean; onClose: () => void }> = ({ visib
       }
     }
 
+    const anglePerPrize = 360 / prizes.length;
     const finalRotate =
       360 * 5 +
-      (360 / prizes.length) * prizeIndex +
-      360 / (2 * prizes.length);
+      anglePerPrize * prizeIndex +
+      (350 - anglePerPrize / 2);
+
+
 
     if (!wheelRef.current) {
       setSpinning(false);
@@ -207,213 +211,257 @@ const LuckyWheel: React.FC<{ visible: boolean; onClose: () => void }> = ({ visib
     });
   };
 
-  return (
-    <Modal
-      open={visible}
-      onCancel={onClose}
-      footer={null}
-      centered
-      width={540} // tăng chiều ngang
-      bodyStyle={{
-        background: "radial-gradient(circle at top, #fffbe6 0%, #ffd6e0 80%, #fff6fa 100%)",
-        borderRadius: 32,
-        padding: "32px 0 32px 0", // tăng padding trên/dưới cho cân đối
-        minHeight: 520,
-        fontFamily: "Montserrat, Arial, sans-serif",
-        boxShadow: "0 8px 32px #ffd6e0",
-        border: "4px solid #ffd700",
-        maxWidth: 540, // đảm bảo khung không bị quá nhỏ
-        margin: "0 auto",
-      }}
-      closable={false}
-    >
-      <div style={{
-        textAlign: "center",
-        background: "none",
-        padding: "0 32px", // tăng padding ngang
-        fontFamily: "Montserrat, Arial, sans-serif",
+  // ...existing code...
+return (
+  <Modal
+    open={visible}
+    onCancel={onClose}
+    footer={null}
+    centered
+    width={540}
+    bodyStyle={{
+      background: "radial-gradient(circle at top, #fffbe6 0%, #ffd6e0 80%, #fff6fa 100%)",
+      borderRadius: 32,
+      padding: "32px 0 32px 0",
+      minHeight: 520,
+      fontFamily: "Montserrat, Arial, sans-serif",
+      boxShadow: "0 8px 32px #ffd6e0",
+      border: "4px solid #ffd700",
+      maxWidth: 540,
+      margin: "0 auto",
+    }}
+    closable={false}
+  >
+    <div style={{
+      textAlign: "center",
+      background: "none",
+      padding: "0 32px",
+      fontFamily: "Montserrat, Arial, sans-serif",
+    }}>
+      <h2 style={{
+        fontSize: 38,
+        fontWeight: 900,
+        color: "#ffd700",
+        textShadow: "2px 2px #d63384, 0 0 10px #fff",
+        marginBottom: 12,
+        letterSpacing: 2,
       }}>
-        <h2 style={{
-          fontSize: 38,
-          fontWeight: 900,
-          color: "#ffd700",
-          textShadow: "2px 2px #d63384, 0 0 10px #fff",
-          marginBottom: 12,
-          letterSpacing: 2,
-        }}>
-          LUCKY DRAW
-        </h2>
+        LUCKY DRAW
+      </h2>
 
-        {/* Số lượt quay */}
-        <div style={{
-          fontSize: 18,
-          fontWeight: 700,
-          color: "#fff",
-          marginBottom: 10,
-          background: "#d63384",
-          display: "inline-block",
-          padding: "6px 18px",
-          borderRadius: 18,
-          boxShadow: "0 2px 8px #ffd6e0"
-        }}>
-          Số lượt quay: <span style={{ color: "#ffd700" }}>{turns}</span>
-        </div>
+      {/* Số lượt quay */}
+      <div style={{
+        fontSize: 18,
+        fontWeight: 700,
+        color: "#fff",
+        marginBottom: 10,
+        background: "#d63384",
+        display: "inline-block",
+        padding: "6px 18px",
+        borderRadius: 18,
+        boxShadow: "0 2px 8px #ffd6e0"
+      }}>
+        Số lượt quay: <span style={{ color: "#ffd700" }}>{turns}</span>
+      </div>
 
+      <div style={{
+        position: "relative",
+        width: WHEEL_SIZE + 40,
+        height: WHEEL_SIZE + 100,
+        margin: "0 auto",
+      }}>
+        
+        {/* Viền bóng đèn */}
+        <svg
+          width={WHEEL_SIZE}
+          height={WHEEL_SIZE}
+          style={{
+            position: "absolute",
+            top: 57,
+            left: "50%",
+            transform: "translateX(-50%)",
+            pointerEvents: "none",
+            zIndex: 99,
+          }}
+        >
+          {Array.from({ length: 20 }).map((_, i) => {
+            const angle = (360 / 20) * i; // Bỏ -90 để không lệch góc
+            const rad = (angle * Math.PI) / 180;
+
+            const radius = (WHEEL_SIZE / 2) - 10; // gần sát viền trong
+            const cx = (WHEEL_SIZE / 2) + radius * Math.cos(rad);
+            const cy = (WHEEL_SIZE / 2) + radius * Math.sin(rad);
+
+            return (
+              <circle
+                key={i}
+                cx={cx}
+                cy={cy}
+                r={6}
+                fill="#fffde7"
+                stroke="#ffd700"
+                strokeWidth={2}
+                filter="drop-shadow(0 0 4px #ffd700)"
+              />
+            );
+          })}
+        </svg>
+
+
+        {/* Vòng quay SVG */}
         <div style={{
-          position: "relative",
-          width: WHEEL_SIZE + 40,
-          height: WHEEL_SIZE + 120,
-          margin: "0 auto",
+          position: "absolute",
+          top: 50,
+          left: "50%",
+          transform: "translateX(-50%)",
+          width: WHEEL_SIZE,
+          height: WHEEL_SIZE,
+          borderRadius: "50%",
+          background: "radial-gradient(circle at center, #fffbe6 0%, #ffd700 90%, #b8860b 100%)",
+          border: "8px solid #ffd700",
+          boxShadow: "0 4px 24px #aa0000",
+          zIndex: 3,
         }}>
-          {/* Kim chỉ vàng thon, mũi nhọn hướng xuống như ảnh bạn gửi */}
-          <div
+          <svg
+            ref={wheelRef}
+            width={WHEEL_SIZE}
+            height={WHEEL_SIZE}
             style={{
+              borderRadius: "50%",
+              background: "#fff",
               position: "absolute",
+              left: 0,
               top: 0,
-              left: "50%",
-              transform: "translateX(-50%)",
-              width: 0,
-              height: 0,
-              zIndex: 20,
-              pointerEvents: "none",
+              transition: "transform 4s cubic-bezier(.17,.67,.83,.67)",
             }}
           >
-          </div>
-          {/* Vòng viền vàng */}
-          <div style={{
-            position: "absolute",
-            top: 50,
-            left: "50%",
-            transform: "translateX(-50%)",
-            width: WHEEL_SIZE,
-            height: WHEEL_SIZE,
-            borderRadius: "50%",
-            background: "radial-gradient(circle at center, #fffbe6 0%, #ffd700 90%, #b8860b 100%)",
-            border: "8px solid #ffd700",
-            boxShadow: "0 4px 24px #aa0000",
-          }}>
-            {/* Vòng quay SVG */}
-            <svg
-              ref={wheelRef}
-              width={WHEEL_SIZE}
-              height={WHEEL_SIZE}
-              style={{
-                borderRadius: "50%",
-                background: "#fff",
-                position: "absolute",
-                left: 0,
-                top: 0,
-                transition: "transform 4s cubic-bezier(.17,.67,.83,.67)", // Đảm bảo có transition
-              }}
-            >
-              {prizes.map((prize, i) => {
-                const angle = 360 / prizes.length;
-                const startAngle = i * angle;
-                const endAngle = (i + 1) * angle;
-                const cx = WHEEL_SIZE / 2;
-                const cy = WHEEL_SIZE / 2;
-                const r = WHEEL_SIZE / 2 - 18;
-                const pathD = describeSector(cx, cy, r, startAngle, endAngle);
-                const midAngle = (startAngle + endAngle) / 2;
+            {prizes.map((prize, i) => {
+              const angle = 360 / prizes.length;
+              const startAngle = i * angle;
+              const endAngle = (i + 1) * angle;
+              const cx = WHEEL_SIZE / 2;
+              const cy = WHEEL_SIZE / 2;
+              const r = WHEEL_SIZE / 2 - 18;
+              const pathD = describeSector(cx, cy, r, startAngle, endAngle);
+              const midAngle = (startAngle + endAngle) / 2;
 
-                // Vị trí chữ nằm giữa sector, gần mép ngoài
-                const textRadius = r * 0.78;
-                const rad = Math.PI / 180;
-                const textX = cx + textRadius * Math.cos(rad * midAngle);
-                const textY = cy + textRadius * Math.sin(rad * midAngle);
+              // Vị trí chữ nằm giữa sector, gần mép ngoài
+              const textRadius = r * 0.78;
+              const rad = Math.PI / 180;
+              const textX = cx + textRadius * Math.cos(rad * midAngle);
+              const textY = cy + textRadius * Math.sin(rad * midAngle);
 
-                // Chia label thành nhiều dòng nếu quá dài
-                const lines = prize.label.split(" ");
-                const fontSize = 10; // Giảm kích thước chữ nhỏ lại
-                const lineHeight = fontSize + 2;
+              // Chia label thành nhiều dòng nếu quá dài
+              const lines = prize.label.split(" ");
+              const fontSize = 14;
+              const lineHeight = fontSize + 2;
 
-                return (
-                  <g key={i}>
-                    <path
-                      d={pathD}
-                      fill={prize.bg}
-                      stroke="#fff"
-                      strokeWidth={2}
-                    />
-                    {/* XÓA phần hiển thị ảnh */}
-                    <text
-                      x={textX}
-                      y={textY}
-                      fill={prize.color}
-                      fontSize={10}
-                      fontWeight="bold"
-                      fontFamily="Montserrat, Arial, sans-serif"
-                      textAnchor="middle"
-                      dominantBaseline="middle"
-                      transform={`rotate(${midAngle + 90},${textX},${textY})`}
-                      style={{
-                        textShadow: "1px 1px 2px #0008",
-                        userSelect: "none",
-                        textTransform: "uppercase",
-                        pointerEvents: "none",
-                      }}
-                    >
-                      {lines.map((line, idx) => (
-                        <tspan
-                          key={idx}
-                          x={textX}
-                          dy={idx === 0 ? 0 : lineHeight}
-                        >
-                          {line}
-                        </tspan>
-                      ))}
-                    </text>
-                  </g>
-                );
-              })}
-            </svg>
-            {/* Nút quay INS */}
-            <button
-              onClick={spin}
-              disabled={spinning || turns <= 0}
-              style={{
-                position: "absolute",
-                top: "50%",
-                left: "50%",
-                transform: "translate(-50%, -50%)",
-                width: CENTER_BTN_SIZE,
-                height: CENTER_BTN_SIZE,
-                borderRadius: "50%",
-                background: "radial-gradient(circle at center, #fffbe6 0%, #ffd700 80%, #b8860b 100%)",
-                border: "4px solid #fff",
-                boxShadow: "0 2px 12px #b3000033, 0 0 0 4px #ffd700",
-                color: "#b30000",
-                fontWeight: 900,
-                fontSize: 22,
-                cursor: spinning || turns <= 0 ? "not-allowed" : "pointer",
-                zIndex: 5,
-                display: "flex",
-                flexDirection: "column",
-                alignItems: "center",
-                justifyContent: "center",
-                letterSpacing: 1,
-              }}
-            >
-              <span style={{ fontSize: 18 }}>INS</span>
-              <span style={{ fontSize: 24, marginTop: 2 }}>{spinning ? "..." : "QUAY"}</span>
-            </button>
-          </div>
-          {/* Chân đế */}
-          <div style={{
-            position: "absolute",
-            top: WHEEL_SIZE + 75,
-            left: "50%",
-            transform: "translateX(-50%)",
-            width: WHEEL_SIZE * 0.6,
-            height: 30,
-            background: "linear-gradient(to bottom, #333, #111)",
-            borderRadius: "0 0 40px 40px",
-            boxShadow: "0 8px 16px #000a",
-          }} />
+              return (
+                <g key={i}>
+                  <path
+                    d={pathD}
+                    fill={prize.bg}
+                    stroke="#fff"
+                    strokeWidth={2}
+                  />
+                  <text
+                    x={textX}
+                    y={textY}
+                    fill={prize.color}
+                    fontSize={fontSize}
+                    fontWeight="bold"
+                    fontFamily="Montserrat, Arial, sans-serif"
+                    textAnchor="middle"
+                    dominantBaseline="middle"
+                    transform={`rotate(${midAngle + 90},${textX},${textY})`}
+                    style={{
+                      textShadow: "1px 1px 2px #0008",
+                      userSelect: "none",
+                      textTransform: "uppercase",
+                      pointerEvents: "none",
+                    }}
+                  >
+                    {lines.map((line, idx) => (
+                      <tspan
+                        key={idx}
+                        x={textX}
+                        dy={idx === 0 ? 0 : lineHeight}
+                      >
+                        {line}
+                      </tspan>
+                    ))}
+                  </text>
+                </g>
+              );
+            })}
+          </svg>
+          {/* Nút quay INS */}
+          <button
+            onClick={spin}
+            disabled={spinning || turns <= 0}
+            style={{
+              position: "absolute",
+              top: "50%",
+              left: "50%",
+              transform: "translate(-50%, -50%)",
+              width: CENTER_BTN_SIZE,
+              height: CENTER_BTN_SIZE,
+              borderRadius: "50%",
+              background: "radial-gradient(circle at center, #fffbe6 0%, #ffd700 80%, #b8860b 100%)",
+              border: "4px solid #fff",
+              boxShadow: "0 2px 12px #b3000033, 0 0 0 4px #ffd700",
+              color: "#b30000",
+              fontWeight: 900,
+              fontSize: 22,
+              cursor: spinning || turns <= 0 ? "not-allowed" : "pointer",
+              zIndex: 5,
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+              justifyContent: "center",
+              letterSpacing: 1,
+            }}
+          >
+            <span style={{ fontSize: 18 }}>INS</span>
+            <span style={{ fontSize: 24, marginTop: 2 }}>{spinning ? "..." : "QUAY"}</span>
+          </button>
         </div>
 
-        {/* Modal xác nhận nhận quà sản phẩm giữ nguyên */}
-        <Modal
+        {/* Mũi tên trúng thưởng ở dưới đế quay */}
+        <div style={{
+          position: "absolute",
+          top: WHEEL_SIZE + 40,
+          left: "50%",
+          transform: "translateX(-50%)",
+          zIndex: 100,
+        }}>
+          <svg width="60" height="60" viewBox="0 0 60 60">
+            <polygon
+              points="30,0 50,40 10,40"
+              fill="#ffd700"
+              stroke="#b8860b"
+              strokeWidth="4"
+              filter="drop-shadow(0 2px 8px #b8860b)"
+            />
+            <circle cx="30" cy="44" r="8" fill="#fff" stroke="#ffd700" strokeWidth="3" />
+          </svg>
+        </div>
+
+        {/* Chân đế */}
+        <div style={{
+          position: "absolute",
+          top: WHEEL_SIZE + 75,
+          left: "50%",
+          transform: "translateX(-50%)",
+          width: WHEEL_SIZE * 0.6,
+          height: 30,
+          background: "linear-gradient(to bottom, #333, #111)",
+          borderRadius: "0 0 40px 40px",
+          boxShadow: "0 8px 16px #000a",
+        }} />
+      </div>
+      {/* ...modals giữ nguyên... */}
+      <Modal
           title="Xác nhận nhận quà"
           visible={showModal}
           onCancel={() => setShowModal(false)}
@@ -493,9 +541,8 @@ const LuckyWheel: React.FC<{ visible: boolean; onClose: () => void }> = ({ visib
             </button>
           </div>
         </Modal>
-
-        {/* Modal kết quả quay cho các trường hợp khác */}
-        <Modal
+      {/* Modal kết quả quay cho các trường hợp khác giữ nguyên */}
+      <Modal
           title="Kết quả vòng quay"
           visible={showResultModal}
           onCancel={() => setShowResultModal(false)}
@@ -546,10 +593,11 @@ const LuckyWheel: React.FC<{ visible: boolean; onClose: () => void }> = ({ visib
           >
             Đóng
           </button>
-        </Modal>
-      </div>
-    </Modal>
-  );
+        </Modal> 
+    </div>
+  </Modal>
+);
+// ...existing code...
 };
 
 export default LuckyWheel;
