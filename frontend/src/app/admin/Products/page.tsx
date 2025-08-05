@@ -68,7 +68,8 @@ export default function ProductManagement() {
   // Fetch sản phẩm từ backend nodejs
   const fetchProducts = async () => {
     try {
-      const res = await fetch("http://localhost:3000/products");
+      // SỬA DÒNG NÀY: thêm ?all=true để lấy cả sản phẩm Ẩn
+      const res = await fetch("http://localhost:3000/products?all=true");
       const data = await res.json();
       console.log("Raw data from API:", data);
 
@@ -76,23 +77,25 @@ export default function ProductManagement() {
       const products = data.map((prod: any) => ({
         id: prod._id,
         name: prod.name,
+        price: prod.variants && prod.variants.length > 0
+          ? prod.variants[0].price
+          : prod.price, // lấy từ sản phẩm chính nếu không có variant
+        quantity: prod.variants && prod.variants.length > 0
+          ? prod.variants[0].quantity
+          : prod.quantity || 0, // lấy từ sản phẩm chính nếu không có variant
         image: prod.images && prod.images.length > 0
           ? `http://localhost:3000/images/${prod.images[0]}`
           : "",
         images: prod.images,
         desc: prod.description,
-        price: prod.price,
         size: prod.variants && prod.variants.length > 0
           ? prod.variants.map((v: any) => v.size).join(", ")
-          : "",
-        quantity: prod.variants && prod.variants.length > 0
-          ? prod.variants.map((v: any) => v.quantity).join(", ")
           : "",
         category: prod.categoryId?.name || "",
         categoryId: prod.categoryId?._id || prod.categoryId,
         status: prod.status || "Còn hàng",
         checked: false,
-        variants: prod.variants || [], // THÊM DÒNG NÀY
+        variants: prod.variants || [],
       }));
       console.log("Mapped products:", products);
 
@@ -323,6 +326,28 @@ useEffect(() => {
     }
   };
 
+  const toggleProductStatus = async (id: string, currentStatus: string) => {
+    try {
+      const newStatus = currentStatus === "Ẩn" ? "Còn hàng" : "Ẩn";
+      const res = await fetch(`http://localhost:3000/products/${id}`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: "Bearer " + localStorage.getItem("token"),
+        },
+        body: JSON.stringify({ status: newStatus }),
+      });
+      if (res.ok) {
+        notify(`Đã chuyển sang trạng thái "${newStatus}"!`, "");
+        fetchProducts(); // cập nhật lại danh sách
+      } else {
+        notify("Lỗi khi cập nhật trạng thái!", "");
+      }
+    } catch (error) {
+      notify("Lỗi khi cập nhật trạng thái!", "");
+    }
+  };
+
   return (
     <div className="app-content">
       <div className="app-title">
@@ -425,26 +450,48 @@ useEffect(() => {
                       <td>{p.category}</td>
                       <td>{p.status}</td>
                       <td className="table-td-center">
-                        <button
-                          className="btn btn-info btn-sm"
-                          type="button"
-                          title="Xem chi tiết"
-                          onClick={() => {
-                            setDetailProduct(p);
-                            setShowDetailModal(true);
-                          }}
-                          style={{ marginRight: 6 }}
-                        >
-                          <i className="fas fa-eye"></i>
-                        </button>
-                        <button
-                          className="btn btn-primary btn-sm edit"
-                          type="button"
-                          title="Sửa"
-                          onClick={() => openEditModal(p.id)}
-                        >
-                          <i className="fas fa-edit"></i>
-                        </button>
+                        {p.status === "Ẩn" ? (
+                          <button
+                            className="btn btn-success btn-sm"
+                            type="button"
+                            title="Hiện sản phẩm"
+                            onClick={() => toggleProductStatus(p.id, p.status)}
+                          >
+                            Hiện
+                          </button>
+                        ) : (
+                          <>
+                            <button
+                              className="btn btn-info btn-sm"
+                              type="button"
+                              title="Xem chi tiết"
+                              onClick={() => {
+                                setDetailProduct(p);
+                                setShowDetailModal(true);
+                              }}
+                              style={{ marginRight: 6 }}
+                            >
+                              <i className="fas fa-eye"></i>
+                            </button>
+                            <button
+                              className="btn btn-primary btn-sm edit"
+                              type="button"
+                              title="Sửa"
+                              onClick={() => openEditModal(p.id)}
+                            >
+                              <i className="fas fa-edit"></i>
+                            </button>
+                            <button
+                              className="btn btn-warning btn-sm"
+                              type="button"
+                              title="Ẩn sản phẩm"
+                              onClick={() => toggleProductStatus(p.id, p.status)}
+                              style={{ marginLeft: 6 }}
+                            >
+                              Ẩn
+                            </button>
+                          </>
+                        )}
                       </td>
                     </tr>
                   ))}

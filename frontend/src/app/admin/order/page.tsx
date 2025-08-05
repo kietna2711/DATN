@@ -4,6 +4,7 @@ import "bootstrap/dist/css/bootstrap.min.css";
 import "@fortawesome/fontawesome-free/css/all.min.css";
 import "boxicons/css/boxicons.min.css";
 import "../admin.css";
+import "./order.css";
 import axios from "axios";
 
 

@@ -44,7 +44,9 @@ const CheckoutPage: React.FC = () => {
   //Chi tiết sp
   const [buyNowItem, setBuyNowItem] = useState<any | null>(null);
   const searchParams = useSearchParams();
-  //
+  const productId = searchParams.get("productId");
+  const [luckyProduct, setLuckyProduct] = useState<any | null>(null);
+
   useEffect(() => {
     const isBuyNow = searchParams.get("buyNow") === "1";
     if (isBuyNow) {
@@ -59,6 +61,19 @@ const CheckoutPage: React.FC = () => {
       }
     }
   }, [searchParams]);
+
+  useEffect(() => {
+    if (productId) {
+      fetch(`http://localhost:3000/products/${productId}`)
+        .then(res => res.json())
+        .then(data => {
+          setLuckyProduct({
+            product: { ...data, price: 0 },
+            quantity: 1,
+          });
+        });
+    }
+  }, [productId]);
 
   // Thông báo lỗi
   const [errors, setErrors] = useState<{ [k: string]: string }>({});
@@ -194,7 +209,7 @@ const CheckoutPage: React.FC = () => {
 
   // const cartItems = useAppSelector((state) => state.cart.items);
   const cartItemsRedux = useAppSelector((state) => state.cart.items);
-  const cartItems = buyNowItem ? [buyNowItem] : cartItemsRedux;
+  const cartItems = luckyProduct ? [luckyProduct] : buyNowItem ? [buyNowItem] : cartItemsRedux;
   // 
   const handlePaymentChange = (value: string) => {
     setPayment(value);

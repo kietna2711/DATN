@@ -13,7 +13,8 @@ const productSchema = new mongoose.Schema({
   subcategoryId: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'subcategories',
-  }
+  },
+  status: { type: String, default: "Còn hàng" },
 }, {
   timestamps: true, // ✅ Tự động thêm createdAt và updatedAt
   versionKey: false,

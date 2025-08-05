@@ -507,14 +507,14 @@ const handleSubmit = async (e: React.FormEvent) => {
                             >
                               <i className="fas fa-edit"></i>
                             </button>
-                            <button
+                            {/* <button
                               className="btn btn-danger btn-sm"
                               type="button"
                               title="Xóa"
                               onClick={() => handleDeletePost(post)}
                             >
                               <i className="fas fa-trash-alt"></i>
-                            </button>
+                            </button> */}
                           </div>
                         </td>
 
@@ -529,7 +529,7 @@ const handleSubmit = async (e: React.FormEvent) => {
         </div>
       </div>
       {/* Modal xác nhận xoá */}
-     {showDeleteConfirm && postToDelete && (
+     {/* {showDeleteConfirm && postToDelete && (
     <div
       className="modal fade show d-block"
       tabIndex={-1}
@@ -566,7 +566,7 @@ const handleSubmit = async (e: React.FormEvent) => {
         </div>
       </div>
     </div>
-  )}
+  )} */}
 
 
     </main>

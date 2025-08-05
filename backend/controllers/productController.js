@@ -29,25 +29,31 @@ const subcategories = require('../models/subcategoryModel');
 // Lấy tất cả sản phẩm
 const getAllProducts = async (req, res) => {
   try {
-    const { name, idcate, idsubcate, limit, page, hot } = req.query;
+    const { name, idcate, idsubcate, limit, page, hot, all } = req.query;
 
     let query = {};
     let options = {};
 
+    // sẩn phẩm theo tên
     if (name) {
       query.name = new RegExp(name, 'i');
     }
-
+    // Sản phẩm hot
     if (hot) {
       query.hot = parseInt(hot);
     }
-
+    // sản phẩm theo danh mục
     if (idsubcate) {
       query.subcategoryId = idsubcate;
     }
-
+    // sản phẩm theo danh mục
     if (idcate) {
       query.categoryId = idcate;
+    }
+
+    // Chỉ lấy sản phẩm không bị ẩn nếu không phải admin
+    if (!all) {
+      query.status = { $ne: "Ẩn" };
     }
 
     // Phân trang
@@ -136,12 +142,41 @@ const addPro = [
           productId: data._id,
           size: req.body.size,
           quantity: req.body.quantity,
-          price: product.price
+          price: product.price // Đảm bảo lấy đúng giá
         });
         await variant.save();
+
+        const populated = await products.findById(data._id)
+          .populate({
+            path: 'variants',
+            select: 'size price quantity'
+          });
+
+        res.json(populated);
+      } else {
+        res.json(data);
       }
 
-      res.json(data);
+      // Sau khi lưu sản phẩm chính
+      if (req.body.variants) {
+        let variantsArr = [];
+        try {
+          variantsArr = JSON.parse(req.body.variants);
+        } catch (e) {
+          // fallback nếu không phải JSON
+          variantsArr = [];
+        }
+        for (const v of variantsArr) {
+          if (v.size && v.price && v.quantity) {
+            await new variants({
+              productId: data._id,
+              size: v.size,
+              price: v.price,
+              quantity: v.quantity
+            }).save();
+          }
+        }
+      }
     } catch (error) {
       console.error(error);
       res.status(500).json({ message: error.message });
@@ -157,7 +192,18 @@ const editPro = [
   ]),
   async (req, res) => {
     try {
-      const product = req.body;
+      // Nếu chỉ cập nhật trạng thái
+      if (req.body.status && Object.keys(req.body).length === 1) {
+        const data = await products.findByIdAndUpdate(
+          req.params.id,
+          { status: req.body.status },
+          { new: true }
+        );
+        if (!data) {
+          return res.status(404).json({ message: "Không tìm thấy sản phẩm" });
+        }
+        return res.json(data);
+      }
 
       // Parse oldThumbnails từ frontend
       let oldThumbnails = [];

@@ -10,6 +10,7 @@ import {
   CloseOutlined,
   SearchOutlined,
   DownOutlined,
+  GiftOutlined,
 } from "@ant-design/icons";
 import styles from "../styles/header.module.css";
 import { Category } from "../types/categoryD";
@@ -24,9 +25,10 @@ import Link from "next/link";
 
 type Props = {
   categories: Category[];
+  onOpenWheel: () => void;
 };
 
-const Header: React.FC<Props> = ({ categories }) => {
+const Header: React.FC<Props> = ({ categories, onOpenWheel }) => {
   const [mobileMenuActive, setMobileMenuActive] = useState(false);
   const [mobileOpenIndex, setMobileOpenIndex] = useState<number | null>(null);
   const router = useRouter();
@@ -49,6 +51,8 @@ const Header: React.FC<Props> = ({ categories }) => {
 // Lấy số sản phẩm khác nhau trong giỏ hàng (không phải tổng quantity)
 const cartCount = useAppSelector((state) => state.cart.items.length);
   // Debounce search input
+
+  // Hàm xử lý tìm kiếm
   useEffect(() => {
     if (!searchValue.trim()) {
       setSuggestions([]);
@@ -72,6 +76,15 @@ const cartCount = useAppSelector((state) => state.cart.items.length);
 
     return () => clearTimeout(handler);
   }, [searchValue]);
+
+  // Hàm xử lý tìm kiếm khi nhấn Enter hoặc click vào biểu tượng tìm kiếm
+   const handleSearchAction = () => {
+    if (searchValue.trim()) {
+      router.push(`/products?search=${encodeURIComponent(searchValue.trim())}`);
+      setMobileMenuActive(false);
+      setShowSuggestions(false);
+    }
+  };
 
   // Đóng suggestion khi click ngoài
   useEffect(() => {
@@ -97,13 +110,6 @@ const cartCount = useAppSelector((state) => state.cart.items.length);
   const userMenuRef = useRef<HTMLDivElement>(null);
 
 
-  const handleSearchAction = () => {
-    if (searchValue.trim()) {
-      router.push(`/products?search=${encodeURIComponent(searchValue.trim())}`);
-      setMobileMenuActive(false);
-      setShowSuggestions(false);
-    }
-  };
 
   const handleSearch = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -382,7 +388,30 @@ const cartCount = useAppSelector((state) => state.cart.items.length);
                 </>
               )}
             </div>
-
+            <button
+  onClick={onOpenWheel}
+  style={{
+    marginLeft: 16,
+    padding: 0,
+    width: 48,
+    height: 48,
+    borderRadius: "50%",
+    background: "radial-gradient(circle at center, #ffd6e0 0%, #ffb6b9 100%)",
+    boxShadow: "0 2px 8px #f8bbd0",
+    border: "none",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    cursor: "pointer",
+  }}
+  title="Vòng quay may mắn"
+>
+<img
+  src="https://cdn-icons-png.flaticon.com/512/2917/2917995.png"
+  alt="Vòng quay may mắn"
+  style={{ width: 28, height: 28 }}
+/>
+</button>
           </div>
           <button className={styles["menu-btn"]} onClick={openMobileMenu}>
             <MenuOutlined />
@@ -456,37 +485,43 @@ const cartCount = useAppSelector((state) => state.cart.items.length);
             <CloseOutlined />
           </button>
         </div>
-        
-    {username && (
-    <div className={styles["mobile-account"]}>
-    <a href={`/userprofile/${encodeURIComponent(username)}`}>
-      <UserOutlined /> Tài khoản
-    </a>
+        {username ? (
+          <div className={styles["mobile-account"]}>
+            <a href={`/userprofile/${encodeURIComponent(username)}`}>
+              <UserOutlined /> Xin chào, {username}
+            </a>
 
-    <a href="/favorites" className={styles.favoriteIconWrap} title="Yêu thích">
-      <HeartOutlined style={{ fontSize: 20, color: "#e87ebd", cursor: "pointer" }} />
-      {favoriteCount > 0 && <span className={styles.favoriteBadge}>{favoriteCount}</span>}
-    </a>
+            <a href="/favorites" className={styles.favoriteIconWrap} title="Yêu thích">
+              <HeartOutlined style={{ fontSize: 20, color: "#e87ebd", cursor: "pointer" }} />
+              {favoriteCount > 0 && <span className={styles.favoriteBadge}>{favoriteCount}</span>}
+            </a>
 
-    <a href="/cart" title="Giỏ hàng" style={{ position: "relative" }}>
-      {cartCount > 0 ? (
-        <Badge
-          count={cartCount}
-          color="#e87ebd"
-          style={{
-            fontWeight: "bold",
-            backgroundColor: "#e87ebd",
-            boxShadow: "0 0 0 2px #fff",
-          }}
-        >
-          <ShoppingOutlined style={{ fontSize: 20, color: "#e87ebd", cursor: "pointer" }} />
-        </Badge>
-      ) : (
-        <ShoppingOutlined style={{ fontSize: 20, color: "#e87ebd", cursor: "pointer" }} />
-      )}
-    </a>
-  </div>
-)}
+            <a href="/cart" title="Giỏ hàng" style={{ position: "relative" }}>
+              {cartCount > 0 ? (
+                <Badge
+                  count={cartCount}
+                  color="#e87ebd"
+                  style={{
+                    fontWeight: "bold",
+                    backgroundColor: "#e87ebd",
+                    boxShadow: "0 0 0 2px #fff",
+                  }}
+                >
+                  <ShoppingOutlined style={{ fontSize: 20, color: "#e87ebd", cursor: "pointer" }} />
+                </Badge>
+              ) : (
+                <ShoppingOutlined style={{ fontSize: 20, color: "#e87ebd", cursor: "pointer" }} />
+              )}
+            </a>
+          </div>
+        ) : (
+          <a href="/login">
+            <div className={styles["mobile-account"]}>
+              <UserOutlined /> Tài khoản
+            </div>
+          </a>
+        )}
+
 
         <div className={styles["mobile-search-box"]}>
           <form onSubmit={handleSearch} style={{ position: "relative" }}>

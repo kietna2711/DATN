@@ -7,6 +7,7 @@ const voucherController = require('../controllers/voucherController');
 router.get('/', voucherController.getAllVouchers);
 
 router.get('/:id', voucherController.getVoucherById);
+router.post('/',voucherController.addVoucher);
 router.post('/', voucherController.addVoucher);
 router.put('/:id', voucherController.editVoucher);
 // (Có thể bổ sung delete nếu cần)

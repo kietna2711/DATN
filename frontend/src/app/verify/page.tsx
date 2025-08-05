@@ -25,11 +25,25 @@ export default function Verify() {
     if (resendSeconds > 0 || resendLoading) return;
     setResendLoading(true);
     setError("");
-    // Gửi yêu cầu gửi lại OTP (không gửi email)
-    // Ví dụ: chỉ gọi API gửi lại OTP cho user hiện tại (nếu có)
-    // await fetch("http://localhost:3000/users/send-otp", { ... });
-    showMessage.success("Đã gửi lại mã xác thực!");
-    setResendSeconds(60);
+    const email = new URLSearchParams(window.location.search).get("email");
+    if (!email) {
+      setError("Không tìm thấy email!");
+      setResendLoading(false);
+      return;
+    }
+    // Gọi API gửi lại OTP
+    const res = await fetch("http://localhost:3000/users/forgot-password", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email }),
+    });
+    const data = await res.json();
+    if (res.ok) {
+      showMessage.success("Đã gửi lại mã xác thực!");
+      setResendSeconds(60);
+    } else {
+      setError(data.message || "Lỗi khi gửi lại mã xác thực!");
+    }
     setResendLoading(false);
   };
 
@@ -76,7 +90,7 @@ export default function Verify() {
     if (res.ok) {
       showMessage.success("Xác thực thành công!");
       setTimeout(() => {
-        router.push(`/reset-password?otp=${otp}`);
+        router.push(`/reset-password?email=${email}&otp=${otp}`);
       }, 1200);
     } else {
       setError(data.message || "Mã OTP không đúng hoặc đã hết hạn!");

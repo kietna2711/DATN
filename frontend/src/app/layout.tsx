@@ -7,9 +7,11 @@ import { Category } from "./types/categoryD";
 import { Providers } from "./providers";
 import "./globals.css";
 import AIChatBox from "@/components/AIChatBox";
+import LuckyWheel from "./components/LuckyWheel";
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   const [categories, setCategories] = useState<Category[]>([]);
+  const [showWheel, setShowWheel] = useState(false);
   const pathname = usePathname();
   const isAdmin = pathname.startsWith("/admin");
 
@@ -32,11 +34,12 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="vi">
       <body>
         <Providers>
-          {!isAdmin && <Header categories={categories} />}
+          {!isAdmin && <Header categories={categories} onOpenWheel={() => setShowWheel(true)} />}
           <main>{children}</main>
           {!isAdmin && <Footer />}
+          <LuckyWheel visible={showWheel} onClose={() => setShowWheel(false)} />
         </Providers>
-      <AIChatBox />
+        <AIChatBox />
       </body>
     </html>
   );
