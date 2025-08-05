@@ -16,6 +16,7 @@ export default function CartItem({ item }: CartItemProps) {
   const hasVariants = Array.isArray(product.variants) && product.variants.length > 0;
   const currentSize = selectedVariant?.size || '';
   const [showPop, setShowPop] = useState(false);
+  const [showOverPop, setShowOverPop] = useState(false);
 
   const handleSizeChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const newSize = e.target.value;
@@ -79,7 +80,37 @@ export default function CartItem({ item }: CartItemProps) {
             </Popconfirm>
           )}
           <input type="text" value={quantity} readOnly />
-          <button onClick={() => dispatch(updateQuantity({ _id: product._id, quantity: quantity + 1, size: currentSize }))}>+</button>
+          <Popconfirm
+            title="Số lượng tối đa"
+            description="Bạn đã đạt số lượng tối đa cho sản phẩm này!"
+            okText="Đã hiểu"
+            showCancel={false}
+            open={showOverPop}
+            onOpenChange={(visible) => setShowOverPop(visible)}
+            onConfirm={() => setShowOverPop(false)}
+          >
+            <button
+              onClick={() => {
+                const maxQuantity =
+                  hasVariants && selectedVariant
+                    ? selectedVariant.quantity
+                    : product.quantity;
+                if (typeof maxQuantity === "number" && quantity >= maxQuantity) {
+                  setShowOverPop(true);
+                  return;
+                }
+                dispatch(
+                  updateQuantity({
+                    _id: product._id,
+                    quantity: quantity + 1,
+                    size: currentSize,
+                  })
+                );
+              }}
+            >
+              +
+            </button>
+          </Popconfirm>
         </div>
       </td>
       <td className={styles.totalPrice}>
