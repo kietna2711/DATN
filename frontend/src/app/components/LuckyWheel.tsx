@@ -53,6 +53,9 @@ const LuckyWheel: React.FC<{ visible: boolean; onClose: () => void }> = ({ visib
     targetType?: string;
     productIds?: string[];
     description?: string;
+    active?: boolean;
+    startDate?: string;
+    endDate?: string;
     // add other voucher properties if needed
   }
   
@@ -61,9 +64,18 @@ const LuckyWheel: React.FC<{ visible: boolean; onClose: () => void }> = ({ visib
       fetch("http://localhost:3000/products").then(res => res.json()),
       fetch("http://localhost:3000/vouchers").then(res => res.json())
     ]).then(([products, vouchers]: [Product[], Voucher[]]) => {
+      const now = new Date();
+
+      // Lọc voucher sản phẩm còn hiệu lực
+      const productVouchers = vouchers.filter((v: Voucher) => {
+        if (v.targetType !== "product") return false;
+        if (v.active === false) return false;
+        if (v.startDate && new Date(v.startDate) > now) return false;
+        if (v.endDate && new Date(v.endDate) < now) return false;
+        return true;
+      });
+
       const selectedProducts = products.slice(0, 2);
-      // Lọc voucher sản phẩm (targetType === "product")
-      const productVouchers = vouchers.filter((v: Voucher) => v.targetType === "product");
 
       const prizes = [
         { label: "CHÚC BẠN MAY MẮN LẦN SAU", color: "#fff", bg: "#e67e22", chance: 0.35 },
