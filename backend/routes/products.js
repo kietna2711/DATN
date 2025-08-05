@@ -12,10 +12,8 @@ router.get('/', getAllProducts);
 router.get('/:id', getProductById);
 
 //Thêm sản phẩm
-router.post('/',addPro);//verifyToken, verifyAdmin,
-
-//Sửa sản phẩm
-router.patch('/:id', editPro);// verifyToken, verifyAdmin,
+router.post('/', verifyToken, verifyAdmin, addPro);
+router.patch('/:id', editPro);
 
 // //Xóa sản phẩm
 // router.delete('/:id', verifyToken, verifyAdmin, deletePro);

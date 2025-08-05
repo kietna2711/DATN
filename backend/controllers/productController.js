@@ -313,5 +313,5 @@ module.exports = {
   getProductById,
   addPro,
   editPro,
-  // deletePro,
+  
 };

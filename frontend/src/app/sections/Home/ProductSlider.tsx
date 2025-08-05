@@ -6,8 +6,8 @@ import "swiper/css";
 import "swiper/css/navigation";
 import "swiper/css/autoplay";
 
-import styles from "@/app/styles/productitem.module.css";
-import ProductItem from "../../components/ProductItem";
+import styles from "@/app/styles/productitemslide.module.css";
+import ProductItemSlide from "../../components/ProductItemSlide";
 import { Products } from "../../types/productD";
 
 type ProductSliderProps = {
@@ -39,7 +39,7 @@ export default function ProductSlider({ props }: ProductSliderProps) {
         >
           {products.map((product) => (
             <SwiperSlide key={product._id}>
-              <ProductItem product={product} />
+              <ProductItemSlide product={product} />
             </SwiperSlide>
           ))}
         </Swiper>

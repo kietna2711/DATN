@@ -1,197 +1,233 @@
 "use client";
-import React, { useEffect, useState } from "react";
+import React, { useState, useEffect } from "react";
 import "bootstrap/dist/css/bootstrap.min.css";
 import "@fortawesome/fontawesome-free/css/all.min.css";
 import "boxicons/css/boxicons.min.css";
-import "../admin.css"; // Đảm bảo file main.css đã copy vào src/css
+import "../admin.css";
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts";
 
-const orders = [
-  { id: "AL3947", name: "Phạm Thị Ngọc", total: "19.770.000 đ", status: "Chờ xử lý", badge: "bg-info" },
-  { id: "ER3835", name: "Nguyễn Thị Mỹ Yến", total: "16.770.000 đ", status: "Đang vận chuyển", badge: "bg-warning" },
-  { id: "MD0837", name: "Triệu Thanh Phú", total: "9.400.000 đ", status: "Đã hoàn thành", badge: "bg-success" },
-  { id: "MT9835", name: "Đặng Hoàng Phúc", total: "40.650.000 đ", status: "Đã hủy", badge: "bg-danger" },
+const accessStats = [
+  { week: "Tuần 1", month: "Tháng 7", visits: 120 },
+  { week: "Tuần 2", month: "Tháng 7", visits: 98 },
+  { week: "Tuần 3", month: "Tháng 7", visits: 110 },
+  { week: "Tuần 4", month: "Tháng 7", visits: 150 },
+  { week: "Tuần 1", month: "Tháng 8", visits: 130 },
+  { week: "Tuần 2", month: "Tháng 8", visits: 105 },
+  { week: "Tuần 3", month: "Tháng 8", visits: 140 },
+  { week: "Tuần 4", month: "Tháng 8", visits: 160 },
 ];
 
-const customers = [
-  { id: "#183", name: "Hột vịt muối", dob: "21/7/1992", phone: "0921387221", tag: "tag-success" },
-  { id: "#219", name: "Bánh tráng trộn", dob: "30/4/1975", phone: "0912376352", tag: "tag-warning" },
-  { id: "#627", name: "Cút rang bơ", dob: "12/3/1999", phone: "01287326654", tag: "tag-primary" },
-  { id: "#175", name: "Hủ tiếu nam vang", dob: "4/12/20000", phone: "0912376763", tag: "tag-danger" },
-];
+type AdminData = {
+  name: string;
+  email: string;
+  isGoogle: boolean; // true nếu là tài khoản google
+};
 
-export default function Dashboard() {
-  // State cho đồng hồ
-  const [clock, setClock] = useState("");
+export default function AdminProfilePage() {
+  const [showChangePass, setShowChangePass] = useState(false);
+  const [oldPass, setOldPass] = useState("");
+  const [newPass, setNewPass] = useState("");
+  const [confirmPass, setConfirmPass] = useState("");
+  const [message, setMessage] = useState("");
+  const [adminData, setAdminData] = useState<AdminData>({
+    name: "",
+    email: "",
+    isGoogle: false,
+  });
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    function updateClock() {
-      const today = new Date();
-      const weekday = ["Chủ Nhật", "Thứ Hai", "Thứ Ba", "Thứ Tư", "Thứ Năm", "Thứ Sáu", "Thứ Bảy"];
-      const day = weekday[today.getDay()];
-      let dd: string | number = today.getDate();
-      let mm: string | number = today.getMonth() + 1;
-      const yyyy = today.getFullYear();
-      let h: string | number = today.getHours();
-      let m: string | number = today.getMinutes();
-      let s: string | number = today.getSeconds();
-      m = m < 10 ? "0" + m : m;
-      s = s < 10 ? "0" + s : s;
-      dd = dd < 10 ? "0" + dd : dd;
-      mm = mm < 10 ? "0" + mm : mm;
-      const nowTime = `${h} giờ ${m} phút ${s} giây`;
-      const dateStr = `${day}, ${dd}/${mm}/${yyyy}`;
-      setClock(`${dateStr} - ${nowTime}`);
-    }
-    updateClock();
-    const timer = setInterval(updateClock, 1000);
-    return () => clearInterval(timer);
+    const user = JSON.parse(localStorage.getItem("user") || "{}");
+    // Xác định tài khoản đăng nhập qua Google
+    // Ví dụ: Có thuộc tính googleId hoặc provider === "google"
+    const isGoogle =
+      !!user.googleId ||
+      user.provider === "google" ||
+      user.isGoogle ||
+      user.loginType === "google";
+    setAdminData({
+      name: user.fullName || user.name || user.username || "",
+      email: user.email || "",
+      isGoogle,
+    });
+    fetch("http://localhost:3007/api/admin/increase-visit", { method: "POST" });
   }, []);
 
-  // Nếu muốn vẽ biểu đồ, dùng thư viện react-chartjs-2 hoặc tương tự
+  // Đổi mật khẩu thường
+  const handleChangePassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setMessage("");
+    if (!oldPass || !newPass || !confirmPass) {
+      setMessage("Vui lòng nhập đầy đủ thông tin.");
+      return;
+    }
+    if (newPass.length < 6) {
+      setMessage("Mật khẩu mới phải ít nhất 6 ký tự.");
+      return;
+    }
+    if (newPass !== confirmPass) {
+      setMessage("Mật khẩu mới không khớp.");
+      return;
+    }
+    setLoading(true);
+    try {
+      // Lấy token từ localStorage nếu có
+      const token = localStorage.getItem("token");
+      const res = await fetch("http://localhost:3007/api/users/change-password", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
+        body: JSON.stringify({
+          oldPassword: oldPass,
+          newPassword: newPass,
+        }),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setMessage("Đổi mật khẩu thành công!");
+        setOldPass("");
+        setNewPass("");
+        setConfirmPass("");
+        setShowChangePass(false);
+      } else {
+        setMessage(data.message || "Đổi mật khẩu thất bại!");
+      }
+    } catch (err) {
+      setMessage("Có lỗi xảy ra, vui lòng thử lại.");
+    }
+    setLoading(false);
+  };
 
   return (
-    <main className="app-content">
-      <div className="row">
-        <div className="col-md-12">
-          <div className="app-title">
-            <ul className="app-breadcrumb breadcrumb">
-              <li className="breadcrumb-item"><a href="#"><b>Bảng điều khiển</b></a></li>
-            </ul>
-            <div id="clock">{clock}</div>
-          </div>
-        </div>
-      </div>
-      <div className="row">
-        {/* Left */}
-        <div className="col-md-12 col-lg-6">
-          <div className="row">
-            <div className="col-md-6">
-              <div className="widget-small primary coloured-icon">
-                <i className="icon bx bxs-user-account fa-3x"></i>
-                <div className="info">
-                  <h4>Tổng khách hàng</h4>
-                  <p><b>56 khách hàng</b></p>
-                  <p className="info-tong">Tổng số khách hàng được quản lý.</p>
-                </div>
+    <main className="container py-4">
+      <div className="row justify-content-center">
+        {/* Thông tin cá nhân */}
+        <div className="col-md-6">
+          <div className="card shadow-sm mb-4">
+            <div className="card-body text-center">
+              {/* Avatar với chữ cái đầu */}
+              <div
+                style={{
+                  width: 90,
+                  height: 90,
+                  borderRadius: "50%",
+                  background: "#ffd700",
+                  color: "#b30000",
+                  fontSize: 44,
+                  fontWeight: 700,
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  margin: "0 auto 16px auto",
+                  border: "3px solid #fffbe6",
+                  boxShadow: "0 2px 8px #ffd70099",
+                }}
+              >
+                {adminData.name && adminData.name.trim() !== ""
+                  ? adminData.name.trim().split(" ").filter(Boolean).pop()?.charAt(0).toUpperCase()
+                  : "?"}
               </div>
-            </div>
-            <div className="col-md-6">
-              <div className="widget-small info coloured-icon">
-                <i className="icon bx bxs-data fa-3x"></i>
-                <div className="info">
-                  <h4>Tổng sản phẩm</h4>
-                  <p><b>1850 sản phẩm</b></p>
-                  <p className="info-tong">Tổng số sản phẩm được quản lý.</p>
+              <h4 className="mb-1">{adminData.name}</h4>
+              <div className="mb-2 text-muted">{adminData.email}</div>
+              {adminData.isGoogle ? (
+                <div className="alert alert-warning py-2 mt-2">
+                  <i className="fab fa-google me-2"></i>
+                  Tài khoản Google không thể đổi mật khẩu trên hệ thống!
                 </div>
-              </div>
-            </div>
-            <div className="col-md-6">
-              <div className="widget-small warning coloured-icon">
-                <i className="icon bx bxs-shopping-bags fa-3x"></i>
-                <div className="info">
-                  <h4>Tổng đơn hàng</h4>
-                  <p><b>247 đơn hàng</b></p>
-                  <p className="info-tong">Tổng số hóa đơn bán hàng trong tháng.</p>
-                </div>
-              </div>
-            </div>
-            <div className="col-md-6">
-              <div className="widget-small danger coloured-icon">
-                <i className="icon bx bxs-error-alt fa-3x"></i>
-                <div className="info">
-                  <h4>Sắp hết hàng</h4>
-                  <p><b>4 sản phẩm</b></p>
-                  <p className="info-tong">Số sản phẩm cảnh báo hết cần nhập thêm.</p>
-                </div>
-              </div>
-            </div>
-            {/* Order Table */}
-            <div className="col-md-12">
-              <div className="tile">
-                <h3 className="tile-title">Tình trạng đơn hàng</h3>
-                <div>
-                  <table className="table table-bordered">
-                    <thead>
-                      <tr>
-                        <th>ID đơn hàng</th>
-                        <th>Tên khách hàng</th>
-                        <th>Tổng tiền</th>
-                        <th>Trạng thái</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {orders.map(order => (
-                        <tr key={order.id}>
-                          <td>{order.id}</td>
-                          <td>{order.name}</td>
-                          <td>{order.total}</td>
-                          <td><span className={`badge ${order.badge}`}>{order.status}</span></td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-            </div>
-            {/* Customer Table */}
-            <div className="col-md-12">
-              <div className="tile">
-                <h3 className="tile-title">Khách hàng mới</h3>
-                <div>
-                  <table className="table table-hover">
-                    <thead>
-                      <tr>
-                        <th>ID</th>
-                        <th>Tên khách hàng</th>
-                        <th>Ngày sinh</th>
-                        <th>Số điện thoại</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {customers.map(c => (
-                        <tr key={c.id}>
-                          <td>{c.id}</td>
-                          <td>{c.name}</td>
-                          <td>{c.dob}</td>
-                          <td><span className={`tag ${c.tag}`}>{c.phone}</span></td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              </div>
+              ) : (
+                <>
+                  <button
+                    className="btn btn-outline-primary btn-sm"
+                    onClick={() => setShowChangePass((v) => !v)}
+                  >
+                    Đổi mật khẩu
+                  </button>
+                  {showChangePass && (
+                    <form className="mt-3" onSubmit={handleChangePassword}>
+                      <div className="mb-2">
+                        <input
+                          type="password"
+                          className="form-control"
+                          placeholder="Mật khẩu cũ"
+                          value={oldPass}
+                          onChange={(e) => setOldPass(e.target.value)}
+                          disabled={loading}
+                        />
+                      </div>
+                      <div className="mb-2">
+                        <input
+                          type="password"
+                          className="form-control"
+                          placeholder="Mật khẩu mới"
+                          value={newPass}
+                          onChange={(e) => setNewPass(e.target.value)}
+                          disabled={loading}
+                        />
+                      </div>
+                      <div className="mb-2">
+                        <input
+                          type="password"
+                          className="form-control"
+                          placeholder="Nhập lại mật khẩu mới"
+                          value={confirmPass}
+                          onChange={(e) => setConfirmPass(e.target.value)}
+                          disabled={loading}
+                        />
+                      </div>
+                      {message && (
+                        <div className="alert alert-info py-1 mb-2">{message}</div>
+                      )}
+                      <button
+                        className="btn btn-warning btn-sm"
+                        type="submit"
+                        disabled={loading}
+                      >
+                        {loading ? "Đang xử lý..." : "Xác nhận đổi mật khẩu"}
+                      </button>
+                    </form>
+                  )}
+                </>
+              )}
             </div>
           </div>
         </div>
-        {/* Right */}
-        <div className="col-md-12 col-lg-6">
-          <div className="row">
-            <div className="col-md-12">
-              <div className="tile">
-                <h3 className="tile-title">Dữ liệu 6 tháng đầu vào</h3>
-                <div className="embed-responsive embed-responsive-16by9">
-                  {/* Để vẽ biểu đồ, dùng thư viện react-chartjs-2 */}
-                  <canvas className="embed-responsive-item" id="lineChartDemo"></canvas>
-                </div>
-              </div>
+
+        {/* Biểu đồ truy cập */}
+        <div className="col-md-6">
+          <div className="card shadow-sm mb-4">
+            <div className="card-header bg-warning text-dark">
+              <b>Biểu đồ lượt truy cập admin theo tuần</b>
             </div>
-            <div className="col-md-12">
-              <div className="tile">
-                <h3 className="tile-title">Thống kê 6 tháng doanh thu</h3>
-                <div className="embed-responsive embed-responsive-16by9">
-                  <canvas className="embed-responsive-item" id="barChartDemo"></canvas>
-                </div>
-              </div>
+            <div className="card-body" style={{ height: 320 }}>
+              <ResponsiveContainer width="100%" height="100%">
+                <LineChart data={accessStats}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="week" tick={{ fontSize: 13 }} />
+                  <YAxis tick={{ fontSize: 13 }} />
+                  <Tooltip />
+                  <Legend />
+                  <Line
+                    type="monotone"
+                    dataKey="visits"
+                    name="Lượt truy cập"
+                    stroke="#ff7300"
+                    strokeWidth={3}
+                    activeDot={{ r: 8 }}
+                  />
+                </LineChart>
+              </ResponsiveContainer>
             </div>
           </div>
         </div>
-      </div>
-      <div className="text-center" style={{ fontSize: 13 }}>
-        <p>
+
+        {/* Footer */}
+        <div className="text-center mt-3" style={{ fontSize: 13 }}>
           <b>
-            Copyright {new Date().getFullYear()} Phần mềm quản lý bán hàng | Dev By Trường
+            Copyright {new Date().getFullYear()} Phần mềm quản lý bán hàng | Dev Mimi Bear
           </b>
-        </p>
+        </div>
       </div>
     </main>
   );

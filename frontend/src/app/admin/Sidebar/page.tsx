@@ -11,7 +11,6 @@ export default function Sidebar({ currentSection }: { currentSection: string }) 
     { key: "order", label: "Quản lý đơn hàng", icon: "bx bx-receipt" },
     { key: "article", label: "Quản lý bài viết", icon: "bx bx-news" },
     { key: "postscategories", label: "Danh mục bài viết", icon: "bx bx-news" },
-    { key: "comment", label: "Quản lý bình luận", icon: "bx bx-comment-detail" },
     { key: "evaluate", label: "Quản lý đánh giá", icon: "bx bx-star" },
     { key: "discount", label: "Quản lý mã giảm giá", icon: "bx bx-gift" },
 
