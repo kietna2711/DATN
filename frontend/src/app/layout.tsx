@@ -32,6 +32,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 
   return (
     <html lang="vi">
+      <head>
+        <link rel="icon" href="http://localhost:3000/images/logoXP.png" />
+      </head>
       <body>
         <Providers>
           {!isAdmin && <Header categories={categories} onOpenWheel={() => setShowWheel(true)} />}
