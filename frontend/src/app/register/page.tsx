@@ -251,7 +251,7 @@ export default function Register() {
             >
               <img
                 src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/google/google-original.svg"
-                alt=""
+                alt="Google"
               />
               Google
             </button>
@@ -264,7 +264,7 @@ export default function Register() {
             >
               <img
                 src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/facebook/facebook-original.svg"
-                alt=""
+                alt="Facebook"
               />
               Facebook
             </button>

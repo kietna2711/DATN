@@ -29,7 +29,7 @@ const LuckyWheel: React.FC<{ visible: boolean; onClose: () => void }> = ({ visib
   const [prizes, setPrizes] = useState<{ label: string; color: string; bg: string; chance: number; images?: string; _id?: string; id?: string; code?: string }[]>([]);
   const [turns, setTurns] = useState<number>(() => {
     const saved = localStorage.getItem("turns");
-    return saved ? Number(saved) : 1;
+    return saved ? Number(saved) : 0; // Mặc định 0 nếu chưa đăng ký
   }); // Mặc định 1 lượt quay miễn phí
   const wheelRef = useRef<SVGSVGElement>(null);
   const [showModal, setShowModal] = useState(false);
@@ -109,13 +109,13 @@ useEffect(() => {
     localStorage.setItem("turns", String(turns));
   }, [turns]);
 
-  useEffect(() => {
-    // Nếu lượt quay đang là 0 thì cấp lại 1 lượt miễn phí khi reload
-    if (turns === 0) {
-      setTurns(1);
-      localStorage.setItem("turns", "1");
-    }
-  }, [turns]);
+  // useEffect(() => {
+  //   // Nếu lượt quay đang là 0 thì cấp lại 1 lượt miễn phí khi reload
+  //   if (turns === 0) {
+  //     setTurns(1);
+  //     localStorage.setItem("turns", "1");
+  //   }
+  // }, [turns]);
 
   const spin = async () => {
     // Kiểm tra đăng nhập
@@ -124,7 +124,10 @@ useEffect(() => {
       messageApi.error("Bạn cần đăng nhập để quay vòng quay may mắn!");
       return;
     }
-    if (turns <= 0 || spinning) return;
+    if (turns <= 0 || spinning) {
+      messageApi.error("Bạn đã hết lượt quay!");
+      return;
+    }
     setSpinning(true);
     setResult(null);
 
@@ -248,6 +251,8 @@ return (
       }}>
         LUCKY DRAW
       </h2>
+
+   
 
       {/* Số lượt quay */}
       <div style={{
@@ -596,8 +601,7 @@ return (
         </Modal> 
     </div>
   </Modal>
-);
-// ...existing code...
-};
-
+)};
 export default LuckyWheel;
+
+

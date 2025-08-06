@@ -240,11 +240,11 @@ const editPro = [
 
       // Ép kiểu và kiểm tra các trường bắt buộc
       const updateData = {
-        name: product.name,
-        description: product.description,
-        price: Number(product.price),
-        categoryId: product.categoryId,
-        status: product.status,
+        name: req.body.name,
+        description: req.body.description,
+        price: Number(req.body.price),
+        categoryId: req.body.categoryId,
+        status: req.body.status,
         images: images,
       };
 
