@@ -393,23 +393,19 @@ const cartCount = useAppSelector((state) => state.cart.items.length);
   style={{
     marginLeft: 16,
     padding: 0,
-    width: 48,
-    height: 48,
-    borderRadius: "50%",
-    background: "radial-gradient(circle at center, #ffd6e0 0%, #ffb6b9 100%)",
-    boxShadow: "0 2px 8px #f8bbd0",
-    border: "none",
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
     cursor: "pointer",
+    borderRadius: "50%",
+    border: "none",
   }}
   title="Vòng quay may mắn"
 >
 <img
-  src="https://cdn-icons-png.flaticon.com/512/2917/2917995.png"
+  src="http://localhost:3000/images/vqmm.png"
   alt="Vòng quay may mắn"
-  style={{ width: 28, height: 28 }}
+  style={{ width: 45, height: 45 }}
 />
 </button>
           </div>

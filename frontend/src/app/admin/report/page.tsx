@@ -27,97 +27,68 @@ ChartJS.register(
   Tooltip,
   Legend
 );
-// Nếu muốn dùng biểu đồ, cài thêm react-chartjs-2 và chart.js
 
-const barData = {
-  labels: [],
-  datasets: [
-    {
-      label: "Doanh thu (triệu)",
-      data: [],
-      backgroundColor: "#28a745",
-    },
-  ],
-};
-
-export default function ReportManagement() {
+export default function Dashboard() {
+  // State cho đồng hồ
+  const [clock, setClock] = useState("");
+  // State cho thống kê tổng hợp
+  const [summary, setSummary] = useState({
+    totalCustomers: 0,
+    totalProducts: 0,
+    totalOrders: 0,
+    lowStock: 0,
+  });
+  // State cho doanh thu
   const [revenueData, setRevenueData] = useState<number[]>([]);
   const [labels, setLabels] = useState<string[]>([]);
-  const [products, setProducts] = useState<any[]>([]);
-  const [users, setUsers] = useState<any[]>([]);
   const [orders, setOrders] = useState<any[]>([]);
-  const [bestSellers, setBestSellers] = useState<any[]>([]);
-  const [outOfStockProducts, setOutOfStockProducts] = useState<any[]>([]);
-  // Dummy data for new employees, replace with real data fetching if needed
-  const [newEmployees, setNewEmployees] = useState<any[]>([]);
-  const [newCustomers, setNewCustomers] = useState<any[]>([]);
-  const [orderDetails, setOrderDetails] = useState<any[]>([]);
 
-  const [monthLabels, setMonthLabels] = useState<string[]>([]);
-  const [ordersCountByMonth, setOrdersCountByMonth] = useState<number[]>([]);
-
-useEffect(() => {
-  fetch("http://localhost:3000/orders")
-    .then(res => res.json())
-    .then(data => {
-      setOrders(data);
-
-      // Tính số đơn hàng đã giao từng tháng
-      const now = new Date();
-      const currentMonth = now.getMonth() + 1;
-      const months = Array.from({ length: currentMonth }, (_, i) => i + 1);
-      const counts = months.map(month => {
-        return data.filter((order: { createdAt: string | number | Date; }) => {
-          const orderDate = new Date(order.createdAt);
-          return orderDate.getMonth() + 1 === month;
-        }).length;
-      });
-
-      setOrdersCountByMonth(counts);
-      setMonthLabels(months.map(m => `Tháng ${m}`));
-    });
-}, []);
-
-const lineData = {
-  labels: monthLabels,
-  datasets: [
-    {
-      label: "Đơn hàng",
-      data: ordersCountByMonth,
-      borderColor: "#007bff",
-      backgroundColor: "rgba(0,123,255,0.2)",
-      tension: 0.4,
-    },
-  ],
-};
-
-const lineOptions = {
-  scales: {
-    y: {
-      ticks: {
-        stepSize: 1, // Hiển thị số nguyên
-        callback: function (value: number | string) {
-          return Number(value); // Loại bỏ phần thập phân
-        }
-      },
-      beginAtZero: true
+  useEffect(() => {
+    function updateClock() {
+      const today = new Date();
+      const weekday = ["Chủ Nhật", "Thứ Hai", "Thứ Ba", "Thứ Tư", "Thứ Năm", "Thứ Sáu", "Thứ Bảy"];
+      const day = weekday[today.getDay()];
+      let dd: string | number = today.getDate();
+      let mm: string | number = today.getMonth() + 1;
+      const yyyy = today.getFullYear();
+      let h: string | number = today.getHours();
+      let m: string | number = today.getMinutes();
+      let s: string | number = today.getSeconds();
+      m = m < 10 ? "0" + m : m;
+      s = s < 10 ? "0" + s : s;
+      dd = dd < 10 ? "0" + dd : dd;
+      mm = mm < 10 ? "0" + mm : mm;
+      const nowTime = `${h} giờ ${m} phút ${s} giây`;
+      const dateStr = `${day}, ${dd}/${mm}/${yyyy}`;
+      setClock(`${dateStr} - ${nowTime}`);
     }
-  }
-};
+    updateClock();
+    const timer = setInterval(updateClock, 1000);
+    return () => clearInterval(timer);
+  }, []);
 
+  // Lấy dữ liệu thống kê tổng hợp
+  useEffect(() => {
+    fetch("http://localhost:3000/api/statistics/summary")
+      .then(res => res.json())
+      .then(data => {
+        console.log("summary data:", data); // Thêm dòng này để kiểm tra
+        setSummary(data);
+      });
+  }, []);
 
+  // Lấy dữ liệu doanh thu từng tháng
   useEffect(() => {
     fetch("http://localhost:3000/api/statistics/revenue")
       .then(res => res.json())
       .then(data => {
-        // Lấy tháng hiện tại
+        // Tạo mảng doanh thu 6 tháng, mặc định 0
         const now = new Date();
-        const currentMonth = now.getMonth() + 1;
+        const currentMonth = now.getMonth() + 1; // getMonth() trả về 0-11
         const months = Array.from({ length: currentMonth }, (_, i) => i + 1);
-        // Map doanh thu từng tháng, nếu không có thì là 0
         const revenueArr = months.map(month => {
           const found = data.find((item: any) => item.month === month);
-          return found ? found.total / 1000000 : 0; // đổi sang triệu
+          return found ? found.total : 0; // Không chia cho 1_000_000
         });
         setRevenueData(revenueArr);
         setLabels(months.map(m => `Tháng ${m}`));
@@ -125,96 +96,108 @@ const lineOptions = {
   }, []);
 
   useEffect(() => {
-    fetch("http://localhost:3000/products")
-      .then(res => res.json())
-      .then(data => {
-        setProducts(data);
-        setOutOfStockProducts(data.filter((p: any) => p.quantity === 0));
-      });
-    fetch("http://localhost:3000/users")
-      .then(res => res.json())
-      .then(setUsers);
     fetch("http://localhost:3000/orders")
       .then(res => res.json())
-      .then(data => {
-        setOrders(data);
-
-        // Tính sản phẩm bán chạy từ orders
-        const productMap = new Map();
-        data.forEach((order: any) => {
-          if (order.orderStatus !== "delivered") return;
-          if (!Array.isArray(order.orderItems)) return;
-          order.orderItems.forEach((item: any) => {
-            const key = item.product._id || item.product;
-            if (!productMap.has(key)) {
-              productMap.set(key, {
-                id: key,
-                name: item.product.name || item.name,
-                price: item.product.price || item.price,
-                category: item.product.category || item.category,
-                totalSold: 0,
-              });
-            }
-            productMap.get(key).totalSold += item.quantity; // <--- CỘNG DỒN SỐ LƯỢNG BÁN
-          });
-        });
-        const bestSellersArr = Array.from(productMap.values())
-          .sort((a, b) => b.totalSold - a.totalSold)
-          .slice(0, 5);
-        setBestSellers(bestSellersArr);
-      });
+      .then(data => setOrders(data));
   }, []);
 
-  useEffect(() => {
-    // Lọc khách hàng mới trong 7 ngày gần nhất
-    const weekAgo = new Date();
-    weekAgo.setDate(weekAgo.getDate() - 7);
-    setNewCustomers(users.filter(u => new Date(u.createdAt) >= weekAgo));
-  }, [users]);
+  // Tạo mảng các tháng thực tế
+  const now = new Date();
+  const currentMonth = now.getMonth() + 1;
+  const months = Array.from({ length: currentMonth }, (_, i) => i + 1);
 
-  useEffect(() => {
-    fetch("http://localhost:3000/orderdetails")
-      .then(res => res.json())
-      .then(data => {
-        console.log("orderdetails api data:", data);
-        setOrderDetails(Array.isArray(data) ? data : []);
-      });
-  }, []);
+  // Tạo mảng số đơn hàng từng tháng thực tế từ dữ liệu orders
+  const ordersCountByMonth = months.map(month => {
+    return orders.filter(order => {
+      const orderDate = new Date(order.createdAt);
+      return orderDate.getMonth() + 1 === month;
+    }).length;
+  });
 
-  const updatedBarData = {
-    labels: labels,
+  // Biểu đồ đơn hàng theo tháng thực tế
+  const lineData = {
+    labels: months.map(m => `Tháng ${m}`),
+    datasets: [
+      {
+        label: "Đơn hàng",
+        data: ordersCountByMonth,
+        borderColor: "#007bff",
+        backgroundColor: "rgba(0,123,255,0.2)",
+        tension: 0.4,
+      },
+    ],
+  };
+
+  // Dữ liệu doanh thu cho bar chart
+  const barData = {
+    labels: labels.length ? labels : ["Tháng 1", "Tháng 2", "Tháng 3", "Tháng 4", "Tháng 5", "Tháng 6"],
     datasets: [
       {
         label: "Doanh thu (triệu)",
-        data: revenueData,
+        data: revenueData.length ? revenueData : [0, 0, 0, 0, 0, 0],
         backgroundColor: "#28a745",
       },
     ],
   };
 
-  // Sau khi đã setOrders(data) trong useEffect fetch orders
-  const totalRevenue = orders
-    .filter(order => order.orderStatus === "delivered")
-    .reduce((sum, order) => sum + (order.totalPrice || 0), 0);
-  const totalDeliveredOrders = orders.filter(order => order.orderStatus === "Đã giao").length;
+  // Tổng doanh thu 6 tháng
+  const totalRevenue = revenueData.reduce((sum, val) => sum + val, 0);
 
-  function getQuantity(orderId: string, productId: string) {
-    const detail = orderDetails.find(
-      (od) =>
-        String(od.orderId) === String(orderId) &&
-        String(od.productId) === String(productId)
-    );
-    return detail ? detail.quantity : 0;
-  }
+  // Dữ liệu mẫu cho bảng đơn hàng và khách hàng (có thể fetch từ backend nếu muốn)
+  const sampleOrders = [
+    { id: "AL3947", name: "Phạm Thị Ngọc", total: "19.770.000 đ", status: "Chờ xử lý", badge: "bg-info" },
+    { id: "ER3835", name: "Nguyễn Thị Mỹ Yến", total: "16.770.000 đ", status: "Đang vận chuyển", badge: "bg-warning" },
+    { id: "MD0837", name: "Triệu Thanh Phú", total: "9.400.000 đ", status: "Đã hoàn thành", badge: "bg-success" },
+    { id: "MT9835", name: "Đặng Hoàng Phúc", total: "40.650.000 đ", status: "Đã hủy", badge: "bg-danger" },
+  ];
 
-  function getOrderDetailList(orderId: string) {
-    return orderDetails
-      .filter(od => String(od.orderId) === String(orderId))
-      .map(od => ({
-        name: od.productName,
-        quantity: od.quantity
-      }));
-  }
+  const sampleCustomers = [
+    { id: "#183", name: "Hột vịt muối", dob: "21/7/1992", phone: "0921387221", tag: "tag-success", createdAt: new Date().toISOString() },
+    { id: "#219", name: "Bánh tráng trộn", dob: "30/4/1975", phone: "0912376352", tag: "tag-warning", createdAt: new Date().toISOString() },
+    { id: "#627", name: "Cút rang bơ", dob: "12/3/1999", phone: "01287326654", tag: "tag-primary", createdAt: new Date().toISOString() },
+    { id: "#175", name: "Hủ tiếu nam vang", dob: "4/12/20000", phone: "0912376763", tag: "tag-danger", createdAt: new Date().toISOString() },
+  ];
+
+  // State cho khách hàng mới
+  type Customer = {
+    _id?: string;
+    id?: string;
+    name: string;
+    username?: string;
+    dob: string;
+    tag: string;
+    createdAt: string;
+    email?: string;
+  };
+  const [customers, setCustomers] = useState<Customer[]>(sampleCustomers);
+
+  useEffect(() => {
+    fetch("http://localhost:3000/users")
+      .then(res => res.json())
+      .then(data => setCustomers(data));
+  }, []);
+
+  // Tính số đơn hàng từng tháng
+  const ordersByMonth = months.map(month => {
+    return orders.filter(order => {
+      const orderDate = new Date(order.createdAt);
+      return orderDate.getMonth() + 1 === month;
+    });
+  });
+
+  const lineOptions = {
+    scales: {
+      y: {
+        beginAtZero: true,
+        ticks: {
+          stepSize: 1, // Hiển thị từng đơn vị
+          callback: function(tickValue: string | number, index: number, ticks: any[]) {
+            return typeof tickValue === "number" && Number.isInteger(tickValue) ? tickValue : null;
+          }
+        }
+      }
+    }
+  };
 
   return (
     <main className="app-content">
@@ -222,192 +205,201 @@ const lineOptions = {
         <div className="col-md-12">
           <div className="app-title">
             <ul className="app-breadcrumb breadcrumb">
-              <li className="breadcrumb-item"><b>Báo cáo doanh thu</b></li>
+              <li className="breadcrumb-item"><a href="#"><b>Bảng điều khiển</b></a></li>
             </ul>
-            <div id="clock"></div>
+            <div id="clock">{clock}</div>
           </div>
         </div>
       </div>
-      {/* Widgets */}
       <div className="row">
-        <div className="col-md-3 col-6 mb-3">
-          <div className="widget-small primary coloured-icon">
-            <i className="icon bx bxs-user fa-3x"></i>
-            <div className="info">
-              <h4>TỔNG KHÁCH HÀNG</h4>
-              <p><b>{users.length} khách hàng</b></p>
+        {/* Left */}
+        <div className="col-md-12 col-lg-6">
+          <div className="row">
+            <div className="col-md-6">
+              <div className="widget-small primary coloured-icon">
+                <i className="icon bx bxs-user-account fa-3x"></i>
+                <div className="info">
+                  <h4>Tổng khách hàng</h4>
+                  <p><b>{summary.totalCustomers} khách hàng</b></p>
+                  <p className="info-tong">Tổng số khách hàng được quản lý.</p>
+                </div>
+              </div>
             </div>
-          </div>
-        </div>
-        <div className="col-md-3 col-6 mb-3">
-          <div className="widget-small info coloured-icon">
-            <i className="icon bx bxs-purchase-tag-alt fa-3x"></i>
-            <div className="info">
-              <h4>TỔNG SẢN PHẨM</h4>
-              <p><b>{products.length} sản phẩm</b></p>
+            <div className="col-md-6">
+              <div className="widget-small info coloured-icon">
+                <i className="icon bx bxs-data fa-3x"></i>
+                <div className="info">
+                  <h4>Tổng sản phẩm</h4>
+                  <p><b>{summary.totalProducts} sản phẩm</b></p>
+                  <p className="info-tong">Tổng số sản phẩm được quản lý.</p>
+                </div>
+              </div>
             </div>
-          </div>
-        </div>
-        <div className="col-md-3 col-6 mb-3">
-          <div className="widget-small warning coloured-icon">
-            <i className="icon bx bxs-shopping-bag-alt fa-3x"></i>
-            <div className="info">
-              <h4>TỔNG ĐƠN HÀNG</h4>
-              <p><b>{orders.length} đơn hàng</b></p>
+            <div className="col-md-6">
+              <div className="widget-small warning coloured-icon">
+                <i className="icon bx bxs-shopping-bags fa-3x"></i>
+                <div className="info">
+                  <h4>Tổng đơn hàng</h4>
+                  <p><b>{summary.totalOrders} đơn hàng</b></p>
+                  <p className="info-tong">Tổng số hóa đơn bán hàng trong tháng.</p>
+                </div>
+              </div>
             </div>
-          </div>
-        </div>
-        <div className="col-md-3 col-6 mb-3">
-          <div className="widget-small danger coloured-icon">
-            <i className="icon bx bxs-tag-x fa-3x"></i>
-            <div className="info">
-              <h4>HẾT HÀNG</h4>
-              <p><b>{outOfStockProducts.length} sản phẩm</b></p>
+            <div className="col-md-6">
+              <div className="widget-small danger coloured-icon">
+                <i className="icon bx bxs-error-alt fa-3x"></i>
+                <div className="info">
+                  <h4>Sắp hết hàng</h4>
+                  <p><b>{summary.lowStock} sản phẩm</b></p>
+                  <p className="info-tong">Số sản phẩm cảnh báo hết cần nhập thêm.</p>
+                </div>
+              </div>
             </div>
-          </div>
-        </div>
-      </div>
-      {/* More widgets */}
-      <div className="row">
-        <div className="col-md-6 col-lg-3">
-          <div className="widget-small primary coloured-icon">
-            <i className="icon fa-3x bx bxs-chart"></i>
-            <div className="info">
-              <h4>Tổng thu nhập</h4>
-              <p><b>{totalRevenue.toLocaleString()} đ</b></p>
-            </div>
-          </div>
-        </div>
-        <div className="col-md-6 col-lg-3">
-          <div className="widget-small info coloured-icon">
-            <i className="icon fa-3x bx bxs-user-badge"></i>
-            <div className="info">
-              <h4>KHÁCH HÀNG MỚI</h4>
-              <p><b>{newCustomers.length} khách hàng</b></p>
-            </div>
-          </div>
-        </div>
-        <div className="col-md-6 col-lg-3">
-          <div className="widget-small danger coloured-icon">
-            <i className="icon fa-3x bx bxs-receipt"></i>
-            <div className="info">
-              <h4>Đơn hàng hủy</h4>
-              <p>
-                <b>
-                  {orders.filter(order => order.orderStatus === "cancelled").length} đơn hàng
-                </b>
-              </p>
-            </div>
-          </div>
-        </div>
-      </div>
-     
-      {/* Orders */}
-      <div className="row">
-        <div className="col-md-12">
-          <div className="tile">
-            <h3 className="tile-title">TỔNG ĐƠN HÀNG</h3>
-            <div className="tile-body">
-              <table className="table table-hover table-bordered">
-                <thead>
-                  <tr>
-                    <th>ID đơn hàng</th>
-                    <th>Khách hàng</th>
-                    <th>Tên sản phẩm</th>
-                    <th>Số sản phẩm</th>
-                    <th>Tổng tiền</th>
-                    <th>Trạng thái</th>
-                    <th>Ngày tạo</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {orders
-                    .filter(order => order.orderStatus === "delivered")
-                    .map(order => (
-                      <tr key={order._id || order.id}>
-                        <td>{order._id || order.id}</td>
-                        <td>{order.shippingInfo?.name || order.customerName || order.customer || order.user?.username || order.user?.email}</td>
-                        <td>
-                          {(Array.isArray(orderDetails) ? orderDetails : [])
-                            .filter(od => String(od.orderId) === String(order._id || order.id))
-                            .map(od => od.productName)
-                            .join(", ")}
-                        </td>
-                        <td>
-                          {(Array.isArray(orderDetails) ? orderDetails : [])
-                            .filter(od => String(od.orderId) === String(order._id || order.id))
-                            .map(od => od.quantity)
-                            .join(", ")}
-                        </td>
-                        <td>{order.totalPrice?.toLocaleString() || order.total?.toLocaleString()} đ</td>
-                        <td>
-                          <span className="badge bg-success">Đã giao</span>
-                        </td>
-                        <td>{order.createdAt ? new Date(order.createdAt).toLocaleDateString() : ""}</td>
+            {/* Order Table */}
+            <div className="col-md-12">
+              <div className="tile">
+                <h3 className="tile-title">Tình trạng đơn hàng</h3>
+                <div>
+                  <table className="table table-bordered">
+                    <thead>
+                      <tr>
+                        <th>ID đơn hàng</th>
+                        <th>Tên khách hàng</th>
+                        <th>Tổng tiền</th>
+                        <th>Trạng thái</th>
                       </tr>
-                    ))}
-                  <tr>
-                    <th colSpan={4}>Tổng cộng:</th>
-                    <td colSpan={3}>
-                      {orders
-                        .filter(order => order.orderStatus === "delivered")
-                        .reduce((sum, order) => sum + (order.totalPrice || 0), 0)
-                        .toLocaleString()} đ
-                    </td>
-                  </tr>
-                </tbody>
-              </table>
+                    </thead>
+                    <tbody>
+                      {orders.length > 0 ? (
+                        orders.map(order => (
+                          <tr key={order._id}>
+                            <td>{order.orderId || order._id}</td>
+                            <td>{order.shippingInfo?.name}</td>
+                            <td>{order.totalPrice?.toLocaleString()} đ</td>
+                            <td>
+                              <span className={`badge ${
+                                order.orderStatus === "delivered" ? "bg-success" :
+                                order.orderStatus === "shipping" ? "bg-primary" :
+                                order.orderStatus === "processing" ? "bg-warning" :
+                                order.orderStatus === "waiting" ? "bg-info" :
+                                order.orderStatus === "cancelled" ? "bg-danger" : "bg-secondary"
+                              }`}>
+                                {order.orderStatus === "delivered" ? "Đã giao" :
+                                 order.orderStatus === "shipping" ? "Đang giao" :
+                                 order.orderStatus === "processing" ? "Đang chuẩn bị hàng" :
+                                 order.orderStatus === "waiting" ? "Chờ xác nhận" :
+                                 order.orderStatus === "cancelled" ? "Đã hủy" : order.orderStatus}
+                              </span>
+                            </td>
+                          </tr>
+                        ))
+                      ) : (
+                        <tr>
+                          <td colSpan={4} className="text-center">Không có đơn hàng nào.</td>
+                        </tr>
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+            {/* Customer Table */}
+            <div className="col-md-12">
+              <div className="tile">
+                <h3 className="tile-title">Khách hàng mới</h3>
+                <div>
+                  <table className="table table-hover">
+                    <thead>
+                      <tr>
+                        <th>Tên khách hàng</th>
+                        <th>Ngày tạo</th>
+                        <th>Email</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {customers.length > 0 ? (
+                        customers.map(c => (
+                          <tr key={c._id || c.id}>
+                            <td>{c.name || c.username || c.email}</td>
+                            <td>
+                              {c.createdAt
+                                ? new Date(c.createdAt).toLocaleDateString()
+                                : "Không có"}
+                            </td>
+                            <td>{c.email}</td>
+                          </tr>
+                        ))
+                      ) : (
+                        <tr>
+                          <td colSpan={3} className="text-center">Không có khách hàng mới trong tuần.</td>
+                        </tr>
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
             </div>
           </div>
         </div>
+        {/* Right */}
+<div className="col-md-12 col-lg-6">
+  <div className="row">
+    <div className="col-md-12">
+      <div className="tile">
+        <h3 className="tile-title" style={{ textAlign: "center", marginTop: 12 }}>Dữ liệu 6 tháng đầu vào</h3>
+        <Line data={lineData} options={lineOptions} />
       </div>
-  
-      {/* New customers */}
-      <div className="row">
-        <div className="col-md-12">
-          <div className="tile">
-            <h3 className="tile-title">KHÁCH HÀNG MỚI</h3>
-            <div className="tile-body">
-              <table className="table table-hover table-bordered">
-                <thead>
-                  <tr>
-                    <th>Tên khách hàng</th>
-                    <th>Email</th>
-                    <th>Ngày tạo</th>
+    </div>
+    <div className="col-md-12">
+      <div className="tile">
+        <h3 className="tile-title" style={{ textAlign: "center", marginTop: 12 }}>Thống kê 6 tháng doanh thu</h3>
+        <Bar data={barData} />
+        <div style={{ textAlign: "center", marginTop: 10 }}>
+          <b>
+            Tổng doanh thu 6 tháng: {totalRevenue.toLocaleString()} đ
+          </b>
+        </div>
+      </div>
+    </div>
+    {/* Bảng đơn hàng theo tháng */}
+    <div className="col-md-12">
+      <div className="tile">
+        <h3 className="tile-title">Tình trạng đơn hàng theo tháng</h3>
+        <div>
+          <table className="table table-bordered">
+            <thead>
+              <tr>
+                <th>Tháng</th>
+                <th>Số đơn hàng</th>
+                <th>Tổng tiền</th>
+              </tr>
+            </thead>
+            <tbody>
+              {months.map((month, idx) => {
+                const monthOrders = ordersByMonth[idx];
+                const totalMonth = monthOrders.reduce((sum, order) => sum + (order.totalPrice || 0), 0);
+                return (
+                  <tr key={month}>
+                    <td>Tháng {month}</td>
+                    <td>{monthOrders.length}</td>
+                    <td>{totalMonth.toLocaleString()} đ</td>
                   </tr>
-                </thead>
-                <tbody>
-                  {newCustomers.map((c, idx) => (
-                    <tr key={idx}>
-                      <td>{c.name || c.username || c.email}</td>
-                      <td>{c.email}</td>
-                      <td>{c.createdAt ? new Date(c.createdAt).toLocaleDateString() : ""}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </div>
+                );
+              })}
+            </tbody>
+          </table>
         </div>
       </div>
-      {/* Charts */}
-      <div className="row">
-        <div className="col-md-6">
-          <div className="tile">
-                <h3 className="tile-title" style={{ textAlign: "center", marginTop: 12 }}>DỮ LIỆU HÀNG THÁNG</h3>
-            <Line data={lineData} options={lineOptions} />
-          </div>
-        </div>
-        <div className="col-md-6">
-          <div className="tile">
-             <h3 className="tile-title" style={{ textAlign: "center", marginTop: 12 }}>THỐNG KÊ DOANH THU THEO THÁNG</h3>
-            <Bar data={updatedBarData} />
-           
-          </div>
-        </div>
+    </div>
+  </div>
+</div>
       </div>
-      <div className="text-right" style={{ fontSize: 12 }}>
-        <p><b>Hệ thống quản lý V2.0 | Code by Trường</b></p>
+      <div className="text-center" style={{ fontSize: 13 }}>
+        <p>
+          <b>
+            Copyright {new Date().getFullYear()} Phần mềm quản lý bán hàng | Dev By Trường
+          </b>
+        </p>
       </div>
     </main>
   );
