@@ -67,11 +67,11 @@ useEffect(() => {
       const currentMonth = now.getMonth() + 1;
       const months = Array.from({ length: currentMonth }, (_, i) => i + 1);
       const counts = months.map(month => {
-  return data.filter(order => {
-    const orderDate = new Date(order.createdAt);
-    return orderDate.getMonth() + 1 === month;
-  }).length;
-});
+        return data.filter((order: { createdAt: string | number | Date; }) => {
+          const orderDate = new Date(order.createdAt);
+          return orderDate.getMonth() + 1 === month;
+        }).length;
+      });
 
       setOrdersCountByMonth(counts);
       setMonthLabels(months.map(m => `Tháng ${m}`));
@@ -82,7 +82,7 @@ const lineData = {
   labels: monthLabels,
   datasets: [
     {
-      label: "Đơn hàng đã giao",
+      label: "Đơn hàng",
       data: ordersCountByMonth,
       borderColor: "#007bff",
       backgroundColor: "rgba(0,123,255,0.2)",
@@ -235,7 +235,7 @@ const lineOptions = {
             <i className="icon bx bxs-user fa-3x"></i>
             <div className="info">
               <h4>TỔNG KHÁCH HÀNG</h4>
-              <p><b>{users.length} nhân viên</b></p>
+              <p><b>{users.length} khách hàng</b></p>
             </div>
           </div>
         </div>
