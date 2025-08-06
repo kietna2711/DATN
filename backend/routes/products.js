@@ -13,7 +13,7 @@ router.get('/:id', getProductById);
 
 //Thêm sản phẩm
 router.post('/', verifyToken, verifyAdmin, addPro);
-router.patch('/:id', editPro);
+router.patch('/:id',verifyToken, verifyAdmin, editPro);
 
 // //Xóa sản phẩm
 // router.delete('/:id', verifyToken, verifyAdmin, deletePro);
