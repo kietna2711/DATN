@@ -89,7 +89,7 @@ useEffect(() => {
           code: v.discountCode || v.code,
           images: v.images,
           _id: v._id,
-          productIds: v.productIds, // THÊM DÒNG NÀY để truyền sang backend
+          productIds: v.productIds, 
           description: v.description || "",
         })),
         ...selectedProducts.map((p: Product) => ({
@@ -525,6 +525,7 @@ return (
                   description: "Phần quà từ vòng quay may mắn",
                   categoryId: { _id: "default", name: "Quà tặng", hidden: false },
                   sold: 0,
+                  quantity: 1, 
                 };
                 dispatch(addToCart({ product: safeProduct, selectedVariant: undefined }));
                 messageApi.success(`Sản phẩm "${pendingPrize?.label}" đã được thêm vào giỏ hàng với giá 0đ!`);
