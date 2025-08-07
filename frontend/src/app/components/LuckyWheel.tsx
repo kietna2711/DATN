@@ -1,6 +1,7 @@
 "use client";
 import React, { useEffect, useRef, useState } from "react";
-import { Modal } from "antd";
+import { useMediaQuery } from "react-responsive";
+import { Modal, Popover } from "antd";
 import { useShowMessage } from "../utils/useShowMessage";
 import { useAppDispatch } from "../store/store";
 import { addToCart } from "../store/features/cartSlice";
@@ -38,6 +39,12 @@ const LuckyWheel: React.FC<{ visible: boolean; onClose: () => void }> = ({ visib
   const messageApi = useShowMessage('', '');
   const dispatch = useAppDispatch();
   const wheelContainerRef = useRef<HTMLDivElement>(null);
+ const isMobile = useMediaQuery({ maxWidth: 480 });
+const isTablet = useMediaQuery({ minWidth: 481, maxWidth: 1024 });
+const isDesktop = useMediaQuery({ minWidth: 1025 });
+
+const WHEEL_SIZE = isMobile ? 210 : isTablet ? 320 : 400;
+const CENTER_BTN_SIZE = isMobile ? 54 : isTablet ? 80 : 100;
 
   interface Product {
     [x: string]: any;
@@ -217,42 +224,106 @@ useEffect(() => {
   // ...existing code...
 return (
   <Modal
-    open={visible}
-    onCancel={onClose}
-    footer={null}
-    centered
-    width={540}
-    bodyStyle={{
-      background: "radial-gradient(circle at top, #fffbe6 0%, #ffd6e0 80%, #fff6fa 100%)",
-      borderRadius: 32,
-      padding: "32px 0 32px 0",
-      minHeight: 520,
-      fontFamily: "Montserrat, Arial, sans-serif",
-      boxShadow: "0 8px 32px #ffd6e0",
-      border: "4px solid #ffd700",
-      maxWidth: 540,
-      margin: "0 auto",
-    }}
-    closable={false}
-  >
+  open={visible}
+  onCancel={onClose}
+  footer={null}
+  centered
+  width={isMobile ? 320 : isTablet ? 440 : 540}
+  bodyStyle={{
+    background: "radial-gradient(circle at top, #fffbe6 0%, #ffd6e0 80%, #fff6fa 100%)",
+    borderRadius: 32,
+    padding: isMobile ? "24px 0" : "32px 0",
+    minHeight: isMobile ? 400 : 520,
+    fontFamily: "Montserrat, Arial, sans-serif",
+    boxShadow: "0 8px 32px #ffd6e0",
+    border: "4px solid #ffd700",
+    maxWidth: 540,
+    margin: "0 auto",
+    position: "relative",
+  }}
+  closable={false}
+>
     <div style={{
       textAlign: "center",
       background: "none",
       padding: "0 32px",
       fontFamily: "Montserrat, Arial, sans-serif",
+      position: "relative",
     }}>
       <h2 style={{
-        fontSize: 38,
+        fontSize: isMobile ? 26 : 38,
         fontWeight: 900,
         color: "#ffd700",
         textShadow: "2px 2px #d63384, 0 0 10px #fff",
         marginBottom: 12,
         letterSpacing: 2,
       }}>
-        LUCKY DRAW
+        LUCKY MIMI BEAR
       </h2>
 
-   
+      {/* Dấu chấm hỏi ở góc phải trên cùng */}
+      <div style={{ position: "absolute", top: -50, right: 24, zIndex: 100 }}>
+        <div style={{ position: "relative", display: "inline-block" }}>
+          <button
+            className="hover-info-btn"
+            style={{
+              background: "#fffbe6",
+              border: "2px solid #ffd700",
+              color: "#d63384",
+              fontWeight: 900,
+              fontSize: 20,
+              borderRadius: "50%",
+              width: 38,
+              height: 38,
+              cursor: "pointer",
+              boxShadow: "0 2px 8px #ffd6e0",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+            }}
+            aria-label="Thể lệ"
+          >
+            ?
+          </button>
+          <div
+            className="hover-info-content"
+            style={{
+              display: "none",
+              position: "absolute",
+              top: 45,
+              right: 0,
+              minWidth: 280,
+              background: "#fffbe6",
+              color: "#d63384",
+              border: "2px solid #ffd700",
+              borderRadius: 12,
+              boxShadow: "0 2px 8px #ffd6e0",
+              padding: "14px 18px",
+              fontSize: 16,
+              textAlign: "left",
+              zIndex: 101,
+              fontWeight: 500,
+            }}
+          >
+            <strong>Thể lệ:</strong>
+            <ul style={{ margin: "8px 0 0 18px", padding: 0 }}>
+              <li>Đăng kí tài khoản mới sẽ nhận được 1 lượt quay</li>
+              <li>Mua thành công 1 đơn hàng sẽ nhận thêm 1 lượt quay</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+
+       {/* Thêm CSS trực tiếp */}
+      <style>
+        {`
+          .hover-info-btn:hover + .hover-info-content,
+          .hover-info-btn:focus + .hover-info-content {
+            display: block !important;
+          }
+        `}
+      </style>
 
       {/* Số lượt quay */}
       <div style={{
@@ -269,12 +340,20 @@ return (
         Số lượt quay: <span style={{ color: "#ffd700" }}>{turns}</span>
       </div>
 
-      <div style={{
-        position: "relative",
-        width: WHEEL_SIZE + 40,
-        height: WHEEL_SIZE + 100,
-        margin: "0 auto",
-      }}>
+      <div
+  className={isMobile ? "lucky-wheel-mobile-center" : ""}
+  style={{
+    position: "relative",
+    width: isMobile ? WHEEL_SIZE + 10 : WHEEL_SIZE + 40,
+    height: isMobile ? WHEEL_SIZE + 90 : WHEEL_SIZE + 100,
+    margin: isMobile ? "-10px auto 0 auto" : "0 auto",
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "center",
+    justifyContent: "center",
+  }}
+>
+    
         
         {/* Viền bóng đèn */}
         <svg
@@ -282,8 +361,8 @@ return (
           height={WHEEL_SIZE}
           style={{
             position: "absolute",
-            top: 57,
-            left: "50%",
+            top: 58,
+            left: "45%",
             transform: "translateX(-50%)",
             pointerEvents: "none",
             zIndex: 99,
@@ -317,7 +396,7 @@ return (
         <div style={{
           position: "absolute",
           top: 50,
-          left: "50%",
+          left: "45%",
           transform: "translateX(-50%)",
           width: WHEEL_SIZE,
           height: WHEEL_SIZE,
@@ -333,7 +412,7 @@ return (
             height={WHEEL_SIZE}
             style={{
               borderRadius: "50%",
-              background: "#fff",
+            
               position: "absolute",
               left: 0,
               top: 0,
@@ -358,7 +437,7 @@ return (
 
               // Chia label thành nhiều dòng nếu quá dài
               const lines = prize.label.split(" ");
-              const fontSize = 14;
+              const fontSize = 10 + (isMobile ? -3 : isTablet ? 3 : 4);
               const lineHeight = fontSize + 2;
 
               return (
@@ -417,7 +496,7 @@ return (
               boxShadow: "0 2px 12px #b3000033, 0 0 0 4px #ffd700",
               color: "#b30000",
               fontWeight: 900,
-              fontSize: 22,
+              fontSize: isMobile ? 14 : 22,
               cursor: spinning || turns <= 0 ? "not-allowed" : "pointer",
               zIndex: 5,
               display: "flex",
@@ -427,8 +506,8 @@ return (
               letterSpacing: 1,
             }}
           >
-            <span style={{ fontSize: 18 }}>INS</span>
-            <span style={{ fontSize: 24, marginTop: 2 }}>{spinning ? "..." : "QUAY"}</span>
+            <span style={{ fontSize: isMobile ? 10 : 18 }}>INS</span>
+            <span style={{ fontSize: isMobile ? 12 : 24, marginTop: 2 }}>{spinning ? "..." : "QUAY"}</span>
           </button>
         </div>
 
@@ -436,7 +515,7 @@ return (
         <div style={{
           position: "absolute",
           top: WHEEL_SIZE + 40,
-          left: "50%",
+          left: "45%",
           transform: "translateX(-50%)",
           zIndex: 100,
         }}>
@@ -456,7 +535,7 @@ return (
         <div style={{
           position: "absolute",
           top: WHEEL_SIZE + 75,
-          left: "50%",
+          left: "45%",
           transform: "translateX(-50%)",
           width: WHEEL_SIZE * 0.6,
           height: 30,
@@ -471,7 +550,7 @@ return (
           visible={showModal}
           onCancel={() => setShowModal(false)}
           footer={null}
-          bodyStyle={{ textAlign: "center", fontSize: 18 }}
+          bodyStyle={{ textAlign: "center", fontSize: isMobile ? 14 : 18 }}
           closable={false}
         >
           <p style={{ marginBottom: 24 }}>
@@ -496,7 +575,7 @@ return (
                 background: "linear-gradient(to right, #4caf50, #81c784)",
                 border: "none",
                 color: "#fff",
-                fontSize: 16,
+                fontSize: isMobile ? 12 : 16,
                 fontWeight: 600,
                 cursor: "pointer",
                 transition: "background 0.3s",
