@@ -282,3 +282,93 @@
   .checkout { align-items: stretch; }
   .buyBtn { width: 100%; }
 }
+
+@media (max-width: 600px) {
+  .cartContainer {
+    padding: 8px 2vw;
+    max-width: 100vw;
+  }
+  .table {
+    font-size: 0.93rem;
+    display: block;
+    width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    background: transparent;
+    box-shadow: none;
+  }
+  .table th, .table td {
+    font-size: 0.85rem;
+    padding: 6px 2px;
+    min-width: 70px;
+    max-width: 110px;
+    vertical-align: middle;
+    word-break: break-word;
+    white-space: normal;
+  }
+  .product {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-width: 0;
+    max-width: 170px;
+    width: 100%;
+  }
+  .productImg {
+    width: 32px;
+    height: 32px;
+    flex-shrink: 0;
+    border-radius: 5px;
+  }
+  .product p {
+    margin: 0;
+    font-size: 0.93rem;
+    line-height: 1.3;
+    white-space: normal;
+    word-break: break-word;
+    max-width: 110px;
+    flex: 1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: -webkit-box;
+    -webkit-line-clamp: 2; /* Tối đa 2 dòng, có ... nếu dài */
+    -webkit-box-orient: vertical;
+  }
+  .sizeSelect {
+    font-size: 0.85rem;
+    padding: 2px 6px;
+    margin-top: 2px;
+    margin-bottom: 2px;
+    max-width: 80px;
+  }
+  .price, .totalPrice {
+    font-size: 0.93rem;
+    font-weight: 700;
+    color: #ea4c89;
+    white-space: nowrap;
+  }
+  .quantityControls button,
+  .quantityControls input {
+    width: 20px;
+    height: 20px;
+    font-size: 0.85rem;
+    padding: 0;
+  }
+  .quantityControls input {
+    width: 26px;
+    font-size: 0.9rem;
+  }
+  .remove a, .remove button {
+    font-size: 0.82rem;
+    padding: 3px 8px;
+    min-width: 40px;
+  }
+  .cartQuantityInfo {
+    font-size: 0.92rem;
+    padding: 5px 8px;
+  }
+  .buyBtn, .link {
+    font-size: 0.92rem;
+    padding: 7px 0;
+  }
+}
