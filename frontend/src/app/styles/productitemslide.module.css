@@ -7,6 +7,8 @@
 .mimi_product {
   display: flex;
   justify-content: space-between;
+  min-height: 390;
+  background: #fff;
   align-items: center;
   flex-direction: column;
   gap: 5px;
@@ -29,7 +31,7 @@
   z-index: 2;
   cursor: pointer;
 }
-.mimi_image_hover {
+.mimi_product .mimi_image_hover {
   position: absolute;
   margin: 0 auto;
   top: 15px;
@@ -37,7 +39,7 @@
   left: 50%;
   width: 80%;
   height: auto;
-  border-radius: 25px;
+  border-radius: 25px 25px 25px 25px;
   object-fit: cover;
   opacity: 0;
   transition: opacity 0.8s ease-in-out;
@@ -46,6 +48,18 @@
 .mimi_product:hover .mimi_image_hover {
   opacity: 1;
 }
+
+.tieude {
+  text-align: center;
+  color: #b576e6;
+  font-size: 2.5rem;
+  font-family: 'Baloo 2', cursive, sans-serif;
+  font-weight: 700;
+  margin: 20px 0px;
+  margin-top: 0;
+  letter-spacing: 2px;
+}
+
 .mimi_product:hover p {
   color: #f48fb1;
 }
@@ -98,6 +112,7 @@
   font-weight: bold;
   padding: 0;
   margin: 0;
+  text-align:center;
   color: #444;
 }
 .mimi_price {
@@ -194,6 +209,26 @@
   border: 2px dashed #fff;
   transform: rotate(-8deg);
   animation: saleShake 2.5s infinite alternate ease-in-out;
+}
+@keyframes saleShake {
+  0% {
+    transform: rotate(-8deg) scale(1);
+  }
+  60% {
+    transform: rotate(-8deg) scale(1);
+  }
+  70% {
+    transform: rotate(-14deg) scale(1.09);
+  }
+  80% {
+    transform: rotate(-6deg) scale(1.04);
+  }
+  90% {
+    transform: rotate(-12deg) scale(1.07);
+  }
+  100% {
+    transform: rotate(-8deg) scale(1);
+  }
 }
 .mimi_heartIcon {
   position: absolute;
