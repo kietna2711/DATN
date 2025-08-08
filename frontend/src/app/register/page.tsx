@@ -1,6 +1,5 @@
 "use client";
 import React, { useState } from "react";
-import Link from "next/link";
 import "./register.css";
 import { useShowMessage } from "../utils/useShowMessage";
 import { useRouter } from "next/navigation";
@@ -255,23 +254,11 @@ export default function Register() {
               />
               Google
             </button>
-            <button
-              className="facebook-btn"
-              type="button"
-              onClick={() =>
-                (window.location.href = "http://localhost:3000/users/auth/facebook")
-              }
-            >
-              <img
-                src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/facebook/facebook-original.svg"
-                alt="Facebook"
-              />
-              Facebook
-            </button>
+           
           </div>
-          <Link href="/login" className="register-link">
+          <a href="/login" className="register-link">
             Đã có tài khoản? Đăng nhập
-          </Link>
+          </a>
         </form>
       </div>
     </div>

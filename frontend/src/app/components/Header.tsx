@@ -21,7 +21,6 @@ import useFavoriteCount from "../hooks/useFavoriteCount";
 import { useAppSelector } from "../store/store";
 import { PostCategory } from '../types/postscategory';
 import { getPostCategories } from '../services/postscategory';
-import Link from "next/link";
 
 type Props = {
   categories: Category[];
@@ -377,37 +376,18 @@ const cartCount = useAppSelector((state) => state.cart.items.length);
                   <UserOutlined style={{ cursor: "pointer", fontSize: 22 }} />
                   {showUserMenu && (
                     <div className={styles["user-menu-dropdown"]}>
-                      <Link href="/login" className={styles["user-menu-btn"]}>
+                      <a href="/login" className={styles["user-menu-btn"]}>
                         Đăng nhập
-                      </Link>
-                      <Link href="/register" className={styles["user-menu-btn"]}>
+                      </a>
+                      <a href="/register" className={styles["user-menu-btn"]}>
                         Đăng ký
-                      </Link>
+                      </a>
                     </div>
                   )}
                 </>
               )}
             </div>
-            <button
-  onClick={onOpenWheel}
-  style={{
-    marginLeft: 16,
-    padding: 0,
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    cursor: "pointer",
-    borderRadius: "50%",
-    border: "none",
-  }}
-  title="Vòng quay may mắn"
->
-<img
-  src="http://localhost:3000/images/vqmm.png"
-  alt="Vòng quay may mắn"
-  style={{ width: 45, height: 45 }}
-/>
-</button>
+   
           </div>
           <button className={styles["menu-btn"]} onClick={openMobileMenu}>
             <MenuOutlined />

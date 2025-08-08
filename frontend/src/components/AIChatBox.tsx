@@ -77,10 +77,6 @@ export default function AIChatBox() {
   const [reactions, setReactions] = useState<{ [key: number]: string | null }>({});
   const [showEmoji, setShowEmoji] = useState<number | null>(null);
   const [hoverMsg, setHoverMsg] = useState<number | null>(null);
-  const [showTeddy, setShowTeddy] = useState(false);
-  const [teddyInput, setTeddyInput] = useState("");
-  const [teddyReply, setTeddyReply] = useState<string | null>(null);
-  const [teddyLoading, setTeddyLoading] = useState(false);
   const [categories, setCategories] = useState<any[]>([]);
   const [selectedSizes, setSelectedSizes] = useState<{ [key: number]: number }>({});
   const [selectedProductSizes, setSelectedProductSizes] = useState<{ [msgIdx: number]: { [prodIdx: number]: number } }>({});
@@ -227,100 +223,8 @@ return [
     recognition.start();
   };
 
-  const sendTeddy = async () => {
-    const userMsg = teddyInput.trim();
-    if (!userMsg) return;
-    setTeddyInput("");
-    setTeddyLoading(true);
-
-    try {
-      const res = await fetch("http://localhost:3001/api/bear-voice", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ message: userMsg })
-      });
-      const blob = await res.blob();
-      // Phát audio trả về
-      const url = URL.createObjectURL(blob);
-      const audio = new Audio(url);
-      audio.play();
-      setTeddyReply("Gấu đã trả lời, bé hãy lắng nghe nhé!");
-    } catch {
-      setTeddyReply("Có lỗi khi gửi tin nhắn, vui lòng thử lại!");
-    }
-    setTeddyLoading(false);
-  };
-
-  const startTeddyVoice = () => {
-    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-    if (!SpeechRecognition) {
-      antMessage.warning("Trình duyệt không hỗ trợ nhận diện giọng nói!");
-      return;
-    }
-    const recognition = new SpeechRecognition();
-    recognition.lang = "vi-VN";
-    recognition.continuous = false;
-    recognition.interimResults = false;
-    recognition.onresult = (event: any) => {
-      const transcript = event.results[0][0].transcript;
-      setTeddyInput(transcript);
-      setTimeout(sendTeddy, 300); // Gửi luôn sau khi nhận giọng nói
-    };
-    recognition.start();
-  };
-
   return (
     <>
-      {/* Modal Gấu biết nói luôn được render */}
-      <Modal
-        open={showTeddy}
-        title="🐻 Gấu biết nói"
-        onCancel={() => setShowTeddy(false)}
-        footer={null}
-        centered
-      >
-        <div style={{ marginBottom: 12, color: "#d63384", fontWeight: 500 }}>
-          Gợi ý cho bé: <br />
-          <span style={{ marginRight: 8 }}>“Gấu tên gì?”</span>
-          <span style={{ marginRight: 8 }}>“Gấu thích ăn gì?”</span>
-          <span>“Hôm nay gấu làm gì?”</span>
-        </div>
-        <div style={{ marginBottom: 12 }}>
-          <Input
-            placeholder="Bé hỏi gì với Gấu?"
-            value={teddyInput}
-            onChange={e => setTeddyInput(e.target.value)}
-            onPressEnter={sendTeddy}
-            style={{ marginBottom: 8 }}
-          />
-          <Button
-            icon={<AudioOutlined />}
-            onClick={startTeddyVoice}
-            style={{ marginRight: 8 }}
-          >
-            Nói với Gấu
-          </Button>
-          <Button
-            type="primary"
-            style={{ background: PINK_DARK, border: "none" }}
-            onClick={sendTeddy}
-          >
-            Gửi
-          </Button>
-        </div>
-        <div style={{ minHeight: 40 }}>
-          {teddyLoading ? (
-            <Spin indicator={<LoadingOutlined style={{ fontSize: 22, color: PINK_DARK }} spin />} />
-          ) : (
-            teddyReply && (
-              <div style={{ background: PINK, borderRadius: 10, padding: 10, color: "#d63384" }}>
-                <b>Gấu:</b> {teddyReply}
-              </div>
-            )
-          )}
-        </div>
-      </Modal>
-
       {/* Giao diện chatbox lớn hoặc mini */}
       {showChat ? (
         <div
@@ -880,13 +784,6 @@ return [
                     overlay={
                       <Menu>
                        
-                        <Menu.Item key="teddy" onClick={() => {
-                          setShowTeddy(true);
-                          setTeddyInput("");
-                          setTeddyReply(null);
-                        }}>
-                          🐻 AI nói chuyện với bé
-                        </Menu.Item>
                         {/* Hiển thị tất cả danh mục con luôn */}
                         {categories
                           .filter(cat => Array.isArray(cat.subcategories) && cat.subcategories.length > 0)

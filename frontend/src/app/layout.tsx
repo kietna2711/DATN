@@ -43,6 +43,32 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           <LuckyWheel visible={showWheel} onClose={() => setShowWheel(false)} />
         </Providers>
         <AIChatBox />
+        {!isAdmin && (
+          <button
+            onClick={() => setShowWheel(true)}
+            style={{
+              position: "fixed",
+              bottom: 32,      // Đặt giống AIChatBox
+              left: 20,        // Góc trái
+              zIndex: 9999,
+              padding: 0,
+              border: "none",
+              background: "none",
+              cursor: "pointer",
+              borderRadius: "50%",
+              boxShadow: "0 2px 8px #ffd6e0",
+              transition: "transform 0.2s",
+              // Nếu muốn sát mép hơn, có thể giảm left hoặc bottom
+            }}
+            title="Vòng quay may mắn"
+          >
+            <img
+              src="http://localhost:3000/images/vqmm.png"
+              alt="Vòng quay may mắn"
+              style={{ width: 56, height: 56 }}
+            />
+          </button>
+        )}
       </body>
     </html>
   );

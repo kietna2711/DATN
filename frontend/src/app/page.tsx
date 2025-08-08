@@ -15,7 +15,7 @@ import ProductNew from "./sections/Home/ProductNew";
 import ProductHotSlider from "./sections/Home/ProductHotSlider";
 import BearStories from "./sections/Home/BearStories";
 
-import AIChatBox from "../components/AIChatBox"; // Đường dẫn tùy vị trí file
+
 import VoucherList from "./components/VoucherList";
 import LuckyWheel from "./components/LuckyWheel";
 
