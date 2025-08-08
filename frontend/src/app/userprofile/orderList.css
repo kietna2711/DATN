@@ -6,7 +6,7 @@
 }
 .tab {
   flex: 1;
-  padding: 10px 16px;
+  padding: 4px 12px;
   border-radius: 20px;
   background: #e9ecef;
   color: #495057;
@@ -84,6 +84,9 @@
 }
 .order-status.cancelled {
   background: #e74c3c;
+}
+.order-status.returned {
+  background: #ffb584;
 }
 
 .toggle-btn {
@@ -215,6 +218,10 @@
 .payment-status.pending {
   color: #f39c12;
 }
+.payment-status.refunded {
+  color: #17a2b8; 
+}
+
 
 /* ✅ Nút huỷ và nhận */
 .order-btn {
