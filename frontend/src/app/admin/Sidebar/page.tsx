@@ -13,8 +13,7 @@ export default function Sidebar({ currentSection }: { currentSection: string }) 
     { key: "postscategories", label: "Danh mục bài viết", icon: "bx bx-news" },
     { key: "evaluate", label: "Quản lý đánh giá", icon: "bx bx-star" },
     { key: "discount", label: "Quản lý mã giảm giá", icon: "bx bx-gift" },
-
-    { key: "report", label: "Báo cáo doanh thu", icon: "bx bx-bar-chart-alt-2" },
+    // { key: "report", label: "Báo cáo doanh thu", icon: "bx bx-bar-chart-alt-2" },
     // { key: "settings", label: "Cài đặt hệ thống", icon: "bx bx-cog" }
   ];
 
