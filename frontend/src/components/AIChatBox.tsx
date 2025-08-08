@@ -329,31 +329,54 @@ return [
             bottom: 0,
             right: 0,
             zIndex: 1000,
-            width: 440, // <-- SỬA từ 400 thành 440
-            height: 600,
+            width:
+              window.innerWidth < 600
+                ? "100vw"
+                : window.innerWidth < 900
+                ? 380
+                : 440,
+            height:
+              window.innerHeight < 600
+                ? "100vh"
+                : window.innerWidth < 900
+                ? 480
+                : 600,
             background: WHITE,
-            borderRadius: "18px 0 0 0",
+            borderRadius:
+              window.innerWidth < 600
+                ? "0"
+                : "18px 0 0 0",
             boxShadow: "0 4px 24px #eeb6d2",
             display: "flex",
-            flexDirection: "column"
+            flexDirection: "column",
+            maxWidth: "100vw",
+            maxHeight: "100vh",
           }}
         >
           {/* Header */}
-          <div style={{
-            background: PINK_DARK,
-            borderRadius: "18px 0 0 0",
-            padding: "16px 20px 12px 20px",
-            display: "flex",
-            alignItems: "center",
-            color: "#fff",
-            position: "relative"
-          }}>
+          <div
+            style={{
+              background: PINK_DARK,
+              borderRadius:
+                window.innerWidth < 600
+                  ? "0"
+                  : "18px 0 0 0",
+              padding:
+                window.innerWidth < 600
+                  ? "12px 10px"
+                  : "16px 20px 12px 20px",
+              display: "flex",
+              alignItems: "center",
+              color: "#fff",
+              position: "relative",
+            }}
+          >
             <Avatar
               src="https://cdn-icons-png.flaticon.com/512/4712/4712035.png"
-              size={36}
+              size={window.innerWidth < 600 ? 28 : 36}
               style={{ marginRight: 12, background: "#fff" }}
             />
-            <span style={{ fontWeight: 600, fontSize: 20 }}>
+            <span style={{ fontWeight: 600, fontSize: window.innerWidth < 600 ? 16 : 20 }}>
               MiMiBear
             </span>
             <Button
@@ -364,23 +387,25 @@ return [
                 right: 12,
                 top: 10,
                 color: "#fff",
-                fontSize: 22
+                fontSize: 22,
               }}
               onClick={() => setShowChat(false)}
             />
           </div>
           {/* Nội dung chat */}
-          <div style={{
-            flex: 1,
-            padding: "24px 0 0 0",
-            overflowY: "auto",
-            background: WHITE
-          }}>
+          <div
+            style={{
+              flex: 1,
+              padding: window.innerWidth < 600 ? "12px 0 0 0" : "24px 0 0 0",
+              overflowY: "auto",
+              background: WHITE,
+            }}
+          >
             <div
               style={{
-                margin: "0 24px 16px 24px",
+                margin: window.innerWidth < 600 ? "0 8px 12px 8px" : "0 24px 16px 24px",
                 display: "flex",
-                flexDirection: "column"
+                flexDirection: "column",
               }}
             >
               {messages.map((msg, i) => (
@@ -834,11 +859,13 @@ return [
             </div>
           </div>
           {/* Input chat */}
-          <div style={{
-            padding: "16px 16px 8px 16px",
-            borderTop: `1px solid ${PINK}`,
-            background: WHITE
-          }}>
+          <div
+            style={{
+              padding: window.innerWidth < 600 ? "10px 8px 6px 8px" : "16px 16px 8px 16px",
+              borderTop: `1px solid ${PINK}`,
+              background: WHITE,
+            }}
+          >
             <div>
               <Input
                 placeholder="Nhập tin nhắn..."
