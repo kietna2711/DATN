@@ -5,6 +5,10 @@ const productSchema = new mongoose.Schema({
   description: { type: String },
   images: { type: [String], required: true },
   price: { type: Number, required: true }, // Thêm dòng này
+   sold: {            // Số lượng đã bán
+    type: Number,
+    default: 0
+  },
   categoryId: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'categories', // Đúng nếu model export là 'categories'
