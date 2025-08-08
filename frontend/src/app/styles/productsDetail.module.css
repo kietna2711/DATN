@@ -1144,3 +1144,71 @@
   text-align: left;
   letter-spacing: 0.5px;
 }
+.bearInfoBox {
+  margin-top: 28px;
+  background: #fff; /* trắng */
+  border-radius: 12px;
+  padding: 22px 30px;
+  font-size: 16px;
+  color: #e95eb7; /* hồng */
+  box-shadow: 0 2px 8px #e95eb733;
+  max-width: 720px;
+  margin-left: auto;
+  margin-right: auto;
+  border: 2px dashed #e95eb7;
+}
+
+.bearInfoTitle {
+  font-weight: bold;
+  font-size: 19px;
+  margin-bottom: 12px;
+  color: #e95eb7; /* hồng */
+  text-align: center;
+}
+
+.bearInfoList {
+  margin: 0 0 14px 22px;
+  padding: 0;
+  list-style: disc;
+}
+
+.bearInfoList li {
+  margin-bottom: 7px;
+  line-height: 1.6;
+  color: #e95eb7; /* hồng */
+}
+
+.bearInfoNote {
+  color: #fff;
+  font-size: 15px;
+  margin-bottom: 12px;
+  background: #e95eb7; /* hồng */
+  border-radius: 6px;
+  padding: 8px 12px;
+}
+
+.bearContact {
+  margin-top: 10px;
+  font-size: 15px;
+  text-align: center;
+  color: #e95eb7; /* hồng */
+}
+
+.bearContact a {
+  color: #e95eb7; /* hồng */
+  text-decoration: underline;
+  font-weight: 500;
+}
+
+@media (max-width: 600px) {
+  .bearInfoBox {
+    padding: 12px 6px;
+    font-size: 14px;
+  }
+  .bearInfoTitle {
+    font-size: 16px;
+  }
+  .bearContact {
+    font-size: 13px;
+  }
+}
