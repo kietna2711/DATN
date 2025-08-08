@@ -18,12 +18,12 @@ const orderSchema = new mongoose.Schema({
   coupon: String,
   paymentStatus: {
     type: String,
-    enum: ['paid', 'unpaid', 'pending'], //thanh toán - chưa thanh toán - đag chờ xử lý_kiểm tra
+    enum: ['paid', 'unpaid', 'pending','refunded'], //thanh toán - chưa thanh toán - đag chờ xử lý_kiểm tra - hoàn tiền
     default: 'pending' // Sẽ tự động set lại ở controller khi tạo đơn
   },
   orderStatus: {
     type: String,
-    enum: ['approved', 'waiting', 'processing', 'shipping', 'delivered', 'cancelled'],//duyệt - chờ xác nhận - đang chuẩn bị - đang giao - đã giao - hủy
+    enum: ['approved', 'waiting', 'processing', 'shipping', 'delivered', 'cancelled','returned'],//duyệt - chờ xác nhận - đang chuẩn bị - đang giao - đã giao - trả - hủy
     default: 'waiting'
   },
   createdAt: { type: Date, default: Date.now },

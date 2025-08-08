@@ -15,6 +15,7 @@ const statusOptions = [
   { label: "Chuẩn bị hàng", value: "processing" },
   { label: "Đang giao", value: "shipping" },
   { label: "Đã giao", value: "delivered" },
+  { label: "Đã trả hàng", value: "returned" },
   { label: "Đã hủy", value: "cancelled" },
 ];
 
@@ -24,6 +25,7 @@ const statusBadge: Record<string, string> = {
   "processing": "bg-warning",
   "shipping": "bg-primary",
   "delivered": "bg-success",
+  "returned": "bg-dark", 
   "cancelled": "bg-danger",
 };
 
@@ -31,8 +33,14 @@ const paymentBadge: Record<string, string> = {
   "paid": "bg-success",
   "pending": "bg-warning",
   "unpaid": "bg-danger",
+  "refunded": "bg-secondary", 
 };
-
+const paymentText: Record<string, string> = {
+  paid: "Đã thanh toán",
+  pending: "Chờ thanh toán",
+  unpaid: "Chưa trả",
+  refunded: "Hoàn tiền"
+};
 
 
 type Order = {
@@ -46,9 +54,9 @@ type Order = {
   productNames?: string[];
   totalPrice: number;
   shippingFee: number; 
-  paymentStatus: "paid" | "unpaid" | "pending";
+  paymentStatus: "paid" | "unpaid" | "pending" | "refunded"; // 
   paymentMethod: string;
-  orderStatus: "approved" | "waiting" | "processing" | "shipping" | "delivered" | "cancelled";
+  orderStatus: "approved" | "waiting" | "processing" | "shipping" | "delivered" | "cancelled" | "returned";
   createdAt: string;
 };
 
@@ -65,12 +73,15 @@ function getNextStatusOptions(current: Order["orderStatus"]) {
     case "shipping":
       return ["delivered"];
     case "delivered":
+      return ["returned"]; // ✅ cho phép chuyển sang trả hàng
+    case "returned":
     case "cancelled":
       return [];
     default:
       return [];
   }
 }
+
 
 
 export default function OrderManagement() {
@@ -121,16 +132,28 @@ export default function OrderManagement() {
     const timer = setInterval(updateClock, 1000);
     return () => clearInterval(timer);
   }, []);
+const [confirmModal, setConfirmModal] = useState<{ show: boolean, orderId: string, newStatus: string } | null>(null);
 
-  // Đổi trạng thái đơn hàng (update thực tế vào DB)
-  const handleStatusChange = (id: string, status: string) => {
-    axios.put(`http://localhost:3000/orders/${id}`, { orderStatus: status })
-      .then(res => {
-        setOrders(orders => orders.map(order =>
-          order._id === id ? { ...order, orderStatus: status as Order["orderStatus"] } : order
-        ));
-      });
-  };
+const handleStatusChange = (id: string, status: string) => {
+  if (status === "delivered" || status === "returned") {
+    setConfirmModal({ show: true, orderId: id, newStatus: status });
+  } else {
+    updateOrderStatus(id, status);
+  }
+};
+const updateOrderStatus = (id: string, status: string) => {
+  axios.put(`http://localhost:3000/orders/${id}`, { orderStatus: status })
+    .then(res => {
+      setOrders(orders => orders.map(order =>
+        order._id === id ? { ...order, orderStatus: status as Order["orderStatus"] } : order
+      ));
+    })
+    .catch(err => {
+      console.error("❌ Lỗi cập nhật đơn hàng:", err);
+    });
+};
+
+
 
   // Xóa đơn hàng (nếu backend có API xóa, bổ sung tại đây)
   const handleDelete = (id: string) => {
@@ -140,7 +163,7 @@ export default function OrderManagement() {
     }
   };
 
-  return (
+  return (<>
     <main className="app-content">
       <div className="app-title">
         <ul className="app-breadcrumb breadcrumb side">
@@ -181,7 +204,7 @@ export default function OrderManagement() {
                       <td>{new Date(order.createdAt).toLocaleString()}</td>
                       <td>
                         <span className={`badge ${paymentBadge[order.paymentStatus] || "bg-secondary"}`}>
-                          {order.paymentStatus === "paid" ? "Trả" : order.paymentStatus === "pending" ? "Chờ thanh toán" : "Chưa trả"}
+                          {paymentText[order.paymentStatus] || "Không rõ"}
                         </span>
                       </td>
                       <td>
@@ -236,5 +259,44 @@ export default function OrderManagement() {
         </div>
       </div>
     </main>
+{confirmModal?.show && (
+  <div className="modal fade show d-block" tabIndex={-1} style={{ background: 'rgba(0,0,0,0.5)' }}>
+    <div className="modal-dialog">
+      <div className="modal-content">
+        <div className="modal-header">
+          <h5 className="modal-title">
+            {confirmModal.newStatus === "returned" ? "Xác nhận trả hàng" : "Xác nhận giao hàng"}
+          </h5>
+          <button type="button" className="btn-close" onClick={() => setConfirmModal(null)}></button>
+        </div>
+        <div className="modal-body">
+          <p>
+            Bạn có chắc chắn muốn chuyển đơn hàng sang <strong>
+              {confirmModal.newStatus === "returned" ? "Đã trả hàng" : "Đã giao"}
+            </strong> không?
+          </p>
+          <p className="text-danger small">
+            {confirmModal.newStatus === "returned"
+              ? "Hệ thống sẽ hoàn kho và cập nhật trạng thái thanh toán nếu đơn hàng đã được thanh toán."
+              : "Hệ thống sẽ tự động cập nhật kho, tăng số lượng đã bán và đánh dấu thanh toán (nếu chưa thanh toán)."}
+          </p>
+        </div>
+        <div className="modal-footer">
+          <button className="btn btn-secondary" onClick={() => setConfirmModal(null)}>Hủy</button>
+          <button
+            className="btn btn-primary"
+            onClick={() => {
+              updateOrderStatus(confirmModal.orderId, confirmModal.newStatus);
+              setConfirmModal(null);
+            }}
+          >
+            Xác nhận
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+)}
+</>
   );
 }
