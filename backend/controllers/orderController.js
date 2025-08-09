@@ -194,7 +194,37 @@ exports.updateOrderStatus = async (req, res) => {
           { $inc: { quantity: -detail.quantity } }
         );
       }
+// ...bên trong hàm async exports.updateOrderStatus...
 
+if (orderStatus === 'delivered') {
+  for (const detail of orderDetails) {
+    // ...giảm tồn kho...
+  }
+
+  // THÊM ĐOẠN NÀY VÀO ĐÂY
+  for (const detail of orderDetails) {
+    if (!detail.productId) continue;
+    let productObjectId;
+    try {
+      productObjectId = typeof detail.productId === 'string'
+        ? mongoose.Types.ObjectId(detail.productId)
+        : detail.productId;
+    } catch (e) {
+      continue;
+    }
+
+    // Lấy tất cả variants của sản phẩm này
+    const allVariants = await Variant.find({ productId: productObjectId });
+    const totalQuantity = allVariants.reduce((sum, v) => sum + (v.quantity || 0), 0);
+
+    // Cập nhật trạng thái sản phẩm
+    const product = await Product.findById(productObjectId);
+    if (product) {
+      product.status = totalQuantity === 0 ? "Ẩn" : "Còn hàng";
+      await product.save();
+    }
+  }
+}
       // ✅ Nếu đơn hàng có dùng voucher thì cập nhật usage
         if (order.coupon) {
           const voucher = await Voucher.findOne({ discountCode: order.coupon });

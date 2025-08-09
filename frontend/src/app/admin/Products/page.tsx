@@ -836,8 +836,6 @@ useEffect(() => {
                               >
                                 <option value="">--Chọn trạng thái--</option>
                                 <option>Còn hàng</option>
-                                <option>Hết hàng</option>
-                                <option>Ngừng kinh doanh</option>
                               </select>
                             </div>
                             <div className="form-group col-md-6">
