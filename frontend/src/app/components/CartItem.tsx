@@ -37,11 +37,6 @@ export default function CartItem({ item }: CartItemProps) {
         <a href={`/products/${product._id}`} style={{ display: 'flex', alignItems: 'center', gap: 14, textDecoration: 'none', color: 'inherit', position: 'relative' }}>
           <div style={{ position: 'relative', display: 'inline-block' }}>
             <img src={`http://localhost:3000/images/${product.images[0]}`} alt={product.name} className={styles.productImg} />
-            {product.sale > 0 && (
-              <span className={styles.saleTag}>
-                {product.sale}%
-              </span>
-            )}
           </div>
           <p>{product.name}</p>
         </a>
@@ -58,17 +53,9 @@ export default function CartItem({ item }: CartItemProps) {
         )}
       </td>
       <td className={styles.price}>
-        <span style={{ textDecoration: product.sale ? "line-through" : "none", color: product.sale ? "#888" : "inherit" }}>
+        <span>
           {Number(price).toLocaleString('vi-VN')} đ
         </span>
-        {product.sale ? (
-          <div style={{ color: "#ea4c89", fontWeight: 600 }}>
-            {(Number(price) * (1 - product.sale / 100)).toLocaleString('vi-VN')} đ
-            <span style={{ marginLeft: 6, fontSize: 12, color: "#ea4c89" }}>
-              ({product.sale}%)
-            </span>
-          </div>
-        ) : null}
       </td>
       <td className={styles.quantity}>
         <div className={styles.quantityControls}>
@@ -133,9 +120,7 @@ export default function CartItem({ item }: CartItemProps) {
         </div>
       </td>
       <td className={styles.totalPrice}>
-        {product.sale
-          ? ((Number(price) * (1 - product.sale / 100)) * quantity).toLocaleString('vi-VN') + " ₫"
-          : (Number(price) * quantity).toLocaleString('vi-VN') + " đ"}
+        {(Number(price) * quantity).toLocaleString('vi-VN')} đ
       </td>
       <td className={styles.remove}>
         <button onClick={() => dispatch(removeFromCart({ _id: product._id, size: currentSize }))}>
