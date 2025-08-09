@@ -32,7 +32,13 @@ export default function HomePage() {
   useEffect(() => {
     getProducts()
       .then(data => {
-        const sorted = data.sort(
+        // Lọc lại sản phẩm còn hàng (ít nhất 1 variant quantity > 0)
+        const filtered = data.filter(product =>
+          Array.isArray(product.variants)
+            ? product.variants.some(variant => Number(variant.quantity) > 0)
+            : Number(product.quantity) > 0
+        );
+        const sorted = filtered.sort(
           (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
         );
         setProducts(sorted);
