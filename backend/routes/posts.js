@@ -132,53 +132,87 @@ router.post("/", upload.fields([
 });
 
 // ✅ PUT cập nhật
-// ✅ PUT cập nhật
 router.put("/:id", upload.fields([
   { name: "img", maxCount: 1 },
   { name: "images", maxCount: 10 }
 ]), async (req, res) => {
   try {
-    const data = req.body;
+    const oldPost = await Post.findById(req.params.id);
+    if (!oldPost) return res.status(404).json({ message: "Not found" });
 
-    // Ảnh đại diện
-    if (req.files?.img && req.files.img.length > 0) {
-      data.img = req.files.img[0].filename;
-    } else if (data.existingImg) {
-      data.img = data.existingImg;
-    } else {
-      data.img = null; // nếu xoá
-    }
+    let data = {};
 
-    // Ảnh phụ
-    const existingImages = Array.isArray(data.existingImages)
-      ? data.existingImages
-      : data.existingImages
-        ? [data.existingImages]
+    if (req.is('multipart/form-data')) {
+      // Đây là update kèm upload ảnh
+      data = req.body;
+
+      // Ảnh đại diện
+      if (req.files?.img && req.files.img.length > 0) {
+        if (oldPost.img && oldPost.img !== data.existingImg) {
+          deleteFileIfExists(oldPost.img);
+        }
+        data.img = req.files.img[0].filename;
+      } else if (data.existingImg) {
+        data.img = data.existingImg;
+        if (!data.img && oldPost.img) {
+          deleteFileIfExists(oldPost.img);
+        }
+      } else {
+        if (oldPost.img) {
+          deleteFileIfExists(oldPost.img);
+        }
+        data.img = null;
+      }
+
+      // Ảnh phụ
+      const existingImages = Array.isArray(data.existingImages)
+        ? data.existingImages
+        : data.existingImages
+          ? [data.existingImages]
+          : [];
+
+      const uploadedImages = req.files?.images
+        ? req.files.images.map(file => file.filename)
         : [];
 
-    const uploadedImages = req.files?.images
-      ? req.files.images.map((file) => file.filename)
-      : [];
+      // Xóa ảnh phụ bị loại bỏ
+      const removedImages = oldPost.images
+        ? oldPost.images.filter(img => !existingImages.includes(img))
+        : [];
+      removedImages.forEach(filename => deleteFileIfExists(filename));
 
-    data.images = [...existingImages, ...uploadedImages];
+      data.images = [...existingImages, ...uploadedImages];
 
-    // Tạo slug nếu chưa có
-    if (!data.slug && data.title) {
-      data.slug = slugify(data.title, { lower: true, strict: true });
+      // Xử lý slug
+      if (!data.slug && data.title) {
+        data.slug = slugify(data.title, { lower: true, strict: true });
+      }
+
+    } else {
+      // Đây là update không upload ảnh (ví dụ toggle ẩn/hiện)
+      data = req.body;
+
+      // Giữ nguyên ảnh cũ nếu không có trường img hoặc images gửi lên
+      data.img = oldPost.img;
+      data.images = oldPost.images;
+
+      // Nếu muốn, vẫn tạo slug nếu có title
+      if (!data.slug && data.title) {
+        data.slug = slugify(data.title, { lower: true, strict: true });
+      }
     }
 
-    const updatedPost = await Post.findByIdAndUpdate(req.params.id, data, {
-      new: true,
-    });
-
+    const updatedPost = await Post.findByIdAndUpdate(req.params.id, data, { new: true });
     if (!updatedPost) return res.status(404).json({ message: "Not found" });
 
     res.json(updatedPost);
+
   } catch (err) {
     console.error(err);
     res.status(400).json({ error: err.message });
   }
 });
+
 
 
 // ✅ DELETE bài viết

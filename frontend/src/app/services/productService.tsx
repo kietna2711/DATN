@@ -8,7 +8,28 @@ import { Category } from "../types/categoryD";
 export const getProducts = async (): Promise<Products[]> => {
   const res = await fetch("http://localhost:3000/products");
   if (!res.ok) throw new Error("Lỗi khi tải sản phẩm");
-  return await res.json();
+  const data = await res.json();
+
+  // Log quantity của từng variant
+  (data as Products[]).forEach(product => {
+    if (Array.isArray(product.variants)) {
+      console.log(`Sản phẩm: ${product.name}`);
+      product.variants.forEach((variant: any, idx: number) => {
+        console.log(`  Variant ${idx}: quantity =`, variant.quantity);
+      });
+    } else {
+      console.log(`Sản phẩm: ${product.name} - quantity =`, product.quantity);
+    }
+  });
+
+  // Lọc sản phẩm có ít nhất 1 variant còn hàng
+  const filtered = (data as Products[]).filter(product =>
+    Array.isArray(product.variants)
+      ? product.variants.some(variant => Number(variant.quantity) > 0)
+      : Number(product.quantity) > 0
+  );
+  console.log("Sản phẩm sau khi lọc:", filtered);
+  return filtered;
 };
 
 //  * Lấy chi tiết một sản phẩm theo id
@@ -46,7 +67,13 @@ export const getProductsNew = async (): Promise<Products[]> => {
   if (!res.ok) throw new Error("Lỗi khi tải sản phẩm mới");
 
   const data = await res.json();
-  const sorted = (data as Products[])
+  // Lọc sản phẩm có ít nhất 1 variant còn hàng
+  const filtered = (data as Products[]).filter(product =>
+    Array.isArray(product.variants)
+      ? product.variants.some(variant => Number(variant.quantity) > 0)
+      : Number(product.quantity) > 0
+  );
+  const sorted = filtered
     .map(product => ({
       ...product,
       createdAt: new Date(product.createdAt),
@@ -63,12 +90,18 @@ export const getProductsHot = async (): Promise<Products[]> => {
   if (!res.ok) throw new Error("Lỗi khi tải sản phẩm hot");
 
   const data = await res.json();
-  const sorted = (data as Products[])
+  // Lọc sản phẩm có ít nhất 1 variant còn hàng
+  const filtered = (data as Products[]).filter(product =>
+    Array.isArray(product.variants)
+      ? product.variants.some(variant => Number(variant.quantity) > 0)
+      : Number(product.quantity) > 0
+  );
+  const sorted = filtered
     .map(product => ({
       ...product,
       createdAt: new Date(product.createdAt),
     }))
-    .sort((a, b) => b.sold - a.sold); // sắp xếp theo sold giảm dần
+    .sort((a, b) => b.sold - a.sold);
 
   const topSoldProducts = sorted.slice(0, 8);
   return topSoldProducts;

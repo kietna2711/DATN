@@ -5,7 +5,6 @@ import { Products } from "../types/productD";
 import { HeartOutlined, HeartFilled } from "@ant-design/icons";
 import { addFavorite, removeFavorite } from "../services/favoritesService";
 
-
 import { useAppDispatch } from "../store/store";
 import { addToCart } from "../store/features/cartSlice";
 import { App } from "antd";
@@ -20,14 +19,16 @@ const ProductInfo = ({ product }: { product: Products }) => {
   const productId = (product._id ?? product._id)?.toString();
   const { error, success } = useShowMessage();
 
-  const userStr = typeof window !== "undefined" ? localStorage.getItem("user") : null;
-  const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
+  const userStr =
+    typeof window !== "undefined" ? localStorage.getItem("user") : null;
+  const token =
+    typeof window !== "undefined" ? localStorage.getItem("token") : null;
   let userId: string | null = null;
   if (userStr) {
     try {
       const userObj = JSON.parse(userStr);
       userId = userObj._id || userObj.id;
-    } catch { }
+    } catch {}
   }
   const isLoggedIn = !!userId && !!token;
 
@@ -35,33 +36,36 @@ const ProductInfo = ({ product }: { product: Products }) => {
     if (isLoggedIn && userId && token) {
       // Kiểm tra từ backend
       fetch(`http://localhost:3000/favorites?userId=${userId}`, {
-        headers: { Authorization: `Bearer ${token}` }
+        headers: { Authorization: `Bearer ${token}` },
       })
-        .then(res => res.ok ? res.json() : [])
+        .then((res) => (res.ok ? res.json() : []))
         .then((favList) => {
-          setIsFavorite(favList.some((item: Products) => ((item._id ?? item.id)?.toString() === productId)));
+          setIsFavorite(
+            favList.some(
+              (item: Products) =>
+                (item._id ?? item.id)?.toString() === productId
+            )
+          );
         });
     } else {
       const favorites = JSON.parse(localStorage.getItem("favorites") || "[]");
-      const exists = favorites.some((item: Products) => ((item._id ?? item.id)?.toString() === productId));
+      const exists = favorites.some(
+        (item: Products) => (item._id ?? item.id)?.toString() === productId
+      );
       setIsFavorite(exists);
     }
   }, [productId, isLoggedIn, userId, token]);
 
-
-
-
   const dispatch = useAppDispatch();
   const { message } = App.useApp();
   const router = useRouter();
-
 
   useEffect(() => {
     // Đọc tham số size từ URL nếu có
     const params = new URLSearchParams(window.location.search);
     const sizeParam = params.get("size");
     if (sizeParam) {
-      const idx = variants.findIndex(v => v.size === sizeParam);
+      const idx = variants.findIndex((v) => v.size === sizeParam);
       if (idx !== -1) setActiveSize(idx);
     }
     // eslint-disable-next-line
@@ -76,23 +80,25 @@ const ProductInfo = ({ product }: { product: Products }) => {
       } else {
         await addFavorite(productId, userId, token);
         setIsFavorite(true);
-        success('Đã thêm vào yêu thích');
-
+        success("Đã thêm vào yêu thích");
       }
       window.dispatchEvent(new Event("favoriteChanged"));
     } else {
       const favorites = JSON.parse(localStorage.getItem("favorites") || "[]");
-      const exists = favorites.some((item: Products) => ((item._id ?? item.id)?.toString() === productId));
+      const exists = favorites.some(
+        (item: Products) => (item._id ?? item.id)?.toString() === productId
+      );
       let updatedFavorites;
       if (exists) {
-        updatedFavorites = favorites.filter((item: Products) => ((item._id ?? item.id)?.toString() !== productId));
+        updatedFavorites = favorites.filter(
+          (item: Products) => (item._id ?? item.id)?.toString() !== productId
+        );
         setIsFavorite(false);
-        success('Đã xóa khỏi yêu thích');
+        success("Đã xóa khỏi yêu thích");
       } else {
         updatedFavorites = [...favorites, product];
         setIsFavorite(true);
-        success('Đã thêm vào yêu thích');
-
+        success("Đã thêm vào yêu thích");
       }
       localStorage.setItem("favorites", JSON.stringify(updatedFavorites));
       window.dispatchEvent(new Event("favoriteChanged"));
@@ -105,7 +111,9 @@ const ProductInfo = ({ product }: { product: Products }) => {
     return {
       ...product,
       createdAt: new Date(product.createdAt).toISOString(),
-      updatedAt: product.updatedAt ? new Date(product.updatedAt).toISOString() : undefined,
+      updatedAt: product.updatedAt
+        ? new Date(product.updatedAt).toISOString()
+        : undefined,
     };
   }
 
@@ -113,7 +121,9 @@ const ProductInfo = ({ product }: { product: Products }) => {
     if (!currentVariant) return;
     const safeProduct = toSerializableProduct(product);
     for (let i = 0; i < quantity; ++i) {
-      dispatch(addToCart({ product: safeProduct, selectedVariant: currentVariant }));
+      dispatch(
+        addToCart({ product: safeProduct, selectedVariant: currentVariant })
+      );
     }
     success("Đã thêm vào giỏ hàng.");
     if (redirectToCart) {
@@ -132,7 +142,7 @@ const ProductInfo = ({ product }: { product: Products }) => {
     const buyNowItem = {
       product: safeProduct,
       selectedVariant: currentVariant,
-      quantity: quantity
+      quantity: quantity,
     };
 
     localStorage.setItem("buyNowItem", JSON.stringify(buyNowItem));
@@ -142,19 +152,21 @@ const ProductInfo = ({ product }: { product: Products }) => {
     }, 350);
   };
 
-
   return (
     <div className={styles.productInfo_v3_noCard}>
       <div className={styles.productDetail_innerWrap}>
         <div className={styles.titleRow}>
-
           <span className={styles.productTitle}>{product.name}</span>
-            <span
+          <span
             className={styles.heartIcon}
             title={isFavorite ? "Xóa khỏi yêu thích" : "Thêm vào yêu thích"}
             onClick={toggleFavorite}
           >
-            {isFavorite ? <HeartFilled style={{ color: "red" }} /> : <HeartOutlined />}
+            {isFavorite ? (
+              <HeartFilled style={{ color: "red" }} />
+            ) : (
+              <HeartOutlined />
+            )}
           </span>
         </div>
         <div className={styles.productPrice}>
@@ -167,7 +179,9 @@ const ProductInfo = ({ product }: { product: Products }) => {
           {variants.map((v, i) => (
             <span
               key={v.size}
-              className={`${styles.btnSize} ${activeSize === i ? styles.btnSize_active : ""}`}
+              className={`${styles.btnSize} ${
+                activeSize === i ? styles.btnSize_active : ""
+              }`}
               onClick={() => setActiveSize(i)}
               role="button"
               tabIndex={0}
@@ -190,13 +204,18 @@ const ProductInfo = ({ product }: { product: Products }) => {
           </thead>
           <tbody>
             {variants.map((v, idx) => (
-              <tr key={v.size} className={idx === activeSize ? styles.activeRow : ""}>
+              <tr
+                key={v.size}
+                className={idx === activeSize ? styles.activeRow : ""}
+              >
                 <td>{v.size}</td>
                 <td className={styles.price}>
                   {v.price.toLocaleString("vi-VN")} đ
                 </td>
                 <td>
-                  {idx === activeSize && <span style={{ color: "#0a0" }}>Đang chọn</span>}
+                  {idx === activeSize && (
+                    <span style={{ color: "#0a0" }}>Đang chọn</span>
+                  )}
                 </td>
               </tr>
             ))}
@@ -207,13 +226,22 @@ const ProductInfo = ({ product }: { product: Products }) => {
           <div className={styles.quantity_v4}>
             <button
               className={styles.quantity_v4_button}
-              onClick={() => setQuantity(q => Math.max(1, q - 1))}
-            >-</button>
-            <input className={styles.quantity_v4_input} type="text" value={quantity} readOnly />
+              onClick={() => setQuantity((q) => Math.max(1, q - 1))}
+            >
+              -
+            </button>
+            <input
+              className={styles.quantity_v4_input}
+              type="text"
+              value={quantity}
+              readOnly
+            />
             <button
               className={styles.quantity_v4_button}
-              onClick={() => setQuantity(q => q + 1)}
-            >+</button>
+              onClick={() => setQuantity((q) => q + 1)}
+            >
+              +
+            </button>
           </div>
           <button
             className={styles.addToCart_v4}
@@ -224,13 +252,13 @@ const ProductInfo = ({ product }: { product: Products }) => {
         </div>
 
         <div className={styles.phoneBuy}>
-          <a href="tel:0979896616" className={styles.phone_v4}>
+          <a href="https://zalo.me/0373828100" className={styles.phone_v4}>
             <img
               src="https://img.icons8.com/material-outlined/24/ffffff/phone--v1.png"
               className={styles.phoneIcon}
               alt="Icon điện thoại"
             />
-            0979896616
+            0373828100
           </a>
           <button className={styles.buyNow_v4} onClick={handleBuyNow}>
             MUA NGAY
@@ -258,10 +286,11 @@ const ProductInfo = ({ product }: { product: Products }) => {
         </div>
 
         <div className={styles.productSection_khuyenmai}>
-          <div className={styles.sectionTitle}>KHUYẾN MẠI</div>
+          <div className={styles.sectionTitle}>ĐẶC BIỆT</div>
           <ul className={styles.productSection_ul}>
-            <li>Tặng kèm thiệp ý nghĩa: Thiệp sinh nhật, tình yêu, cảm ơn, ngày lễ...</li>
-            <li>Gói túi kính buộc nơ siêu xinh</li>
+            <li>
+              Bạn có thể thử vận may của mình sau khi mua hàng tại MiMi Bear
+            </li>
           </ul>
         </div>
       </div>

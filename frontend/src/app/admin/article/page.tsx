@@ -151,22 +151,25 @@ useEffect(() => {
 
 
   // Toggle ẩn/hiện
-  const handleToggleVisibility = async (id: string) => {
-    const post = posts.find((p) => p._id === id);
-    if (!post) return;
-    const isVisible = typeof post.visible === "boolean"
-      ? post.visible
-      : !post.hidden;
-    await fetch(`http://localhost:3000/api/posts/${id}`, {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        visible: !isVisible,
-        hidden: isVisible,
-      }),
-    });
-    fetchPosts();
-  };
+const handleToggleVisibility = async (id: string) => {
+  const post = posts.find(p => p._id === id);
+  if (!post) return;
+
+  const isVisible = typeof post.visible === 'boolean' ? post.visible : !post.hidden;
+
+  await fetch(`http://localhost:3000/api/posts/${id}`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      visible: !isVisible,
+      hidden: isVisible,
+    }),
+  });
+
+  fetchPosts();
+};
+
+
 
   // Xóa bài viết
   const handleDeletePost = (post: Post) => {
