@@ -283,6 +283,13 @@ const editPro = [
         return res.status(404).json({ message: "Không tìm thấy sản phẩm" });
       }
 
+      // Sau khi cập nhật tất cả variants
+      const allVariants = await variants.find({ productId: data._id });
+      const totalQuantity = allVariants.reduce((sum, v) => sum + (v.quantity || 0), 0);
+
+      data.status = totalQuantity <= 0 ? "hết hàng" : "còn hàng";
+      await data.save();
+
       res.json(data);
     } catch (error) {
       console.error(error);

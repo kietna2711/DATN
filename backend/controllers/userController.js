@@ -93,7 +93,7 @@ const login = [upload.single('img'), async (req, res) => {
             role: checkUser.role,
             username: checkUser.username
         }, process.env.JWT_SECRET, {
-            expiresIn: '1h'
+           expiresIn: '15d'
         });
         // Không trả về password!
         const { password, ...userWithoutPassword } = checkUser.toObject();

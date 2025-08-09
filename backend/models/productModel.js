@@ -20,7 +20,7 @@ const productSchema = new mongoose.Schema({
   },
   status: { type: String, default: "Còn hàng" },
 }, {
-  timestamps: true, // ✅ Tự động thêm createdAt và updatedAt
+  timestamps: true, 
   versionKey: false,
   toJSON: {
     virtuals: true,
