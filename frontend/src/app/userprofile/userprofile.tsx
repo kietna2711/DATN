@@ -684,7 +684,7 @@ const renderEditFormNormal = () => (
     window.location.href = '/login';
   };
 
-  if (!user) return <p>Đang tải dữ liệu người dùng...</p>;
+  if (!user) return <p></p>;
 
   return (
     <div className="container">

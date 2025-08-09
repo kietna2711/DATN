@@ -33,6 +33,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="vi">
       <head>
+        <title>MimiBear Shop</title>
         <link rel="icon" href="http://localhost:3000/images/logoXP.png" />
       </head>
       <body>
