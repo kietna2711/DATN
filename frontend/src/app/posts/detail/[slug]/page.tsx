@@ -3,6 +3,7 @@ export const dynamic = 'force-dynamic';
 import './postsDetail.css';
 import InstagramSection from '../../../components/InstagramSection';
 import SidebarBaiVietMoi from './SidebarBaiVietMoi';
+import Link from "next/link";
 
 interface Post {
   _id: string;
@@ -82,8 +83,12 @@ const PostDetailPage = async ({ params }: { params: { slug: string } }) => {
               </div>
 
               <div className="custom-buttons">
+                <Link href="/posts/categories/dich-vu">
                 <button>Dịch Vụ Nổi Bật Chỉ Có Tại Mimi Bear</button>
-                <button>Video Nhà Gấu</button>
+              </Link>
+              <Link href="/posts/categories/chuyen-nha-gau">
+                <button>Chuyện Nhà Gấu</button>
+              </Link>
               </div>
             </div>
             {/* <CommentForm /> */}
