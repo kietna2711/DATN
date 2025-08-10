@@ -22,6 +22,16 @@ exports.getVariantsByProduct = async (req, res) => {
   }
 };
 
+// Lấy tất cả variants
+exports.getAllVariants = async (req, res) => {
+  try {
+    const data = await variants.find();
+    res.json(data);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
 // Xóa variant
 exports.deleteVariant = async (req, res) => {
   try {

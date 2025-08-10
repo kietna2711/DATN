@@ -20,41 +20,52 @@ const upload = multer({ storage: storage, fileFilter: checkfile })
 const userModel = require('../models/userModel');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
+const nodemailer = require('nodemailer');
 
 const register = async (req, res) => {
     try {
-        // Kiểm tra email đã tồn tại chưa bằng hàm findOne()
-        const checkUser = await userModel.findOne({
-            email: req.body.email
-        });
+        // Kiểm tra email đã tồn tại chưa
+        const checkUser = await userModel.findOne({ email: req.body.email });
         if (checkUser) {
             throw new Error('Email đã tồn tại');
         }
-        // Mã hóa mật khẩu bằng bcrypt
+        // Mã hóa mật khẩu
         const salt = await bcrypt.genSalt(10);
         const hashPassword = await bcrypt.hash(req.body.password, salt);
-        // Tạo một instance mới của userModel
+
+        // Sinh OTP
+        const otp = Math.floor(100000 + Math.random() * 900000).toString();
+
+        // Tạo user mới với OTP xác thực email
         const newUser = new userModel({
             email: req.body.email,
             password: hashPassword,
             firstName: req.body.firstName,
             lastName: req.body.lastName,
             username: req.body.username,
+            isVerified: false,
+            verifyOTP: otp,
+            verifyOTPExpire: Date.now() + 10 * 60 * 1000 // 10 phút
         });
-        // Lưu vào database bằng hàm save()
         const data = await newUser.save();
 
-        // Tạo token cho user mới
-        // Tạo token cho user mới (register)
-        const token = jwt.sign({
-            id: data._id,
-            email: data.email,
-            role: data.role,
-            username: data.username 
-        }, process.env.JWT_SECRET, { expiresIn: '1h' });
+        // Gửi email chứa OTP
+        const transporter = nodemailer.createTransport({
+            service: 'gmail',
+            auth: {
+                user: process.env.EMAIL_USER,
+                pass: process.env.EMAIL_PASS,
+            },
+        });
+        await transporter.sendMail({
+            from: process.env.EMAIL_USER,
+            to: req.body.email,
+            subject: 'Mã xác thực đăng ký tài khoản',
+            html: `<p>Mã xác thực đăng ký tài khoản của bạn là: <b>${otp}</b></p><p>Mã này có hiệu lực trong 10 phút.</p>`,
+        });
 
-        // Trả về cả user và token
-        res.json({ user: data, token });
+        // Trả về user (không trả về OTP)
+        res.json({ user: data });
     } catch (error) {
         res.status(500).json({ message: error.message });
     }
@@ -82,7 +93,7 @@ const login = [upload.single('img'), async (req, res) => {
             role: checkUser.role,
             username: checkUser.username
         }, process.env.JWT_SECRET, {
-            expiresIn: '1h'
+           expiresIn: '15d'
         });
         // Không trả về password!
         const { password, ...userWithoutPassword } = checkUser.toObject();
@@ -130,8 +141,8 @@ const getUser = async (req, res) => {
 //xác thực admin 
 const verifyAdmin = async (req, res, next) => {
     try {
-        // Lấy thông tin user từ id lưu trong req khi đã xác thực token
-        const user = await userModel.findById(req.userId);
+        // Sửa lại lấy id từ req.user.id
+        const user = await userModel.findById(req.user.id);
         console.log(user);
         console.log(user.role);
         if (!user) {

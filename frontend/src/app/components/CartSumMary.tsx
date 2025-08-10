@@ -24,7 +24,7 @@ export default function CartSummary({ productList, onClear }: CartSummaryProps) 
   return (
     <div>
       <div className={styles.cartTotal}>
-        <b>Tổng cộng: {total.toLocaleString('vi-VN')} ₫</b>
+        <b>Tổng cộng: {total.toLocaleString('vi-VN')} đ</b>
       </div>
       {/* <button onClick={onClear} className={styles.clearCartBtn}>
         Xóa tất cả

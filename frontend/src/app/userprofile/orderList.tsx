@@ -36,10 +36,11 @@ const STATUS_OPTIONS = [
   { label: 'Tất cả', value: 'all' },
   { label: 'Chờ xác nhận', value: 'waiting' },
   { label: 'Đã xác nhận', value: 'approved' },
-  { label: 'Đang chuẩn bị hàng', value: 'processing' },
+  { label: 'Chờ lấy hàng', value: 'processing' },
   { label: 'Đang giao', value: 'shipping' },
   { label: 'Đã giao', value: 'delivered' },
   { label: 'Đã huỷ', value: 'cancelled' },
+  { label: 'Trả hàng', value: 'returned' },
 ];
 
 const translateStatus = (status: string) =>
@@ -50,6 +51,7 @@ const translateStatus = (status: string) =>
     shipping: 'Đang giao',
     delivered: 'Đã giao',
     cancelled: 'Đã huỷ',
+    returned: 'Đã trả hàng',
   }[status.toLowerCase()] || status);
 
 const UserOrders: React.FC<UserOrdersProps> = ({ username }) => {
@@ -252,6 +254,7 @@ const UserOrders: React.FC<UserOrdersProps> = ({ username }) => {
                         paid: 'Đã thanh toán',
                         unpaid: 'Chưa thanh toán',
                         pending: 'Chờ xử lý',
+                        refunded: 'Đã hoàn tiền',
                       }[order.paymentStatus]}
                     </div>
                   </div>
@@ -272,6 +275,9 @@ const UserOrders: React.FC<UserOrdersProps> = ({ username }) => {
                 {order.orderStatus.toLowerCase() === 'delivered' && (
                   <div className="delivered-success">Giao hàng thành công</div>
                 )}
+                 {order.orderStatus === 'returned' && (
+                    <div className="returned-info">Đơn hàng đã hoàn trả thành công!</div>
+                  )}
               </div>
             </div>
           );

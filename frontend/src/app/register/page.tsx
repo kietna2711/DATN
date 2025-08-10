@@ -1,8 +1,8 @@
 "use client";
 import React, { useState } from "react";
-import Link from "next/link";
 import "./register.css";
 import { useShowMessage } from "../utils/useShowMessage";
+import { useRouter } from "next/navigation";
 
 export default function Register() {
   const [firstName, setFirstName] = useState("");
@@ -15,6 +15,7 @@ export default function Register() {
   const [username, setUsername] = useState("");
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
   const showMessage = useShowMessage("register", "user");
+  const router = useRouter();
 
   const validateField = (name: string, value: string) => {
     let error = "";
@@ -109,17 +110,12 @@ export default function Register() {
         }
       } else {
         showMessage.success(
-          `Đăng ký thành công cho ${email}. Vui lòng kiểm tra email để xác thực tài khoản trước khi đăng nhập!`
+          `Đăng ký thành công cho ${email}. Vui lòng kiểm tra email để lấy mã xác thực!`
         );
-        setFirstName("");
-        setLastName("");
-        setEmail("");
-        setPassword("");
-        setConfirm("");
-        setAgree(false);
-        setUsername("");
-        // KHÔNG chuyển hướng ngay!
-        // window.location.href = "/login"; // Bỏ dòng này
+        // Tặng 1 lượt quay cho tài khoản mới
+        localStorage.setItem("turns", "1");
+        // Chuyển hướng sang trang xác thực email OTP
+        router.push(`/verifyemail?email=${encodeURIComponent(email)}`);
       }
     } catch (error) {
       showMessage.error("Lỗi kết nối đến server");
@@ -254,27 +250,15 @@ export default function Register() {
             >
               <img
                 src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/google/google-original.svg"
-                alt=""
+                alt="Google"
               />
               Google
             </button>
-            <button
-              className="facebook-btn"
-              type="button"
-              onClick={() =>
-                (window.location.href = "http://localhost:3000/users/auth/facebook")
-              }
-            >
-              <img
-                src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/facebook/facebook-original.svg"
-                alt=""
-              />
-              Facebook
-            </button>
+           
           </div>
-          <Link href="/login" className="register-link">
+          <a href="/login" className="register-link">
             Đã có tài khoản? Đăng nhập
-          </Link>
+          </a>
         </form>
       </div>
     </div>

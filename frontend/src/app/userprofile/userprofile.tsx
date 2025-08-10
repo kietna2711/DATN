@@ -287,6 +287,11 @@ const UserProfile: React.FC = () => {
   const [currentTab, setCurrentTab] = useState<'profile' | 'orders' | 'password'>('profile');
   const [editUser, setEditUser] = useState<User | null>(null);
   const [isEditing, setIsEditing] = useState(false);
+  const [oldPassword, setOldPassword] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [changePassMsg, setChangePassMsg] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+  const [fieldErrors, setFieldErrors] = useState<{ oldPassword?: string; newPassword?: string; confirmPassword?: string }>({});
   const showMessage = useShowMessage("userprofile", "user");
 
 useEffect(() => {
@@ -426,7 +431,21 @@ const renderEditFormNormal = () => (
     </div>
     <div className="form-group">
       <label htmlFor="phone">Số điện thoại</label>
-      <input type="text" id="phone" name="phone" value={editUser?.profile?.phone || ''} onChange={handleProfileEditChange} />
+      <input
+        type="text"
+        id="phone"
+        name="phone"
+        value={editUser?.profile?.phone || ''}
+        onChange={(e) => {
+          const value = e.target.value;
+          // Chỉ giữ lại số và tối đa 10 ký tự
+          if (/^\d{0,10}$/.test(value)) {
+            handleProfileEditChange(e); // giữ nguyên logic cập nhật state
+          }
+        }}
+        placeholder="Nhập số điện thoại (10 chữ số)"
+        maxLength={10}
+      />
     </div>
     <div className="form-group">
       <label htmlFor="gender">Giới tính</label>
@@ -464,7 +483,21 @@ const renderEditFormNormal = () => (
       </div>
       <div className="form-group">
         <label htmlFor="phone">Số điện thoại</label>
-        <input type="text" id="phone" name="phone" value={editUser?.profile?.phone || ''} onChange={handleProfileEditChange} />
+        <input
+          type="text"
+          id="phone"
+          name="phone"
+          value={editUser?.profile?.phone || ''}
+          onChange={(e) => {
+            const value = e.target.value;
+            // Chỉ giữ lại số và tối đa 10 ký tự
+            if (/^\d{0,10}$/.test(value)) {
+              handleProfileEditChange(e); // giữ nguyên logic cập nhật state
+            }
+          }}
+          placeholder="Nhập số điện thoại (10 chữ số)"
+          maxLength={10}
+        />
       </div>
       <div className="form-group">
         <label htmlFor="gender">Giới tính</label>
@@ -506,8 +539,14 @@ const renderEditFormNormal = () => (
       showMessage.error("Họ và tên không được để trống!");
       return;
     }
-    if (!editUser.profile?.phone?.trim()) {
+    const phone = editUser.profile?.phone?.trim();
+    if (!phone) {
       showMessage.error("Vui lòng nhập số điện thoại!");
+      return;
+    }
+
+    if (!/^\d{10}$/.test(phone)) {
+      showMessage.error("Số điện thoại phải gồm đúng 10 chữ số!");
       return;
     }
 
@@ -586,6 +625,57 @@ const renderEditFormNormal = () => (
       });
   };
 
+  const handleChangePassword = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    setChangePassMsg(null);
+    const errors: { oldPassword?: string; newPassword?: string; confirmPassword?: string } = {};
+
+    if (!oldPassword) errors.oldPassword = "Vui lòng nhập mật khẩu hiện tại!";
+    if (!newPassword) errors.newPassword = "Vui lòng nhập mật khẩu mới!";
+    else if (newPassword.length < 6) errors.newPassword = "Mật khẩu mới phải có ít nhất 6 ký tự!";
+    if (!confirmPassword) errors.confirmPassword = "Vui lòng nhập lại mật khẩu mới!";
+    else if (newPassword && newPassword !== confirmPassword) errors.confirmPassword = "Mật khẩu xác nhận không khớp!";
+
+    setFieldErrors(errors);
+    if (Object.keys(errors).length > 0) return;
+
+    const token = localStorage.getItem('token');
+    const username = user?.username;
+
+    if (!token || !username) {
+      setChangePassMsg({ type: 'error', text: 'Phiên làm việc đã hết hạn. Vui lòng đăng nhập lại.' });
+      return;
+    }
+
+    fetch(`http://localhost:3000/users/change-password`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      },
+      body: JSON.stringify({
+        oldPassword,
+        newPassword,
+      }),
+    })
+      .then(async res => {
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok) {
+          throw new Error(data.message || 'Đổi mật khẩu không thành công');
+        }
+        return data;
+      })
+      .then(() => {
+        setOldPassword('');
+        setNewPassword('');
+        setConfirmPassword('');
+        setChangePassMsg({ type: 'success', text: 'Đổi mật khẩu thành công!' });
+      })
+      .catch(err => {
+        console.error(err);
+        setChangePassMsg({ type: 'error', text: err.message || 'Đổi mật khẩu không thành công' });
+      });
+  };
 
   const handleLogout = () => {
     localStorage.removeItem('user');
@@ -594,7 +684,7 @@ const renderEditFormNormal = () => (
     window.location.href = '/login';
   };
 
-  if (!user) return <p>Đang tải dữ liệu người dùng...</p>;
+  if (!user) return <p></p>;
 
   return (
     <div className="container">
@@ -666,7 +756,92 @@ const renderEditFormNormal = () => (
             </>
           )}
           {currentTab === 'orders' && <UserOrders username={user.username} />}
-          {currentTab === 'password' && <div><h3>Quên mật khẩu (chưa có dữ liệu)</h3></div>}
+          {currentTab === 'password' && (
+  <div className="change-password-box">
+    <h3
+      style={{
+        fontSize: 28,
+        fontWeight: 700,
+        textAlign: "left",
+        marginBottom: 24,
+        marginTop: 0,
+        color: "#222"
+      }}
+    >
+      Đổi mật khẩu
+    </h3>
+    <form onSubmit={handleChangePassword}>
+      <div className="form-group">
+        <label>Mật khẩu hiện tại</label>
+        <input
+          type="password"
+          className="input-password"
+          value={oldPassword}
+          onChange={e => { setOldPassword(e.target.value); setFieldErrors(f => ({ ...f, oldPassword: undefined })); }}
+          required
+        />
+        {fieldErrors.oldPassword && (
+          <div style={{ color: "red", fontSize: 13, marginTop: 2 }}>{fieldErrors.oldPassword}</div>
+        )}
+      </div>
+      <div className="form-group">
+        <label>Mật khẩu mới</label>
+        <input
+          type="password"
+          className="input-password"
+          value={newPassword}
+          onChange={e => {
+            const value = e.target.value;
+            setNewPassword(value);
+            setFieldErrors(f => ({
+              ...f,
+              newPassword: !value
+                ? "Vui lòng nhập mật khẩu mới!"
+                : value.length < 6
+                ? "Mật khẩu mới phải có ít nhất 6 ký tự!"
+                : undefined,
+              // XÓA kiểm tra confirmPassword ở đây vì đã kiểm tra ở input xác nhận bên dưới
+            }));
+          }}
+          required
+        />
+        {fieldErrors.newPassword && (
+          <div style={{ color: "red", fontSize: 13, marginTop: 2 }}>{fieldErrors.newPassword}</div>
+        )}
+      </div>
+      <div className="form-group">
+        <label>Nhập lại mật khẩu mới</label>
+        <input
+          type="password"
+          className="input-password"
+          value={confirmPassword}
+          onChange={e => {
+            const value = e.target.value;
+            setConfirmPassword(value);
+            setFieldErrors(f => ({
+              ...f,
+              confirmPassword: !value
+                ? "Vui lòng nhập lại mật khẩu mới!"
+                : newPassword && value !== newPassword
+                ? "Mật khẩu xác nhận không khớp!"
+                : undefined,
+            }));
+          }}
+          required
+        />
+        {fieldErrors.confirmPassword && (
+          <div style={{ color: "red", fontSize: 13, marginTop: 2 }}>{fieldErrors.confirmPassword}</div>
+        )}
+      </div>
+      {changePassMsg && (
+        <div style={{ color: changePassMsg.type === "error" ? "red" : "green", marginBottom: 8 }}>
+          {changePassMsg.text}
+        </div>
+      )}
+      <button className="btn btn-primary" type="submit" style={{ marginTop: 8 }}>Đổi mật khẩu</button>
+    </form>
+  </div>
+)}
         </div>
       </div>
 

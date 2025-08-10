@@ -16,6 +16,7 @@ export default function CartItem({ item }: CartItemProps) {
   const hasVariants = Array.isArray(product.variants) && product.variants.length > 0;
   const currentSize = selectedVariant?.size || '';
   const [showPop, setShowPop] = useState(false);
+  const [showOverPop, setShowOverPop] = useState(false);
 
   const handleSizeChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const newSize = e.target.value;
@@ -33,8 +34,10 @@ export default function CartItem({ item }: CartItemProps) {
   return (
     <tr>
       <td className={styles.product}>
-        <a href={`/products/${product._id}`} style={{ display: 'flex', alignItems: 'center', gap: 14, textDecoration: 'none', color: 'inherit' }}>
-          <img src={`http://localhost:3000/images/${product.images[0]}`} alt={product.name} className={styles.productImg} />
+        <a href={`/products/${product._id}`} style={{ display: 'flex', alignItems: 'center', gap: 14, textDecoration: 'none', color: 'inherit', position: 'relative' }}>
+          <div style={{ position: 'relative', display: 'inline-block' }}>
+            <img src={`http://localhost:3000/images/${product.images[0]}`} alt={product.name} className={styles.productImg} />
+          </div>
           <p>{product.name}</p>
         </a>
       </td>
@@ -50,7 +53,9 @@ export default function CartItem({ item }: CartItemProps) {
         )}
       </td>
       <td className={styles.price}>
-        <span>{Number(price).toLocaleString('vi-VN')} ₫</span>
+        <span>
+          {Number(price).toLocaleString('vi-VN')} đ
+        </span>
       </td>
       <td className={styles.quantity}>
         <div className={styles.quantityControls}>
@@ -79,11 +84,43 @@ export default function CartItem({ item }: CartItemProps) {
             </Popconfirm>
           )}
           <input type="text" value={quantity} readOnly />
-          <button onClick={() => dispatch(updateQuantity({ _id: product._id, quantity: quantity + 1, size: currentSize }))}>+</button>
+          <Popconfirm
+            title="Số lượng tối đa"
+            description="Bạn đã đạt số lượng tối đa cho sản phẩm này!"
+            okText="Đã hiểu"
+            showCancel={false}
+            open={showOverPop}
+            onOpenChange={(visible) => {
+              if (!visible) setShowOverPop(false); // Đóng thì reset về false
+            }}
+            onConfirm={() => setShowOverPop(false)}
+          >
+            <button
+              onClick={() => {
+                const maxQuantity =
+                  hasVariants && selectedVariant
+                    ? selectedVariant.quantity
+                    : product.quantity;
+                if (typeof maxQuantity === "number" && quantity >= maxQuantity) {
+                  setShowOverPop(true);
+                  return;
+                }
+                dispatch(
+                  updateQuantity({
+                    _id: product._id,
+                    quantity: quantity + 1,
+                    size: currentSize,
+                  })
+                );
+              }}
+            >
+              +
+            </button>
+          </Popconfirm>
         </div>
       </td>
       <td className={styles.totalPrice}>
-        {(Number(price) * quantity).toLocaleString('vi-VN')} ₫
+        {(Number(price) * quantity).toLocaleString('vi-VN')} đ
       </td>
       <td className={styles.remove}>
         <button onClick={() => dispatch(removeFromCart({ _id: product._id, size: currentSize }))}>

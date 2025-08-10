@@ -55,7 +55,9 @@ const CheckoutPage: React.FC = () => {
   //Chi tiết sp
   const [buyNowItem, setBuyNowItem] = useState<any | null>(null);
   const searchParams = useSearchParams();
-  //
+  const productId = searchParams.get("productId");
+  const [luckyProduct, setLuckyProduct] = useState<any | null>(null);
+
   useEffect(() => {
     const isBuyNow = searchParams.get("buyNow") === "1";
     if (isBuyNow) {
@@ -70,6 +72,19 @@ const CheckoutPage: React.FC = () => {
       }
     }
   }, [searchParams]);
+
+  useEffect(() => {
+    if (productId) {
+      fetch(`http://localhost:3000/products/${productId}`)
+        .then(res => res.json())
+        .then(data => {
+          setLuckyProduct({
+            product: { ...data, price: 0 },
+            quantity: 1,
+          });
+        });
+    }
+  }, [productId]);
 
   // Thông báo lỗi
   const [errors, setErrors] = useState<{ [k: string]: string }>({});
@@ -205,7 +220,7 @@ const CheckoutPage: React.FC = () => {
 
   // const cartItems = useAppSelector((state) => state.cart.items);
   const cartItemsRedux = useAppSelector((state) => state.cart.items);
-  const cartItems = buyNowItem ? [buyNowItem] : cartItemsRedux;
+  const cartItems = luckyProduct ? [luckyProduct] : buyNowItem ? [buyNowItem] : cartItemsRedux;
   // 
   const handlePaymentChange = (value: string) => {
     setPayment(value);
@@ -456,6 +471,11 @@ const CheckoutPage: React.FC = () => {
           if (result.isConfirmed) {
             try {
               await saveOrder();
+
+              // Tăng lượt quay lucky wheel
+              const turns = Number(localStorage.getItem("turns") || "0");
+              localStorage.setItem("turns", String(turns + 1));
+
               swalWithBootstrapButtons.fire({
                 title: "Đặt hàng thành công!",
                 text: "Cảm ơn bạn đã mua hàng.",
@@ -467,6 +487,7 @@ const CheckoutPage: React.FC = () => {
                 localStorage.removeItem("buyNowItem");
                 window.location.href = "/"; // quay về trang chủ
               });
+
             } catch (err) {
               swalWithBootstrapButtons.fire({
                 title: "Lỗi!",
@@ -494,11 +515,14 @@ const CheckoutPage: React.FC = () => {
         // Các phương thức khác (ví dụ: zalopay, thanh toán thông thường)
         try {
           await saveOrder();
+          // Tăng lượt quay lucky wheel
+          const turns = Number(localStorage.getItem("turns") || "0");
+          localStorage.setItem("turns", String(turns + 1));
           Swal.fire("Thanh toán thành công", "Cảm ơn bạn đã mua hàng!", "success").then(() => {
             if (!buyNowItem) {
-                  dispatch(clearCart());
-                }
-                localStorage.removeItem("buyNowItem");
+              dispatch(clearCart());
+            }
+            localStorage.removeItem("buyNowItem");
             window.location.href = "/";
           });
         } catch (err) {

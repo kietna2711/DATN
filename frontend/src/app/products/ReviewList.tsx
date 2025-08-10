@@ -83,7 +83,7 @@ const ReviewList: React.FC<ReviewListProps> = ({ productId }) => {
   return (
     <div className={styles.review_section}>
       <div className={styles.avg_rating}>
-        <p>Điểm đánh giá trung bình :</p>
+        <p>Điểm đánh giá trung bình</p>
         <span className={styles.avg_rating_number}>{avgRatingRounded}</span>
         <span className={styles.star_icons}>
           {Array.from({ length: 5 }).map((_, idx) => (

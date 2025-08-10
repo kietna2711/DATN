@@ -9,12 +9,15 @@ const userSchema = new mongoose.Schema({
   lastName: String,
   verifyToken: String,
   resetOTP: String,
-resetOTPExpire: Date,
-isVerified: { type: Boolean, default: false },
+  resetOTPExpire: Date,
+  isVerified: { type: Boolean, default: false },
   username: { type: String },
   role: { type: String, default: 'user' },
   visible: { type: Boolean, default: true },
   status: { type: String, default: 'Hoạt động' }
-}, { versionKey: false });
+}, { 
+  versionKey: false,
+  timestamps: true // Thêm dòng này để tự động có createdAt và updatedAt
+});
 
 module.exports = mongoose.model('User', userSchema);
