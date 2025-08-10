@@ -30,18 +30,22 @@ export default function ProductItemSlide({ product }: { product: Products }) {
     ? Number(product.variants[selectedIdx]?.price) || 0
     : Number(product.price) || 0;
 
-  const handleAddToCart = () => {
+  const handleBuyNow = () => {
+      //hàm bấm nút mua ngay chuyển qua thanh toán
     const selectedVariant = hasVariants ? product.variants[selectedIdx] : undefined;
-    const safeProduct = {
-      ...product,
-      createdAt: new Date(product.createdAt).toISOString(),
-      updatedAt: product.updatedAt ? new Date(product.updatedAt).toISOString() : undefined,
+    const buyNowItem = {
+      product: {
+        ...product,
+        createdAt: new Date(product.createdAt).toISOString(),
+        updatedAt: product.updatedAt ? new Date(product.updatedAt).toISOString() : undefined,
+      },
+      selectedVariant,
+      quantity: 1,
     };
-    dispatch(addToCart({ product: safeProduct, selectedVariant }));
-    success("Đã thêm vào giỏ hàng!");
-    setTimeout(() => {
-      router.push("/cart");
-    }, 300);
+    // Lưu vào localStorage
+    localStorage.setItem("buyNowItem", JSON.stringify(buyNowItem));
+    // Điều hướng sang trang thanh toán với buyNow=1
+    router.push("/checkout?buyNow=1");
   };
 
   let userId: string | null = null;
@@ -153,7 +157,7 @@ export default function ProductItemSlide({ product }: { product: Products }) {
           </div>
         </a>
 
-        <button className={styles.mimi_buy_now_btn} onClick={handleAddToCart}>
+        <button className={styles.mimi_buy_now_btn} onClick={handleBuyNow}>
           <img
             src="http://localhost:3000/images/button.png"
             className={styles.mimi_bear_left}
