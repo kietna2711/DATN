@@ -128,23 +128,35 @@ const CheckoutInfo: React.FC<Props> = ({
         )}
       </div>
       {/* Họ và tên */}
-      {showFieldError("fullName", "Vui lòng nhập họ và tên")}
+      {showFieldError("fullName", "Vui lòng nhập họ và tên hợp lệ (chỉ gồm chữ cái)")}
+
       <input
         type="text"
         placeholder="Họ và tên"
         value={fullName}
-        onChange={e => setFullName(e.target.value)}
+        onChange={(e) => {
+          // Giữ lại chữ cái và khoảng trắng (bao gồm cả chữ có dấu tiếng Việt)
+          const name = e.target.value.replace(/[^a-zA-ZÀ-ỹ\s]/g, "");
+          setFullName(name);
+        }}
         onFocus={() => handleFocus("fullName")}
         onBlur={() => handleBlur("fullName")}
         readOnly={!!isLoggedIn && !!userInfo?.username}
       />
       {/* Số điện thoại */}
-      {showFieldError("phone", "Vui lòng nhập số điện thoại")}
+      {showFieldError("phone", "Vui lòng nhập số điện thoại hợp lệ (10 chữ số)")}
       <input
         type="tel"
         placeholder="Số điện thoại"
         value={phone}
-        onChange={e => setPhone(e.target.value)}
+        maxLength={10}
+        pattern="[0-9]{10}"
+        onChange={(e) => {
+          const onlyNums = e.target.value.replace(/\D/g, ""); // Loại bỏ ký tự không phải số
+          if (onlyNums.length <= 10) {
+            setPhone(onlyNums);
+          }
+        }}
         onFocus={() => handleFocus("phone")}
         onBlur={() => handleBlur("phone")}
       />

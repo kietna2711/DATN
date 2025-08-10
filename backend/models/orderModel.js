@@ -5,7 +5,7 @@ const orderSchema = new mongoose.Schema({
   shippingInfo: {
     userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
     name: String,
-    phone: String,
+    phone: Number,
     address: String,
     note: String,
     cityId: String,

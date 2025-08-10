@@ -146,11 +146,15 @@ const ProductInfo = ({ product }: { product: Products }) => {
     };
 
     localStorage.setItem("buyNowItem", JSON.stringify(buyNowItem));
-    success("Chuyển sang trang thanh toán...");
+    success("Chuyển sang trang thanh toán...!");
     setTimeout(() => {
       router.push("/checkout?buyNow=1");
     }, 350);
   };
+<<<<<<< HEAD
+=======
+  // 
+>>>>>>> quocbao
 
   return (
     <div className={styles.productInfo_v3_noCard}>
