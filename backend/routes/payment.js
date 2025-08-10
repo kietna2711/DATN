@@ -16,13 +16,6 @@ const momoSecretKey = "4Vf1eeXWH0DqBN7IzDvKePIGMPb4fk2m";
 const momoRedirectUrl = "http://localhost:3007/checkout/momo/return";
 const momoIpnUrl = "http://localhost:3000/payment/payment-ipn";
 
-// --- CẤU HÌNH VNPAY ---
-const vnp_TmnCode = "63ZDG94B";
-const vnp_HashSecret = "D6FW0IWLPVLUHW42F7RDZQXASY82IAEQ";
-const vnp_Url = "https://sandbox.vnpayment.vn/paymentv2/vpcpay.html";
-const vnp_ReturnUrl = "http://localhost:3007/checkout/vnpay/return";
-
-
 // ====== MOMO ROUTE ======
 router.post("/momo", authenticateToken, async (req, res) => {
   const { amount, orderId, orderInfo, items, shippingInfo, coupon, shippingFee } = req.body;
@@ -108,99 +101,79 @@ router.post("/momo", authenticateToken, async (req, res) => {
   }
 });
 
-// ====== VNPAY ROUTE ======
-// routes/payment.js - thêm đoạn này thay cho create_payment_url
-router.post("/vnpay", authenticateToken, async (req, res) => {
-  const {
-    amount, orderId, orderInfo, items, shippingInfo, coupon, shippingFee, orderType, bankCode
-  } = req.body;
-
-  const userId = req.user?.id || req.user?._id;
-
-  if (!amount || !orderId || !orderInfo || !items || !shippingInfo) {
-    return res.status(400).json({ message: "Thiếu thông tin đơn hàng!" });
-  }
-
-  // B1.1: Tạo đơn hàng trong DB
-  let newOrder;
-  try {
-    newOrder = await Order.create({
-      orderId,
-      shippingInfo: { ...shippingInfo, userId: userId || null },
-      shippingFee: shippingFee || 0,
-      totalPrice: amount,
-      paymentMethod: "vnpay",
-      coupon: coupon || "",
-      paymentStatus: "pending",
-      orderStatus: "waiting",
-    });
-  } catch (err) {
-    return res.status(500).json({ message: "Lưu đơn hàng thất bại", detail: err.message });
-  }
-  // B1.2: Tạo chi tiết đơn hàng trong DB
-  try {
-    await Promise.all(items.map((item) =>
-      OrderDetail.create({
-        orderId: newOrder.orderId || newOrder._id.toString(),
-        productId: item.productId,
-        productName: item.productName,
-        variant: item.variant,
-        quantity: item.quantity,
-        image: item.image,
-        price: item.price * item.quantity,
-        coupon: coupon || "",
-      })
-    ));
-  } catch (err) {
-    return res.status(500).json({ message: "Lưu chi tiết đơn hàng thất bại", detail: err.message });
-  }
-
-  // B2: Tạo link thanh toán VNPAY
-  const date = new Date();
-  const createDate = moment(date).format("YYYYMMDDHHmmss");
-  const txnRef = orderId;
-  const ipAddr = req.headers["x-forwarded-for"] || req.connection.remoteAddress;
-
-  let vnp_Params = {
-    vnp_Version: "2.1.0",
-    vnp_Command: "pay",
-    vnp_TmnCode,
-    vnp_Locale: "vn",
-    vnp_CurrCode: "VND",
-    vnp_TxnRef: txnRef,
-    vnp_OrderInfo: orderInfo,
-    vnp_OrderType: orderType || "billpayment",
-    vnp_Amount: amount * 100,
-    vnp_ReturnUrl,
-    vnp_IpAddr: ipAddr,
-    vnp_CreateDate: createDate,
-  };
-
-  if (bankCode) {
-    vnp_Params["vnp_BankCode"] = bankCode;
-  }
-
-  vnp_Params = sortObject(vnp_Params);
-
-  const signData = qs.stringify(vnp_Params, { encode: false });
-  const hmac = crypto.createHmac("sha512", vnp_HashSecret);
-  const signed = hmac.update(Buffer.from(signData, "utf-8")).digest("hex");
-
-  vnp_Params["vnp_SecureHash"] = signed;
-  const paymentUrl = vnp_Url + "?" + qs.stringify(vnp_Params, { encode: false });
-
-  res.json({ paymentUrl });
-});
-
-
-// ====== HÀM SẮP XẾP THAM SỐ VNPAY ======
+// Hàm sắp xếp object theo key
 function sortObject(obj) {
-  const sorted = {};
-  const keys = Object.keys(obj).sort();
-  for (const key of keys) {
+  let sorted = {};
+  let keys = Object.keys(obj).sort();
+  for (let key of keys) {
     sorted[key] = obj[key];
   }
   return sorted;
 }
+
+// ✅ API tạo link thanh toán VNPay
+router.post('/vnpay/create_payment_url', (req, res) => {
+  process.env.TZ = 'Asia/Ho_Chi_Minh';
+  const date = new Date();
+  const createDate = moment(date).format('YYYYMMDDHHmmss');
+  const ipAddr = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
+
+  const tmnCode = process.env.VNP_TMNCODE;
+  const secretKey = process.env.VNP_HASHSECRET;
+  const vnpUrl = process.env.VNP_URL;
+  const returnUrl = process.env.VNP_RETURN_URL;
+
+  const orderId = moment(date).format('DDHHmmss');
+  const amount = req.body.amount;
+  const bankCode = req.body.bankCode;
+  const locale = req.body.language || 'vn';
+
+  let vnp_Params = {
+    vnp_Version: '2.1.0',
+    vnp_Command: 'pay',
+    vnp_TmnCode: tmnCode,
+    vnp_Locale: locale,
+    vnp_CurrCode: 'VND',
+    vnp_TxnRef: orderId,
+    vnp_OrderInfo: 'Thanh toan don hang ' + orderId,
+    vnp_OrderType: 'other',
+    vnp_Amount: amount * 100,
+    vnp_ReturnUrl: returnUrl,
+    vnp_IpAddr: ipAddr,
+    vnp_CreateDate: createDate,
+  };
+
+  if (bankCode) vnp_Params['vnp_BankCode'] = bankCode;
+
+  vnp_Params = sortObject(vnp_Params);
+  const signData = qs.stringify(vnp_Params, { encode: false });
+  const hmac = crypto.createHmac('sha512', secretKey);
+  const signed = hmac.update(Buffer.from(signData, 'utf-8')).digest('hex');
+  vnp_Params['vnp_SecureHash'] = signed;
+
+  const redirectUrl = vnpUrl + '?' + qs.stringify(vnp_Params, { encode: false });
+  res.json({ paymentUrl: redirectUrl });
+});
+
+// ✅ API xử lý trả về từ VNPay
+router.get('/vnpay_return', (req, res) => {
+  const vnp_Params = req.query;
+  const secureHash = vnp_Params['vnp_SecureHash'];
+
+  delete vnp_Params['vnp_SecureHash'];
+  delete vnp_Params['vnp_SecureHashType'];
+
+  const sortedParams = sortObject(vnp_Params);
+  const signData = qs.stringify(sortedParams, { encode: false });
+  const signed = crypto.createHmac('sha512', process.env.VNP_HASHSECRET)
+    .update(Buffer.from(signData, 'utf-8'))
+    .digest('hex');
+
+  if (secureHash === signed) {
+    res.redirect(`/checkout/vnpay/return?status=success&orderId=${vnp_Params['vnp_TxnRef']}`);
+  } else {
+    res.redirect('/checkout/vnpay/return?status=failed');
+  }
+});
 
 module.exports = router;

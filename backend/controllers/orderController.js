@@ -183,10 +183,10 @@ exports.updateOrderStatus = async (req, res) => {
   }
 };
 
-module.exports = {
-  createOrder,
-  getAllOrders,
-  getOrders,
-  updateOrderStatus,
-  getOrderStatus, // dùng version mới nhất ở trên
-};
+// module.exports = {
+//   createOrder,
+//   getAllOrders,
+//   getOrders,
+//   updateOrderStatus,
+//   getOrderStatus, // dùng version mới nhất ở trên
+// };

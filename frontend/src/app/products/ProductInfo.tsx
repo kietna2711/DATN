@@ -141,7 +141,7 @@ const ProductInfo = ({ product }: { product: Products }) => {
       router.push("/checkout?buyNow=1");
     }, 350);
   };
-
+  // 
 
   return (
     <div className={styles.productInfo_v3_noCard}>

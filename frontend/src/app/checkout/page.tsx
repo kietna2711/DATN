@@ -32,6 +32,17 @@ const CheckoutPage: React.FC = () => {
   const [discount, setDiscount] = useState(0);
   const [voucherMessage, setVoucherMessage] = useState("");
   const [appliedVoucher, setAppliedVoucher] = useState<any>(null);
+  
+  const [shippingInfo, setShippingInfo] = useState({
+    userId: "",
+    name: "",
+    phone: "",
+    address: "",
+    note: "",
+    cityId: "",
+    districtId: "",
+    wardId: "",
+  });
 
   // Địa chỉ động
   const [cities, setCities] = useState<any[]>([]);

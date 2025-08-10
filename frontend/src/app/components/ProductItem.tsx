@@ -36,20 +36,39 @@ export default function ProductItem({ product }: { product: Products }) {
     ? Number(product.variants[selectedIdx]?.price) || 0
     : Number(product.price) || 0;
 
-  const handleAddToCart = () => {
+  // const handleAddToCart = () => {
+  //   const selectedVariant = hasVariants ? product.variants[selectedIdx] : undefined;
+  //   const safeProduct = {
+  //     ...product,
+  //     createdAt: new Date(product.createdAt).toISOString(),
+  //     updatedAt: product.updatedAt ? new Date(product.updatedAt).toISOString() : undefined,
+  //   };
+  //   dispatch(addToCart({ product: safeProduct, selectedVariant }));
+  //   success("Đã thêm vào giỏ hàng!");
+  //   // Chuyển hướng đến trang GH sau khi thêm sp
+  //   setTimeout(() => {
+  //     router.push('/cart');
+  //   }, 300);
+  // };
+
+  const handleBuyNow = () => {
+      //hàm bấm nút mua ngay chuyển qua thanh toán
     const selectedVariant = hasVariants ? product.variants[selectedIdx] : undefined;
-    const safeProduct = {
-      ...product,
-      createdAt: new Date(product.createdAt).toISOString(),
-      updatedAt: product.updatedAt ? new Date(product.updatedAt).toISOString() : undefined,
+    const buyNowItem = {
+      product: {
+        ...product,
+        createdAt: new Date(product.createdAt).toISOString(),
+        updatedAt: product.updatedAt ? new Date(product.updatedAt).toISOString() : undefined,
+      },
+      selectedVariant,
+      quantity: 1,
     };
-    dispatch(addToCart({ product: safeProduct, selectedVariant }));
-    success("Đã thêm vào giỏ hàng!");
-    // Chuyển hướng đến trang GH sau khi thêm sp
-    setTimeout(() => {
-      router.push('/cart');
-    }, 300);
+    // Lưu vào localStorage
+    localStorage.setItem("buyNowItem", JSON.stringify(buyNowItem));
+    // Điều hướng sang trang thanh toán với buyNow=1
+    router.push("/checkout?buyNow=1");
   };
+
 
     // Xác định người dùng đã đăng nhập chưa
     let userId: string | null = null;
@@ -167,7 +186,7 @@ const toggleFavorite = async () => {
           </div>
         </a>
 
-        <button className={styles.buy_now_btn} onClick={handleAddToCart}>
+        <button className={styles.buy_now_btn} onClick={handleBuyNow}>
           <img
             src="http://localhost:3000/images/button.png"
             className={styles.bear_left}
