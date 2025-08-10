@@ -66,6 +66,7 @@ export default function ProductItem({ product }: { product: Products }) {
     // Lưu vào localStorage
     localStorage.setItem("buyNowItem", JSON.stringify(buyNowItem));
     // Điều hướng sang trang thanh toán với buyNow=1
+    success("Chuyển sang trang thanh toán sản phẩm...!");
     router.push("/checkout?buyNow=1");
   };
 
