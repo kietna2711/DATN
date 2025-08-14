@@ -31,7 +31,7 @@ const LuckyWheel: React.FC<{ visible: boolean; onClose: () => void }> = ({ visib
   const [turns, setTurns] = useState<number>(() => {
     const saved = localStorage.getItem("turns");
     return saved ? Number(saved) : 0; // Mặc định 0 nếu chưa đăng ký
-  }); // Mặc định 1 lượt quay miễn phí
+  }); 
   const wheelRef = useRef<SVGSVGElement>(null);
   const [showModal, setShowModal] = useState(false);
   const [pendingPrize, setPendingPrize] = useState<any>(null);
