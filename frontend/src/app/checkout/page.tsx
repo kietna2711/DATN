@@ -506,6 +506,9 @@ const CheckoutPage: React.FC = () => {
           }
         });
       } else if (payment === "momo") {
+        // Tăng lượt quay lucky wheel
+        const turns = Number(localStorage.getItem("turns") || "0");
+        localStorage.setItem("turns", String(turns + 1));
         // THANH TOÁN ONLINE MOMO: chuyển sang cổng thanh toán
         await handleOnlineOrderMomo();
       } else if(payment === "vnpay") {
