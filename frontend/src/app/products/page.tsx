@@ -19,7 +19,7 @@ export default function ProductsPage() {
   const priceFilterParam = searchParams.get("price") || "Tất cả";
   const sortParam = searchParams.get("sort") || "Mới nhất";
   const pageParam = parseInt(searchParams.get("page") || "1", 10);
-
+// danh mục
   const categoryId = searchParams.get("category") || "";
   const subCategoryId = searchParams.get("subcategory") || "";
 
@@ -30,6 +30,16 @@ export default function ProductsPage() {
   const searchQuery = searchParams.get("search")?.toLowerCase() || "";
   const isNewProductsPage = searchParams.get("new") === "true";
 
+
+  // Reset lại trang khi tìm kiếm
+  useEffect(() => {
+    if (pageParam !== 1 && !isNewProductsPage) {
+      updateQuery({ page: 1 });
+    }
+    // eslint-disable-next-line
+  }, [searchQuery]);
+
+  //lấy danh sách danh mục
   useEffect(() => {
     async function fetchCategories() {
       try {
@@ -41,14 +51,7 @@ export default function ProductsPage() {
     }
     fetchCategories();
   }, []);
-
-  useEffect(() => {
-    if (pageParam !== 1 && !isNewProductsPage) {
-      updateQuery({ page: 1 });
-    }
-    // eslint-disable-next-line
-  }, [searchQuery]);
-
+  //lấy sản phẩm theo danh mục, danh mục con
   useEffect(() => {
     async function fetchData() {
       try {

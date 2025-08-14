@@ -32,6 +32,17 @@ const CheckoutPage: React.FC = () => {
   const [discount, setDiscount] = useState(0);
   const [voucherMessage, setVoucherMessage] = useState("");
   const [appliedVoucher, setAppliedVoucher] = useState<any>(null);
+  
+  const [shippingInfo, setShippingInfo] = useState({
+    userId: "",
+    name: "",
+    phone: "",
+    address: "",
+    note: "",
+    cityId: "",
+    districtId: "",
+    wardId: "",
+  });
 
   // Địa chỉ động
   const [cities, setCities] = useState<any[]>([]);
@@ -349,7 +360,7 @@ const CheckoutPage: React.FC = () => {
     }));
 
     try {
-      const res = await axios.post("http://localhost:3000/payment/vnpay", {
+      const res = await axios.post("http://localhost:3000/payment/vnpay/create_payment", {
         amount: totalWithShipping,
         orderId,
         orderInfo: "Thanh toán đơn hàng MimiBear qua VNPAY",
@@ -365,6 +376,24 @@ const CheckoutPage: React.FC = () => {
       window.location.href = res.data.paymentUrl;
     } catch (err) {
       Swal.fire("Lỗi", "Không thể tạo thanh toán VNPAY!", "error");
+    }
+  };
+  ////dòng này sẽ được gọi khi người dùng chọn thanh toán VNPAY
+  const handleVNPayPayment = async () => {
+    try {
+      const res = await axios.post("http://localhost:3000/payment/create_payment_url", {
+        amount: 100000, // ❗Thay bằng tổng đơn hàng nếu cần
+        bankCode: "NCB",
+        orderDescription: "Thanh toán đơn hàng tại shop",
+        orderType: "other",
+        language: "vn",
+      });
+
+      if (res.request.responseURL) {
+        window.location.href = res.request.responseURL;
+      }
+    } catch (err) {
+      console.error("Lỗi khi gọi VNPay:", err);
     }
   };
 
