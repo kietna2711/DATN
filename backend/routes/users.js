@@ -9,6 +9,7 @@ const jwt = require('jsonwebtoken');
 const nodemailer = require('nodemailer');
 const bcrypt = require('bcrypt');
 const Product = require('../models/productModel'); // import model sản phẩm nếu chưa có
+const Category = require('../models/categoryModel');
 
 // Biến toàn cục lưu tạm thông tin đăng ký
 global.tempRegister = global.tempRegister || {};
@@ -256,14 +257,28 @@ async function sendVerifyOTP(email, otp) {
   });
 }
 router.post('/send-voucher-mail', async (req, res) => {
-  const { email, voucherCode, voucherName, description, productIds } = req.body;
+  const { email, voucherCode, voucherName, description, productIds, categoryIds } = req.body;
   try {
     let productInfo = "";
     if (productIds && productIds.length > 0) {
-      // Lấy tên sản phẩm từ DB
       const products = await Product.find({ _id: { $in: productIds } });
       productInfo = products.map(p => `<li>${p.name}</li>`).join("");
       productInfo = `<ul>${productInfo}</ul>`;
+    }
+
+    // THÊM PHẦN DANH MỤC ÁP DỤNG
+    let categoryInfo = "";
+    if (categoryIds && categoryIds.length > 0) {
+      const categories = await Category.find({ _id: { $in: categoryIds } });
+      if (categories.length > 0) {
+        categoryInfo = categories.map(c => `<li>${c.name}</li>`).join("");
+        categoryInfo = `
+          <div style="background:#e3f2fd;padding:12px;border-radius:10px;margin-top:12px;">
+            <p style="color:#1976d2;font-weight:bold;margin-bottom:8px;">Áp dụng cho danh mục:</p>
+            <ul>${categoryInfo}</ul>
+          </div>
+        `;
+      }
     }
 
     const transporter = nodemailer.createTransport({
@@ -293,6 +308,7 @@ router.post('/send-voucher-mail', async (req, res) => {
             ${productInfo}
           </div>
         ` : ""}
+        ${categoryInfo}
         <p style="text-align:center;color:#6d4c41;margin-top:24px;">Hãy sử dụng mã này khi mua gấu bông để nhận ưu đãi siêu dễ thương nhé! 🧸</p>
       </div>
       `,

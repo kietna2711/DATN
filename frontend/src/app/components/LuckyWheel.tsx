@@ -100,7 +100,7 @@ useEffect(() => {
           label: v.discountCode || v.code || v.name || "Voucher danh mục",
           color: "#fff",
           bg: "#e67e22", // màu cam
-          chance: 0.35 / categoryVouchers.length, // chia đều xác suất cho các voucher danh mục
+          chance: 0.30 / categoryVouchers.length, // 30% cho voucher danh mục
           code: v.discountCode || v.code,
           images: v.images,
           _id: v._id,
@@ -112,7 +112,7 @@ useEffect(() => {
           label: v.discountCode || v.code || v.name || "Voucher sản phẩm",
           color: "#fff",
           bg: "#e74c3c",
-          chance: 1 / (selectedProducts.length + productVouchers.length),
+          chance: 0.40 / productVouchers.length, // 40% cho voucher sản phẩm
           code: v.discountCode || v.code,
           images: v.images,
           _id: v._id,
@@ -123,7 +123,7 @@ useEffect(() => {
           label: p.name || "SẢN PHẨM",
           color: "#fff",
           bg: "#3498db",
-          chance: 1 / (selectedProducts.length + productVouchers.length),
+          chance: 0.10 / selectedProducts.length, // 10% cho sản phẩm (khó trúng nhất)
           _id: p._id,
           images: p.images
         }))
@@ -217,6 +217,7 @@ useEffect(() => {
         messageApi.success(
           "Chúc mừng! Mã giảm giá danh mục đã được gửi về email của bạn."
         );
+        setShowResultModal(true); // THÊM DÒNG NÀY để hiện modal kết quả
       }else {
         // Hiện modal kết quả cho các trường hợp khác
         setShowResultModal(true);
@@ -243,13 +244,13 @@ useEffect(() => {
         voucherCode: voucher.code || voucher.discountCode,
         voucherName: voucher.label,
         description: voucher.description || "",
-        productIds: voucher.productIds, // truyền thêm productIds
+        productIds: voucher.productIds,
+        categoryIds: voucher.categoryIds, // THÊM DÒNG NÀY
       }),
     });
   };
 
-  // ...existing code...
-return (
+  return (
   <Modal
   open={visible}
   onCancel={onClose}
