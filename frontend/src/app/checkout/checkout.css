@@ -333,20 +333,90 @@ textarea {
 
 /* <= 480px: 3 phần xếp dọc từ trên xuống */
 @media (max-width: 480px) {
+  /* Container chính */
   .container {
     flex-direction: column;
+    gap: 15px;
+    align-items: center;
   }
+
   .left {
     flex-direction: column;
     gap: 15px;
+    width: 100%;
   }
+
   .column,
   .right {
-    width: 90%;
-    min-width: auto;
+    width: 100% !important;
+    max-width: 100% !important;
+    padding: 15px;
+    box-sizing: border-box;
   }
-  input, select, textarea {
+
+  .nhaptt {
+    max-width: 100% !important;
+    width: 100% !important;
+    box-sizing: border-box;
+    padding: 15px 0;
+  }
+
+  /* Form input full width */
+  input,
+  select,
+  textarea,
+  .form-group {
     width: 100%;
     max-width: 100%;
+    box-sizing: border-box;
+  }
+
+  /* Xóa width cứng của .log */
+  .log {
+    width: 100% !important;
+  }
+  form {
+    max-width: 100% !important;
+    width: 100% !important;
+  }
+
+  /* ===== CHỈNH BẢNG ĐƠN HÀNG ===== */
+  .right h3,
+  .spTT,
+  .saleTT,
+  .tTien,
+  .total,
+  .actions {
+    width: 100% !important;
+    max-width: 100% !important;
+    box-sizing: border-box;
+  }
+
+  .spTT span {
+    width: 20px !important;
+    left: 25px;
+    flex: 1;
+    margin-left: 15px;
+  }
+
+  .spTT p {
+    width: auto !important;
+    flex-shrink: 0;
+  }
+
+  .saleTT input {
+    width: 60% !important;
+    height: 40px !important;
+  }
+  .saleTT button {
+    height: 40px !important;
+    width: 33% !important;
+  }
+
+  .tTien {
+    justify-content: space-between;
+  }
+  .submit{
+    height: 40px !important;
   }
 }
