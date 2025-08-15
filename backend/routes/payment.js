@@ -111,69 +111,6 @@ function sortObject(obj) {
   return sorted;
 }
 
-// ✅ API tạo link thanh toán VNPay
-router.post('/vnpay/create_payment_url', (req, res) => {
-  process.env.TZ = 'Asia/Ho_Chi_Minh';
-  const date = new Date();
-  const createDate = moment(date).format('YYYYMMDDHHmmss');
-  const ipAddr = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
 
-  const tmnCode = process.env.VNP_TMNCODE;
-  const secretKey = process.env.VNP_HASHSECRET;
-  const vnpUrl = process.env.VNP_URL;
-  const returnUrl = process.env.VNP_RETURN_URL;
-
-  const orderId = moment(date).format('DDHHmmss');
-  const amount = req.body.amount;
-  const bankCode = req.body.bankCode;
-  const locale = req.body.language || 'vn';
-
-  let vnp_Params = {
-    vnp_Version: '2.1.0',
-    vnp_Command: 'pay',
-    vnp_TmnCode: tmnCode,
-    vnp_Locale: locale,
-    vnp_CurrCode: 'VND',
-    vnp_TxnRef: orderId,
-    vnp_OrderInfo: 'Thanh toan don hang ' + orderId,
-    vnp_OrderType: 'other',
-    vnp_Amount: amount * 100,
-    vnp_ReturnUrl: returnUrl,
-    vnp_IpAddr: ipAddr,
-    vnp_CreateDate: createDate,
-  };
-
-  if (bankCode) vnp_Params['vnp_BankCode'] = bankCode;
-
-  vnp_Params = sortObject(vnp_Params);
-  const signData = qs.stringify(vnp_Params, { encode: false });
-  const hmac = crypto.createHmac('sha512', secretKey);
-  const signed = hmac.update(Buffer.from(signData, 'utf-8')).digest('hex');
-  vnp_Params['vnp_SecureHash'] = signed;
-
-  const redirectUrl = vnpUrl + '?' + qs.stringify(vnp_Params, { encode: false });
-  res.json({ paymentUrl: redirectUrl });
-});
-
-// ✅ API xử lý trả về từ VNPay
-router.get('/vnpay_return', (req, res) => {
-  const vnp_Params = req.query;
-  const secureHash = vnp_Params['vnp_SecureHash'];
-
-  delete vnp_Params['vnp_SecureHash'];
-  delete vnp_Params['vnp_SecureHashType'];
-
-  const sortedParams = sortObject(vnp_Params);
-  const signData = qs.stringify(sortedParams, { encode: false });
-  const signed = crypto.createHmac('sha512', process.env.VNP_HASHSECRET)
-    .update(Buffer.from(signData, 'utf-8'))
-    .digest('hex');
-
-  if (secureHash === signed) {
-    res.redirect(`/checkout/vnpay/return?status=success&orderId=${vnp_Params['vnp_TxnRef']}`);
-  } else {
-    res.redirect('/checkout/vnpay/return?status=failed');
-  }
-});
 
 module.exports = router;
