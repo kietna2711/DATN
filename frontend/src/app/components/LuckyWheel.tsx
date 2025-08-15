@@ -53,6 +53,7 @@ const CENTER_BTN_SIZE = isMobile ? 54 : isTablet ? 80 : 100;
   }
   
   interface Voucher {
+    categoryIds: any;
     discountCode: string | undefined;
     name?: string;
     code?: string;
@@ -82,11 +83,30 @@ useEffect(() => {
         if (v.endDate && new Date(v.endDate) < now) return false;
         return true;
       });
+      // Lọc voucher danh mục còn hiệu lực
+      const categoryVouchers = vouchers.filter((v: Voucher) => {
+        if (v.targetType !== "category") return false;
+        if (v.active === false) return false;
+        if (v.startDate && new Date(v.startDate) > now) return false;
+        if (v.endDate && new Date(v.endDate) < now) return false;
+        return true;
+      });
+
 
       const selectedProducts = products.slice(0, 2);
 
       const prizes = [
-        { label: "CHÚC BẠN MAY MẮN LẦN SAU", color: "#fff", bg: "#e67e22", chance: 0.35 },
+        ...categoryVouchers.map((v: Voucher) => ({
+          label: v.discountCode || v.code || v.name || "Voucher danh mục",
+          color: "#fff",
+          bg: "#e67e22", // màu cam
+          chance: 0.35 / categoryVouchers.length, // chia đều xác suất cho các voucher danh mục
+          code: v.discountCode || v.code,
+          images: v.images,
+          _id: v._id,
+          categoryIds: v.categoryIds, // nếu có
+          description: v.description || "",
+        })),
         { label: "THÊM LƯỢT", color: "#fff", bg: "#f39c12", chance: 0.20 },
         ...productVouchers.map((v: Voucher) => ({
           label: v.discountCode || v.code || v.name || "Voucher sản phẩm",
@@ -190,7 +210,14 @@ useEffect(() => {
         setPendingPrize(prizes[prizeIndex]);
         setShowModal(true);
         messageApi.success(`Bạn đã trúng sản phẩm "${prizes[prizeIndex].label}"!`);
-      } else {
+      } 
+       // Nếu trúng voucher danh mục thì gửi mail
+      else if (prizes[prizeIndex].bg === "#e67e22" && prizes[prizeIndex].code) {
+        await sendVoucherMail(user.email, prizes[prizeIndex]);
+        messageApi.success(
+          "Chúc mừng! Mã giảm giá danh mục đã được gửi về email của bạn."
+        );
+      }else {
         // Hiện modal kết quả cho các trường hợp khác
         setShowResultModal(true);
       }
