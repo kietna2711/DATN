@@ -44,7 +44,7 @@ router.post("/momo", authenticateToken, async (req, res) => {
   try {
     await Promise.all(items.map((item) =>
       OrderDetail.create({
-        orderId: newOrder.orderId || newOrder._id.toString(),
+        orderId: newOrder._id.toString(), // <-- Dùng _id của order
         productId: item.productId,
         productName: item.productName,
         variant: item.variant,
