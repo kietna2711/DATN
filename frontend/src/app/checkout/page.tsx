@@ -387,6 +387,20 @@ const CheckoutPage: React.FC = () => {
   const handleOrder = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrors({});
+
+    // Kiểm tra đăng nhập trước
+    if (!isLoggedIn) {
+      Swal.fire({
+        title: "Vui lòng đăng nhập",
+        text: "Bạn cần đăng nhập để tiếp tục thanh toán.",
+        icon: "warning",
+        confirmButtonText: "Đăng nhập",
+      }).then(() => {
+        handleLoginRedirect();
+      });
+      return;
+    }
+
     const check = validate();
     setErrors(check);
 
