@@ -183,7 +183,7 @@ const toggleFavorite = async () => {
               className={styles.logo_left}
               alt="Logo"
             />
-            <div className={styles.saleTag}>30%</div>
+            {/* <div className={styles.saleTag}>30%</div> */}
           </div>
         </a>
 
@@ -211,11 +211,11 @@ const toggleFavorite = async () => {
           {selectedPrice.toLocaleString("vi-VN")} đ
         </div>
         {/* Nếu có nhiều biến thể và giá khác nhau thì hiển thị giá cũ */}
-        {hasVariants && minPrice !== maxPrice && (
+        {/* {hasVariants && minPrice !== maxPrice && (
           <div className={styles.price_sale}>
             {maxPrice.toLocaleString("vi-VN")} đ
           </div>
-        )}  
+        )}   */}
       </div>
 
       {/* Size chỉ hiển thị nếu có variants */}

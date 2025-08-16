@@ -154,7 +154,7 @@ export default function ProductItemSlide({ product }: { product: Products }) {
               className={styles.mimi_logo_left}
               alt="Logo"
             />
-            <div className={styles.mimi_saleTag}>30%</div>
+            {/* <div className={styles.mimi_saleTag}>30%</div> */}
           </div>
         </a>
 
