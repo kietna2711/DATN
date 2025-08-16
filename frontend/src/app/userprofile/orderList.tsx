@@ -18,14 +18,23 @@ interface Order {
     phone: string;
     address: string;
   };
-  products?: {
-    productId: string;
-    productName: string;
-    quantity: number;
-    variant: string;
-    price: number;
-    image?: string;
-  }[];
+}
+
+interface OrderDetail {
+  _id: string;
+  orderId: string;
+  productId: string;
+  productName: string;
+  variant: string;
+  quantity: number;
+  price: number;
+  coupon?: string;
+}
+
+interface Product {
+  _id: string;
+  name: string;
+  images: string[];
 }
 
 interface UserOrdersProps {
@@ -56,6 +65,8 @@ const translateStatus = (status: string) =>
 
 const UserOrders: React.FC<UserOrdersProps> = ({ username }) => {
   const [orders, setOrders] = useState<Order[]>([]);
+  const [orderDetails, setOrderDetails] = useState<OrderDetail[]>([]);
+  const [products, setProducts] = useState<Product[]>([]);
   const [activeTab, setActiveTab] = useState('all');
   const [visibleOrders, setVisibleOrders] = useState<{ [orderId: string]: boolean }>({});
   const showMessage = useShowMessage('', '');
@@ -71,20 +82,45 @@ const UserOrders: React.FC<UserOrdersProps> = ({ username }) => {
     }
   };
 
+  const fetchOrderDetails = async () => {
+    try {
+      const res = await fetch('http://localhost:3000/orderdetails');
+      if (!res.ok) throw new Error('Không lấy được chi tiết đơn hàng');
+      const data = await res.json();
+      setOrderDetails(data);
+    } catch (error) {
+      console.error('❌ Lỗi khi lấy orderdetails:', error);
+    }
+  };
+
+  const fetchProducts = async () => {
+    try {
+      const res = await fetch('http://localhost:3000/products');
+      if (!res.ok) throw new Error('Không lấy được sản phẩm');
+      const data = await res.json();
+      setProducts(data);
+    } catch (error) {
+      console.error('❌ Lỗi khi lấy products:', error);
+    }
+  };
+
   useEffect(() => {
-    if (username) fetchOrders();
+    if (username) {
+      fetchOrders();
+      fetchOrderDetails();
+      fetchProducts();
+    }
   }, [username]);
 
-   useEffect(() => {
-      if (!username) return;
-
-      const interval = setInterval(() => {
-        fetchOrders(); // gọi lại API mỗi X giây
-      }, 3000); // cứ 3 giây gọi lại 1 lần
-
-      return () => clearInterval(interval); // clear khi unmount
-    }, [username]);
-
+  useEffect(() => {
+    if (!username) return;
+    const interval = setInterval(() => {
+      fetchOrders();
+      fetchOrderDetails();
+      fetchProducts();
+    }, 3000);
+    return () => clearInterval(interval);
+  }, [username]);
 
   useEffect(() => {
     const visibleMap: { [id: string]: boolean } = {};
@@ -95,31 +131,19 @@ const UserOrders: React.FC<UserOrdersProps> = ({ username }) => {
   }, [orders, activeTab]);
 
   const handleToggle = (id: string) => {
-    setVisibleOrders(prev => ({
-      ...prev,
-      [id]: !prev[id],
-    }));
+    setVisibleOrders(prev => ({ ...prev, [id]: !prev[id] }));
   };
 
-  const shouldShowOrder = (status: string) =>
-    activeTab === 'all' || activeTab === status.toLowerCase();
+  const shouldShowOrder = (status: string) => activeTab === 'all' || activeTab === status.toLowerCase();
 
   const handleUpdateOrder = async (orderId: string) => {
     try {
-      const res = await fetch(`http://localhost:3000/api/usersProfile/update-status/${orderId}`, {
-        method: 'PUT',
-      });
+      const res = await fetch(`http://localhost:3000/api/usersProfile/update-status/${orderId}`, { method: 'PUT' });
       if (!res.ok) throw new Error('Không thể cập nhật trạng thái đơn hàng');
       const data = await res.json();
       const updatedOrder = data.order;
 
-      setOrders(prev =>
-        prev.map(order =>
-          order._id === updatedOrder._id
-            ? { ...order, ...updatedOrder }
-            : order
-        )
-      );
+      setOrders(prev => prev.map(order => order._id === updatedOrder._id ? { ...order, ...updatedOrder } : order));
 
       const status = updatedOrder.orderStatus.toLowerCase();
       if (status === 'cancelled') {
@@ -141,11 +165,7 @@ const UserOrders: React.FC<UserOrdersProps> = ({ username }) => {
     <div className="order-container">
       <div className="tabs">
         {STATUS_OPTIONS.map(({ label, value }) => (
-          <button
-            key={value}
-            className={`tab ${activeTab === value ? 'active' : ''}`}
-            onClick={() => setActiveTab(value)}
-          >
+          <button key={value} className={`tab ${activeTab === value ? 'active' : ''}`} onClick={() => setActiveTab(value)}>
             {label}
           </button>
         ))}
@@ -156,7 +176,7 @@ const UserOrders: React.FC<UserOrdersProps> = ({ username }) => {
       ) : (
         filteredOrders.map(order => {
           const displayId = order.orderId || order._id;
-          const products = order.products || [];
+          const details = orderDetails.filter(od => od.orderId === order._id);
 
           return (
             <div className="order" key={order._id} data-status={order.orderStatus}>
@@ -165,7 +185,7 @@ const UserOrders: React.FC<UserOrdersProps> = ({ username }) => {
                   <div className="order-title">Đơn hàng #{displayId}</div>
                   <div className="order-meta">
                     Ngày đặt: {new Date(order.createdAt).toLocaleDateString('vi-VN')} •{' '}
-                    <span className="product-total">{products.length}</span> sản phẩm
+                    <span className="product-total">{details.length}</span> sản phẩm
                   </div>
                 </div>
                 <div className="order-actions">
@@ -190,63 +210,56 @@ const UserOrders: React.FC<UserOrdersProps> = ({ username }) => {
 
                 <div className="order-section products">
                   <h4>Sản phẩm</h4>
-                  {products.map((product, idx) => (
-                    <div className="product-item" key={idx}>
-                      {product.image && (
-                        <img
-                          src={
-                            product.image.startsWith('http')
-                              ? product.image
-                              : `http://localhost:3000/images/${product.image}`
-                          }
-                          alt={product.productName}
-                        />
-                      )}
-                      <div className="product-details">
-                        <span>{product.productName}</span>
-                        <span>Số lượng: {product.quantity}</span>
-                        <span>Size: {product.variant}</span>
+                  {details.length === 0 && <div>Không có sản phẩm</div>}
+                  {details.map((product, idx) => {
+                    const productInfo = products.find(p => p._id === product.productId);
+                    const imageSrc = productInfo?.images?.[0]
+                      ? `http://localhost:3000/images/${productInfo.images[0]}`
+                      : '/placeholder.png';
+
+                    return (
+                      <div className="product-item" key={idx}>
+                        <img src={imageSrc} alt={product.productName} />
+                        <div className="product-details">
+                          <span>{product.productName}</span>
+                          <span>Số lượng: {product.quantity}</span>
+                          <span>Size: {product.variant}</span>
+                        </div>
+                        <div className="product-price-review">
+                          <div className="product-price">{product.price.toLocaleString('vi-VN')}₫</div>
+                          {order.orderStatus.toLowerCase() === 'delivered' && product.productId && (
+                            <a className="btn-review" href={`/products/${product.productId}`}>
+                              Đánh giá sản phẩm
+                            </a>
+                          )}
+                        </div>
                       </div>
-                      <div className="product-price-review">
-                        <div className="product-price">{product.price.toLocaleString('vi-VN')}₫</div>
-                        {order.orderStatus.toLowerCase() === 'delivered' && product.productId && (
-                          <a className="btn-review" href={`/products/${product.productId}`}>
-                            Đánh giá sản phẩm
-                          </a>
-                        )}
-                      </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
 
                 <div className="order-section summary">
                   <h4>Thông tin đơn hàng</h4>
-
                   <div className="summary-row">
                     <div>Mã giảm giá:</div>
                     <div>{order.coupon || 'Không có'}</div>
                   </div>
-
                   <div className="summary-row">
                     <div>Tạm tính:</div>
                     <div>{(order.totalPrice - order.shippingFee).toLocaleString('vi-VN')}₫</div>
                   </div>
-
                   <div className="summary-row">
                     <div>Phí vận chuyển:</div>
                     <div>{order.shippingFee.toLocaleString('vi-VN')}₫</div>
                   </div>
-
                   <div className="summary-row total">
                     <div>Tổng thanh toán:</div>
                     <div>{order.totalPrice.toLocaleString('vi-VN')}₫</div>
                   </div>
-
                   <div className="summary-row">
                     <div>Phương thức:</div>
                     <div>{order.paymentMethod.toUpperCase()}</div>
                   </div>
-
                   <div className="summary-row">
                     <div>Trạng thái:</div>
                     <div className={`payment-status ${order.paymentStatus}`}>
@@ -275,9 +288,10 @@ const UserOrders: React.FC<UserOrdersProps> = ({ username }) => {
                 {order.orderStatus.toLowerCase() === 'delivered' && (
                   <div className="delivered-success">Giao hàng thành công</div>
                 )}
-                 {order.orderStatus === 'returned' && (
-                    <div className="returned-info">Đơn hàng đã hoàn trả thành công!</div>
-                  )}
+
+                {order.orderStatus === 'returned' && (
+                  <div className="returned-info">Đơn hàng đã hoàn trả thành công!</div>
+                )}
               </div>
             </div>
           );
