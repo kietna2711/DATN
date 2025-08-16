@@ -343,6 +343,10 @@
   margin: 10px 10px;
 }
 
+.danhmucgau button.active {
+  background: #f05599;
+  color: #fff;
+}
 .tabs {
   display: flex;
   justify-content: center;
