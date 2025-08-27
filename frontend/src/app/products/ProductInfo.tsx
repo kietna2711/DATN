@@ -152,7 +152,6 @@ const ProductInfo = ({ product }: { product: Products }) => {
     }, 350);
   };
 
-
   return (
     <div className={styles.productInfo_v3_noCard}>
       <div className={styles.productDetail_innerWrap}>

@@ -287,3 +287,136 @@ textarea {
   background-color: #c572ba8c;
   transition: background 0.2s;
 }
+
+/* Desktop lớn */
+.container {
+  display: flex;
+  gap: 20px;
+}
+
+/* <= 1024px: vẫn 2 cột gọn gàng */
+@media (max-width: 1024px) {
+  .container {
+    flex-wrap: wrap;
+    gap: 20px;
+  }
+  .left {
+    flex: 2;
+    display: flex;
+    flex-direction: row;
+    gap: 20px;
+  }
+  .column {
+    flex: 1;
+    min-width: 300px;
+  }
+  .right {
+    flex: 1;
+    min-width: 300px;
+  }
+}
+
+/* <= 767px: 2 cột xếp dọc nếu không đủ chỗ */
+@media (max-width: 767px) {
+  .container {
+    flex-direction: column;
+  }
+  .left {
+    flex-direction: column;
+    gap: 20px;
+  }
+  .column,
+  .right {
+    width: 100%;
+  }
+}
+
+/* <= 480px: 3 phần xếp dọc từ trên xuống */
+@media (max-width: 480px) {
+  /* Container chính */
+  .container {
+    flex-direction: column;
+    gap: 15px;
+    align-items: center;
+  }
+
+  .left {
+    flex-direction: column;
+    gap: 15px;
+    width: 100%;
+  }
+
+  .column,
+  .right {
+    width: 100% !important;
+    max-width: 100% !important;
+    padding: 15px;
+    box-sizing: border-box;
+  }
+
+  .nhaptt {
+    max-width: 100% !important;
+    width: 100% !important;
+    box-sizing: border-box;
+    padding: 15px 0;
+  }
+
+  /* Form input full width */
+  input,
+  select,
+  textarea,
+  .form-group {
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+  }
+
+  /* Xóa width cứng của .log */
+  .log {
+    width: 100% !important;
+  }
+  form {
+    max-width: 100% !important;
+    width: 100% !important;
+  }
+
+  /* ===== CHỈNH BẢNG ĐƠN HÀNG ===== */
+  .right h3,
+  .spTT,
+  .saleTT,
+  .tTien,
+  .total,
+  .actions {
+    width: 100% !important;
+    max-width: 100% !important;
+    box-sizing: border-box;
+  }
+
+  .spTT span {
+    width: 20px !important;
+    left: 25px;
+    flex: 1;
+    margin-left: 15px;
+  }
+
+  .spTT p {
+    width: auto !important;
+    flex-shrink: 0;
+  }
+
+  .saleTT input {
+    width: 60% !important;
+    height: 40px !important;
+  }
+  .saleTT button {
+    height: 40px !important;
+    width: 33% !important;
+  }
+
+  .tTien {
+    justify-content: space-between;
+  }
+  .submit{
+    height: 40px !important;
+  }
+}

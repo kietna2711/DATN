@@ -56,6 +56,10 @@ export default function ReportManagement() {
   const [monthLabels, setMonthLabels] = useState<string[]>([]);
   const [ordersCountByMonth, setOrdersCountByMonth] = useState<number[]>([]);
 
+  // Lọc theo ngày / tuần / tháng
+  const [timeFilter, setTimeFilter] = useState<"day" | "week" | "month">("month");
+
+
 useEffect(() => {
   fetch("http://localhost:3000/orders")
     .then(res => res.json())
@@ -78,15 +82,30 @@ useEffect(() => {
     });
 }, []);
 
+// Dữ liệu biểu đồ dựa trên filter
+const orderStats = getOrdersByFilter(orders, timeFilter);
+const revenueStats = getRevenueByFilter(orders, timeFilter);
+
 const lineData = {
-  labels: monthLabels,
+  labels: orderStats.labels,
   datasets: [
     {
       label: "Đơn hàng",
-      data: ordersCountByMonth,
+      data: orderStats.counts,
       borderColor: "#007bff",
       backgroundColor: "rgba(0,123,255,0.2)",
       tension: 0.4,
+    },
+  ],
+};
+
+const updatedBarData = {
+  labels: revenueStats.labels,
+  datasets: [
+    {
+      label: "Doanh thu (triệu)",
+      data: revenueStats.counts,
+      backgroundColor: "#28a745",
     },
   ],
 };
@@ -104,6 +123,17 @@ const lineOptions = {
     }
   }
 };
+
+function formatMoneyAxis(value: number) {
+  if (value >= 1_000_000) {
+    return (value / 1_000_000).toFixed(1).replace(/\.0$/, "") + "tr"; // triệu
+  }
+  if (value >= 1000) {
+    return (value / 1000).toFixed(0) + "k"; // nghìn
+  }
+  return value;
+}
+
 
 
   useEffect(() => {
@@ -181,16 +211,108 @@ const lineOptions = {
       });
   }, []);
 
-  const updatedBarData = {
-    labels: labels,
-    datasets: [
-      {
-        label: "Doanh thu (triệu)",
-        data: revenueData,
-        backgroundColor: "#28a745",
-      },
-    ],
-  };
+  function getWeekNumber(date: Date) {
+  const firstDayOfYear = new Date(date.getFullYear(), 0, 1);
+  const pastDaysOfYear = (date.getTime() - firstDayOfYear.getTime()) / 86400000;
+  return Math.ceil((pastDaysOfYear + firstDayOfYear.getDay() + 1) / 7);
+}
+
+  function getOrdersByFilter(data: any[], filter: "day" | "week" | "month") {
+  const now = new Date();
+
+  if (filter === "day") {
+    // 10 ngày gần nhất
+    const days = Array.from({ length: 10 }, (_, i) => {
+      const d = new Date();
+      d.setDate(now.getDate() - (9 - i));
+      return d;
+    });
+    const labels = days.map(d => d.toLocaleDateString("vi-VN"));
+    const counts = days.map(d => {
+      return data.filter(order => {
+        const od = new Date(order.createdAt);
+        return od.toDateString() === d.toDateString();
+      }).length;
+    });
+    return { labels, counts };
+  }
+
+  if (filter === "week") {
+    // 4 tuần gần nhất theo tuần thực tế
+    const currentWeek = getWeekNumber(now);
+    const currentYear = now.getFullYear();
+    const weeks = [currentWeek - 3, currentWeek - 2, currentWeek - 1, currentWeek];
+    const labels = weeks.map(w => `Tuần ${w}`);
+    const counts = weeks.map(w => {
+      return data.filter(order => {
+        const od = new Date(order.createdAt);
+        return getWeekNumber(od) === w && od.getFullYear() === currentYear;
+      }).length;
+    });
+    return { labels, counts };
+  }
+
+  // mặc định: theo tháng
+  const currentMonth = now.getMonth() + 1;
+  const months = Array.from({ length: currentMonth }, (_, i) => i + 1);
+  const labels = months.map(m => `Tháng ${m}`);
+  const counts = months.map(month =>
+    data.filter(order => new Date(order.createdAt).getMonth() + 1 === month).length
+  );
+  return { labels, counts };
+}
+
+function getRevenueByFilter(data: any[], filter: "day" | "week" | "month") {
+  const now = new Date();
+
+  if (filter === "day") {
+    const days = Array.from({ length: 10 }, (_, i) => {
+      const d = new Date();
+      d.setDate(now.getDate() - (9 - i));
+      return d;
+    });
+    const labels = days.map(d => d.toLocaleDateString("vi-VN"));
+    const counts = days.map(d => {
+      return data
+        .filter(order => {
+          const od = new Date(order.createdAt);
+          return od.toDateString() === d.toDateString() && order.orderStatus === "delivered";
+        })
+        .reduce((sum, order) => sum + (order.totalPrice || 0), 0);
+    });
+    return { labels, counts };
+  }
+
+if (filter === "week") {
+    // 4 tuần gần nhất theo tuần thực tế
+    const currentWeek = getWeekNumber(now);
+    const currentYear = now.getFullYear();
+    const weeks = [currentWeek - 3, currentWeek - 2, currentWeek - 1, currentWeek];
+    const labels = weeks.map(w => `Tuần ${w}`);
+    const counts = weeks.map(w => {
+      return data
+        .filter(order => {
+          const od = new Date(order.createdAt);
+          return getWeekNumber(od) === w && od.getFullYear() === currentYear && order.orderStatus === "delivered";
+        })
+        .reduce((sum, order) => sum + (order.totalPrice || 0), 0);
+    });
+    return { labels, counts };
+  }
+
+  // mặc định: theo tháng
+  const currentMonth = now.getMonth() + 1;
+  const months = Array.from({ length: currentMonth }, (_, i) => i + 1);
+  const labels = months.map(m => `Tháng ${m}`);
+  const counts = months.map(month =>
+    data
+      .filter(order => new Date(order.createdAt).getMonth() + 1 === month && order.orderStatus === "delivered")
+      .reduce((sum, order) => sum + (order.totalPrice || 0), 0)
+  );
+  return { labels, counts };
+}
+
+
 
   // Sau khi đã setOrders(data) trong useEffect fetch orders
   const totalRevenue = orders
@@ -207,14 +329,7 @@ const lineOptions = {
     return detail ? detail.quantity : 0;
   }
 
-  function getOrderDetailList(orderId: string) {
-    return orderDetails
-      .filter(od => String(od.orderId) === String(orderId))
-      .map(od => ({
-        name: od.productName,
-        quantity: od.quantity
-      }));
-  }
+
 
   return (
     <main className="app-content">
@@ -301,67 +416,50 @@ const lineOptions = {
           </div>
         </div>
       </div>
-     
-      {/* Orders */}
-      <div className="row">
-        <div className="col-md-12">
+
+      {/* option chọn thời gian */}
+      <div className="row mb-3">
+        <div className="col-md-12 text-right">
+          <select
+            className="form-select w-auto d-inline"
+            value={timeFilter}
+            onChange={(e) => setTimeFilter(e.target.value as any)}
+          >
+            <option value="day">Theo ngày</option>
+            <option value="week">Theo tuần</option>
+            <option value="month">Theo tháng</option>
+          </select>
+        </div>
+      </div>
+
+      {/* Charts */}
+     <div className="row">
+        <div className="col-md-6">
           <div className="tile">
-            <h3 className="tile-title">TỔNG ĐƠN HÀNG</h3>
-            <div className="tile-body">
-              <table className="table table-hover table-bordered">
-                <thead>
-                  <tr>
-                    <th>ID đơn hàng</th>
-                    <th>Khách hàng</th>
-                    <th>Tên sản phẩm</th>
-                    <th>Số sản phẩm</th>
-                    <th>Tổng tiền</th>
-                    <th>Trạng thái</th>
-                    <th>Ngày tạo</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {orders
-                    .filter(order => order.orderStatus === "delivered")
-                    .map(order => (
-                      <tr key={order._id || order.id}>
-                        <td>{order._id || order.id}</td>
-                        <td>{order.shippingInfo?.name || order.customerName || order.customer || order.user?.username || order.user?.email}</td>
-                        <td>
-                          {(Array.isArray(orderDetails) ? orderDetails : [])
-                            .filter(od => String(od.orderId) === String(order._id || order.id))
-                            .map(od => od.productName)
-                            .join(", ")}
-                        </td>
-                        <td>
-                          {(Array.isArray(orderDetails) ? orderDetails : [])
-                            .filter(od => String(od.orderId) === String(order._id || order.id))
-                            .map(od => od.quantity)
-                            .join(", ")}
-                        </td>
-                        <td>{order.totalPrice?.toLocaleString() || order.total?.toLocaleString()} đ</td>
-                        <td>
-                          <span className="badge bg-success">Đã giao</span>
-                        </td>
-                        <td>{order.createdAt ? new Date(order.createdAt).toLocaleDateString() : ""}</td>
-                      </tr>
-                    ))}
-                  <tr>
-                    <th colSpan={4}>Tổng cộng:</th>
-                    <td colSpan={3}>
-                      {orders
-                        .filter(order => order.orderStatus === "delivered")
-                        .reduce((sum, order) => sum + (order.totalPrice || 0), 0)
-                        .toLocaleString()} đ
-                    </td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
+            <h3 className="tile-title" style={{ textAlign: "center", marginTop: 12 }}>
+              {timeFilter === "day"
+                ? "DỮ LIỆU HÀNG NGÀY"
+                : timeFilter === "week"
+                ? "DỮ LIỆU HÀNG TUẦN"
+                : "DỮ LIỆU HÀNG THÁNG"}
+            </h3>
+            <Line data={lineData} options={lineOptions} />
+          </div>
+        </div>
+        <div className="col-md-6">
+          <div className="tile">
+            <h3 className="tile-title" style={{ textAlign: "center", marginTop: 12 }}>
+              {timeFilter === "day"
+                ? "THỐNG KÊ DOANH THU THEO NGÀY"
+                : timeFilter === "week"
+                ? "THỐNG KÊ DOANH THU THEO TUẦN"
+                : "THỐNG KÊ DOANH THU THEO THÁNG"}
+            </h3>
+            <Bar data={updatedBarData} />
           </div>
         </div>
       </div>
-  
+     
       {/* New customers */}
       <div className="row">
         <div className="col-md-12">
@@ -390,22 +488,7 @@ const lineOptions = {
           </div>
         </div>
       </div>
-      {/* Charts */}
-      <div className="row">
-        <div className="col-md-6">
-          <div className="tile">
-                <h3 className="tile-title" style={{ textAlign: "center", marginTop: 12 }}>DỮ LIỆU HÀNG THÁNG</h3>
-            <Line data={lineData} options={lineOptions} />
-          </div>
-        </div>
-        <div className="col-md-6">
-          <div className="tile">
-             <h3 className="tile-title" style={{ textAlign: "center", marginTop: 12 }}>THỐNG KÊ DOANH THU THEO THÁNG</h3>
-            <Bar data={updatedBarData} />
-           
-          </div>
-        </div>
-      </div>
+      
       <div className="text-right" style={{ fontSize: 12 }}>
         <p><b>Hệ thống quản lý V2.0 | Code by Trường</b></p>
       </div>

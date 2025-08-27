@@ -60,6 +60,17 @@ type Order = {
   createdAt: string;
 };
 
+type OrderDetail = {
+  _id: string;
+  orderId: string;
+  productId: string;
+  productName: string;
+  variant: string;
+  quantity: number;
+  price: number;
+  coupon: string;
+  __v: number;
+};
 
 // Xác định các trạng thái hợp lệ tiếp theo
 function getNextStatusOptions(current: Order["orderStatus"]) {
@@ -86,6 +97,7 @@ function getNextStatusOptions(current: Order["orderStatus"]) {
 
 export default function OrderManagement() {
   const [orders, setOrders] = useState<Order[]>([]);
+  const [orderDetails, setOrderDetails] = useState<OrderDetail[]>([]);
   const [clock, setClock] = useState("");
 
   // Lấy danh sách đơn hàng từ backend
@@ -93,16 +105,22 @@ export default function OrderManagement() {
     axios.get("http://localhost:3000/orders")
       .then(res => setOrders(res.data))
       .catch(() => setOrders([]));
+    axios.get("http://localhost:3000/orderdetails")
+      .then(res => setOrderDetails(res.data))
+      .catch(() => setOrderDetails([]));
   }, []);
   useEffect(() => {
-  const interval = setInterval(() => {
-    axios.get("http://localhost:3000/orders")
-      .then(res => setOrders(res.data))
-      .catch(() => setOrders([]));
-  }, 3000); // mỗi 3 giây gọi lại
+    const interval = setInterval(() => {
+      axios.get("http://localhost:3000/orders")
+        .then(res => setOrders(res.data))
+        .catch(() => setOrders([]));
+      axios.get("http://localhost:3000/orderdetails")
+        .then(res => setOrderDetails(res.data))
+        .catch(() => setOrderDetails([]));
+    }, 3000); // mỗi 3 giây gọi lại
 
-  return () => clearInterval(interval);
-}, []);
+    return () => clearInterval(interval);
+  }, []);
 
 
 
@@ -192,61 +210,67 @@ const updateOrderStatus = (id: string, status: string) => {
                   </tr>
                 </thead>
                 <tbody>
-                  {orders.map((order) => (
-                    <tr key={order._id}>
-                      <td>{order.orderId || order._id}</td>
-                      <td>
-                        {order.productNames ? order.productNames.join(", ") : ""}
-                      </td>
-                      <td>{order.shippingInfo?.name || ""}</td>
-                      <td>{order.shippingInfo?.phone || ""}</td>
-                      <td>{order.shippingInfo?.address || ""}</td>
-                      <td>{new Date(order.createdAt).toLocaleString()}</td>
-                      <td>
-                        <span className={`badge ${paymentBadge[order.paymentStatus] || "bg-secondary"}`}>
-                          {paymentText[order.paymentStatus] || "Không rõ"}
-                        </span>
-                      </td>
-                      <td>
-                        <strong>{order.totalPrice.toLocaleString()} đ</strong>
-                        <br />
-                        <small className="text-muted">
-                          (Tạm tính: {(order.totalPrice - (order.shippingFee || 0)).toLocaleString()} đ + Ship: {order.shippingFee?.toLocaleString()} đ)
-                        </small>
-                      </td>
-                      <td>{order.paymentMethod}</td>
-                      <td>
-                        <span className={`badge ${statusBadge[order.orderStatus] || "bg-secondary"}`}>
-                          {statusOptions.find(opt => opt.value === order.orderStatus)?.label || order.orderStatus}
-                        </span>
-                      </td>
-                      <td>
-                        <select
-                          className="form-control form-control-sm select-status"
-                          value={order.orderStatus}
-                          onChange={e => handleStatusChange(order._id, e.target.value)}
-                          disabled={getNextStatusOptions(order.orderStatus).length === 0}
-                        >
-                          <option value={order.orderStatus}>
-                            {statusOptions.find(opt => opt.value === order.orderStatus)?.label}
-                          </option>
-                          {getNextStatusOptions(order.orderStatus).map(nextStatus => (
-                            <option key={nextStatus} value={nextStatus}>
-                              {statusOptions.find(opt => opt.value === nextStatus)?.label}
+                  {orders.map((order) => {
+                    // Lọc orderdetails theo orderId
+                    const details = orderDetails.filter(od => od.orderId === order._id || od.orderId === order.orderId);
+                    return (
+                      <tr key={order._id}>
+                        <td>{order.orderId || order._id}</td>
+                        <td>
+                          {details.length > 0
+                            ? details.map(d => d.productName).join(", ")
+                            : ""}
+                        </td>
+                        <td>{order.shippingInfo?.name || ""}</td>
+                        <td>{order.shippingInfo?.phone || ""}</td>
+                        <td>{order.shippingInfo?.address || ""}</td>
+                        <td>{new Date(order.createdAt).toLocaleString()}</td>
+                        <td>
+                          <span className={`badge ${paymentBadge[order.paymentStatus] || "bg-secondary"}`}>
+                            {paymentText[order.paymentStatus] || "Không rõ"}
+                          </span>
+                        </td>
+                        <td>
+                          <strong>{order.totalPrice.toLocaleString()} đ</strong>
+                          <br />
+                          <small className="text-muted">
+                            (Tạm tính: {(order.totalPrice - (order.shippingFee || 0)).toLocaleString()} đ + Ship: {order.shippingFee?.toLocaleString()} đ)
+                          </small>
+                        </td>
+                        <td>{order.paymentMethod}</td>
+                        <td>
+                          <span className={`badge ${statusBadge[order.orderStatus] || "bg-secondary"}`}>
+                            {statusOptions.find(opt => opt.value === order.orderStatus)?.label || order.orderStatus}
+                          </span>
+                        </td>
+                        <td>
+                          <select
+                            className="form-control form-control-sm select-status"
+                            value={order.orderStatus}
+                            onChange={e => handleStatusChange(order._id, e.target.value)}
+                            disabled={getNextStatusOptions(order.orderStatus).length === 0}
+                          >
+                            <option value={order.orderStatus}>
+                              {statusOptions.find(opt => opt.value === order.orderStatus)?.label}
                             </option>
-                          ))}
-                        </select>
-                        {/* <button
-                          className="btn btn-danger btn-sm btn-delete-order mt-1"
-                          type="button"
-                          title="Xóa"
-                          onClick={() => handleDelete(order._id)}
-                        >
-                          <i className="fas fa-trash-alt"></i>
-                        </button> */}
-                      </td>
-                    </tr>
-                  ))}
+                            {getNextStatusOptions(order.orderStatus).map(nextStatus => (
+                              <option key={nextStatus} value={nextStatus}>
+                                {statusOptions.find(opt => opt.value === nextStatus)?.label}
+                              </option>
+                            ))}
+                          </select>
+                          {/* <button
+                            className="btn btn-danger btn-sm btn-delete-order mt-1"
+                            type="button"
+                            title="Xóa"
+                            onClick={() => handleDelete(order._id)}
+                          >
+                            <i className="fas fa-trash-alt"></i>
+                          </button> */}
+                        </td>
+                      </tr>
+                    );
+                  })}
                   {orders.length === 0 && (
                     <tr>
                       <td colSpan={11} className="text-center">Không có đơn hàng nào.</td>

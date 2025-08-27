@@ -338,65 +338,6 @@ const CheckoutPage: React.FC = () => {
   };
 
 
-  // --- HÀM GỬI ĐƠN HÀNG ĐỂ LẤY LINK THANH TOÁN VNPAY (THÊM MỚI) ---
-  const handleOnlineOrderVnpay = async () => {
-    const orderId = "order" + Date.now() + Math.floor(Math.random() * 1000000); // Luôn duy nhất
-    const shippingInfo = {
-      name: fullName,
-      phone,
-      address: `${address}, ${wards.find(w => w.Id === selectedWard)?.Name || ""}, ${districts.find(d => d.Id === selectedDistrict)?.Name || ""}, ${cities.find(c => c.Id === selectedCity)?.Name || ""}`,
-      note,
-      city: cities.find(c => c.Id === selectedCity)?.Name || "",
-      district: districts.find(d => d.Id === selectedDistrict)?.Name || "",
-      ward: wards.find(w => w.Id === selectedWard)?.Name || "",
-    };
-    const items = cartItems.map(item => ({
-      productId: item.product._id,
-      productName: item.product.name,
-      variant: item.selectedVariant ? item.selectedVariant.size : undefined,
-      quantity: item.quantity,
-      price: item.selectedVariant ? item.selectedVariant.price : item.product.price,
-      image: item.product.images?.[0],
-    }));
-
-    try {
-      const res = await axios.post("http://localhost:3000/payment/vnpay/create_payment", {
-        amount: totalWithShipping,
-        orderId,
-        orderInfo: "Thanh toán đơn hàng MimiBear qua VNPAY",
-        items,
-        shippingInfo,
-        coupon,
-        shippingFee: SHIPPING_FEE,
-      }, {
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem("token")}`,
-        }
-      });
-      window.location.href = res.data.paymentUrl;
-    } catch (err) {
-      Swal.fire("Lỗi", "Không thể tạo thanh toán VNPAY!", "error");
-    }
-  };
-  ////dòng này sẽ được gọi khi người dùng chọn thanh toán VNPAY
-  const handleVNPayPayment = async () => {
-    try {
-      const res = await axios.post("http://localhost:3000/payment/create_payment_url", {
-        amount: 100000, // ❗Thay bằng tổng đơn hàng nếu cần
-        bankCode: "NCB",
-        orderDescription: "Thanh toán đơn hàng tại shop",
-        orderType: "other",
-        language: "vn",
-      });
-
-      if (res.request.responseURL) {
-        window.location.href = res.request.responseURL;
-      }
-    } catch (err) {
-      console.error("Lỗi khi gọi VNPay:", err);
-    }
-  };
-
 
   // Khi bấm nút đăng nhập ở trang thanh toán
   const handleLoginRedirect = () => {
@@ -446,6 +387,20 @@ const CheckoutPage: React.FC = () => {
   const handleOrder = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrors({});
+
+    // Kiểm tra đăng nhập trước
+    if (!isLoggedIn) {
+      Swal.fire({
+        title: "Vui lòng đăng nhập",
+        text: "Bạn cần đăng nhập để tiếp tục thanh toán.",
+        icon: "warning",
+        confirmButtonText: "Đăng nhập",
+      }).then(() => {
+        handleLoginRedirect();
+      });
+      return;
+    }
+
     const check = validate();
     setErrors(check);
 
@@ -506,11 +461,14 @@ const CheckoutPage: React.FC = () => {
           }
         });
       } else if (payment === "momo") {
+        // Tăng lượt quay lucky wheel
+        const turns = Number(localStorage.getItem("turns") || "0");
+        localStorage.setItem("turns", String(turns + 1));
         // THANH TOÁN ONLINE MOMO: chuyển sang cổng thanh toán
         await handleOnlineOrderMomo();
       } else if(payment === "vnpay") {
         // thanh toán online VNPAY
-        await handleOnlineOrderVnpay();
+        // await handleOnlineOrderVnpay();
       } else {
         // Các phương thức khác (ví dụ: zalopay, thanh toán thông thường)
         try {
