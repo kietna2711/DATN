@@ -153,12 +153,9 @@ export default function OrderManagement() {
 const [confirmModal, setConfirmModal] = useState<{ show: boolean, orderId: string, newStatus: string } | null>(null);
 
 const handleStatusChange = (id: string, status: string) => {
-  if (status === "delivered" || status === "returned") {
-    setConfirmModal({ show: true, orderId: id, newStatus: status });
-  } else {
-    updateOrderStatus(id, status);
-  }
+  setConfirmModal({ show: true, orderId: id, newStatus: status });
 };
+
 const updateOrderStatus = (id: string, status: string) => {
   axios.put(`http://localhost:3000/orders/${id}`, { orderStatus: status })
     .then(res => {
@@ -289,20 +286,24 @@ const updateOrderStatus = (id: string, status: string) => {
       <div className="modal-content">
         <div className="modal-header">
           <h5 className="modal-title">
-            {confirmModal.newStatus === "returned" ? "Xác nhận trả hàng" : "Xác nhận giao hàng"}
+            Xác nhận chuyển trạng thái đơn hàng
           </h5>
           <button type="button" className="btn-close" onClick={() => setConfirmModal(null)}></button>
         </div>
         <div className="modal-body">
           <p>
-            Bạn có chắc chắn muốn chuyển đơn hàng sang <strong>
-              {confirmModal.newStatus === "returned" ? "Đã trả hàng" : "Đã giao"}
-            </strong> không?
+            Bạn có chắc chắn muốn chuyển đơn hàng sang{" "}
+            <strong>
+              {statusOptions.find(opt => opt.value === confirmModal.newStatus)?.label || confirmModal.newStatus}
+            </strong>
+            không?
           </p>
           <p className="text-danger small">
-            {confirmModal.newStatus === "returned"
-              ? "Hệ thống sẽ hoàn kho và cập nhật trạng thái thanh toán nếu đơn hàng đã được thanh toán."
-              : "Hệ thống sẽ tự động cập nhật kho, tăng số lượng đã bán và đánh dấu thanh toán (nếu chưa thanh toán)."}
+            {confirmModal.newStatus === "delivered"
+              ? "Khi giao hàng, hệ thống sẽ cập nhật kho, tăng số lượng đã bán và đánh dấu thanh toán."
+              : confirmModal.newStatus === "returned"
+              ? "Khi trả hàng, hệ thống sẽ hoàn kho và cập nhật trạng thái thanh toán nếu cần."
+              : "Thao tác này sẽ thay đổi tiến trình xử lý đơn hàng."}
           </p>
         </div>
         <div className="modal-footer">
