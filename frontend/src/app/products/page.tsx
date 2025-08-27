@@ -107,6 +107,11 @@ export default function ProductsPage() {
         (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
       );
     }
+    if (sortParam === "Bán chạy nhất") {
+      return [...list].sort(
+        (a, b) => (b.sold || 0) - (a.sold || 0)
+      );
+    }
     if (sortParam === "Giá : Thấp đến cao") {
       return [...list].sort(
         (a, b) =>
@@ -241,8 +246,8 @@ export default function ProductsPage() {
             <option>Bán chạy nhất</option>
             <option>Giá : Thấp đến cao</option>
             <option>Giá : Cao đến thấp</option>
-            <option>% Giảm giá</option>
-            <option>Nổi bật</option>
+            {/* <option>% Giảm giá</option> */}
+            {/* <option>Nổi bật</option> */}
           </select>
         </div>
       </div>
