@@ -219,19 +219,14 @@ router.put('/update-status/:orderId', async (req, res) => {
         }
       }
 
-      // ✅ Trừ lượt sử dụng voucher (nếu có coupon)
+      // ✅ Tăng lượt sử dụng voucher (nếu có coupon)
       if (order.coupon) {
         const voucher = await Voucher.findOne({ discountCode: order.coupon });
 
         if (voucher) {
-          if (voucher.usageLimit > 0) {
-            voucher.usageLimit -= 1;
-            voucher.used += 1;
-            await voucher.save();
-            console.log(`✅ Đã trừ lượt sử dụng voucher ${voucher.discountCode}`);
-          } else {
-            console.warn(`❌ Voucher ${voucher.discountCode} không còn lượt sử dụng`);
-          }
+          voucher.used += 1; //  Chỉ tăng used, không trừ usageLimit
+          await voucher.save();
+          console.log(`✅ Đã tăng lượt sử dụng voucher ${voucher.discountCode}`);
         } else {
           console.warn(`❌ Không tìm thấy voucher với mã: ${order.coupon}`);
         }

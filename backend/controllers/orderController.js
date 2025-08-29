@@ -248,18 +248,16 @@ if (orderStatus === 'delivered') {
   }
 }
       // ✅ Nếu đơn hàng có dùng voucher thì cập nhật usage
-        if (order.coupon) {
-          const voucher = await Voucher.findOne({ discountCode: order.coupon });
-          if (voucher) {
-            voucher.used = (voucher.used || 0) + 1;
-            if (voucher.usageLimit && voucher.usageLimit > 0) {
-              voucher.usageLimit -= 1;
-            }
-            await voucher.save();
-          } else {
-            console.warn(`⚠️ Không tìm thấy voucher với discountCode: ${order.coupon}`);
-          }
+      if (order.coupon) {
+        const voucher = await Voucher.findOne({ discountCode: order.coupon });
+        if (voucher) {
+          voucher.used = (voucher.used || 0) + 1; // chỉ tăng used
+          await voucher.save();
+          console.log(`✅ Đã tăng lượt sử dụng voucher ${voucher.discountCode}`);
+        } else {
+          console.warn(`⚠️ Không tìm thấy voucher với discountCode: ${order.coupon}`);
         }
+      }
     }
 
     // ✅ Nếu chuyển sang "returned" thì luôn rollback kho
