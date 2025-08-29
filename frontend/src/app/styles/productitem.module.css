@@ -43,7 +43,7 @@
   max-width: 1200px;
   margin: 0 auto;
   text-align: center;
-  
+  padding: 40px 0px;
 }
 .product a{
   text-decoration: none;
@@ -962,6 +962,10 @@
     float: left;
     font-size: 0.9rem;
     padding-top: 5px;
+  }
+  .tieude{
+    font-size: 20px;
+    padding: 8px 0;
   }
   .img_category_product img {
     border-radius: 18px;
