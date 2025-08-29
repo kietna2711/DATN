@@ -42,6 +42,7 @@
 .container_product {
   max-width: 1200px;
   margin: 0 auto;
+  padding: 40px 0px;
   text-align: center;
   
 }
@@ -1133,7 +1134,7 @@
   font-weight: bold;
   color: #ee076ffb;
   font-size: 18px;
-  margin-bottom: 40px;
+  /* margin-bottom: 40px; */
 }
 @media (max-width: 1024px) {
   .filter-bar {
