@@ -23,5 +23,5 @@ router.post("/", authenticateToken, reviewController.createReview);
 // PATCH: đổi trạng thái review (ẩn/hiện)
 router.patch("/:id/toggle-status",verifyToken,verifyAdmin,reviewController.toggleReviewStatus);
 
-
+router.get('/some-path', reviewController.getReviews);
 module.exports = router;
