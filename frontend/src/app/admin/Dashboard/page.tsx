@@ -61,6 +61,7 @@ export default function ReportManagement() {
   const [timeFilter, setTimeFilter] = useState<"day" | "week" | "month">("month");
 
   const [widgetFilter, setWidgetFilter] = useState<"all" | "day" | "week" | "month">("all");
+  const [selectedDate, setSelectedDate] = useState<string>("");
 
   // Thêm vào sau các useState đã có
   const [latestOrders, setLatestOrders] = useState<any[]>([]);
@@ -135,13 +136,15 @@ export default function ReportManagement() {
   };
 
   function filterOrdersByWidget(orders: any[]) {
-    if (widgetFilter === "all") return orders;
-    const now = new Date();
-    if (widgetFilter === "day") {
-      return orders.filter(order =>
-        new Date(order.createdAt).toDateString() === now.toDateString()
-      );
-    }
+   if (widgetFilter === "all") return orders;
+  const now = new Date();
+  if (widgetFilter === "day") {
+    if (!selectedDate) return [];
+    return orders.filter(order => {
+      const od = new Date(order.createdAt);
+      return od.toISOString().split("T")[0] === selectedDate;
+    });
+  }
     if (widgetFilter === "week") {
       const currentWeek = getWeekNumber(now);
       const currentYear = now.getFullYear();
@@ -171,10 +174,11 @@ export default function ReportManagement() {
     if (widgetFilter === "all") return users;
     const now = new Date();
     if (widgetFilter === "day") {
+      if (!selectedDate) return [];
       return users.filter(u =>
-        new Date(u.createdAt).toDateString() === now.toDateString()
+        new Date(u.createdAt).toISOString().split("T")[0] === selectedDate
       );
-    }
+  }
     if (widgetFilter === "week") {
       const weekAgo = new Date();
       weekAgo.setDate(weekAgo.getDate() - 7);
@@ -196,11 +200,12 @@ export default function ReportManagement() {
   function filterProductsByWidget(products: any[]) {
     if (widgetFilter === "all") return products;
     const now = new Date();
-    if (widgetFilter === "day") {
-      return products.filter(p =>
-        new Date(p.createdAt).toDateString() === now.toDateString()
-      );
-    }
+     if (widgetFilter === "day") {
+        if (!selectedDate) return [];
+        return products.filter(p =>
+          new Date(p.createdAt).toISOString().split("T")[0] === selectedDate
+        );
+  }
     if (widgetFilter === "week") {
       const weekAgo = new Date();
       weekAgo.setDate(weekAgo.getDate() - 7);
@@ -549,21 +554,35 @@ export default function ReportManagement() {
         </div>
       </div>
       {/* Select lọc widget */}
-      <div className="row mb-2">
-        <div className="col-md-12 text-right">
-          <select
-            className="form-select w-auto d-inline"
-            value={widgetFilter}
-            onChange={e => setWidgetFilter(e.target.value as any)}
-          >
-            <option value="all">Tất cả</option>
-            <option value="day">Theo ngày</option>
-            <option value="week">Theo tuần</option>
-            <option value="month">Theo tháng</option>
-            <option value="year">Theo năm</option>
-          </select>
-        </div>
-      </div>
+      <div className="row mb-3">
+  <div className="col-md-12 text-right">
+    <select
+      className="form-select w-auto d-inline"
+      value={widgetFilter}
+      onChange={e => setWidgetFilter(e.target.value as any)}
+    >
+      <option value="all">Tất cả</option>
+      <option value="day">Theo ngày</option>
+      <option value="week">Theo tuần</option>
+      <option value="month">Theo tháng</option>
+      <option value="year">Theo năm</option>
+    </select>
+    {widgetFilter === "day" && (
+      <input
+        type="date"
+        className="form-control d-inline w-auto ml-2"
+        value={selectedDate}
+        max={new Date().toISOString().split("T")[0]}
+        min={(() => {
+          const d = new Date();
+          d.setDate(d.getDate() - 29);
+          return d.toISOString().split("T")[0];
+        })()}
+        onChange={e => setSelectedDate(e.target.value)}
+      />
+    )}
+  </div>
+</div>
 
         {/* Widgets */}
         <div className="row">
@@ -596,10 +615,14 @@ export default function ReportManagement() {
         </div>
         <div className="col-md-3 col-6 mb-3">
           <div className="widget-small danger coloured-icon">
-            <i className="icon bx bxs-tag-x fa-3x"></i>
+            <i className="icon bx bxs-check-circle fa-3x"></i>
             <div className="info">
-              <h4>HẾT HÀNG</h4>
-              <p><b>{filterProductsByWidget(outOfStockProducts).length} sản phẩm</b></p>
+               <h4 style={{ color: "red" }}>ĐƠN HÀNG ĐÃ GIAO</h4>
+                <p>
+                  <b>
+                    {filterOrdersByWidget(orders).filter(order => order.orderStatus === "delivered").length} đơn hàng
+                  </b>
+                </p>
             </div>
           </div>
         </div>
@@ -705,10 +728,9 @@ export default function ReportManagement() {
                           value={order.orderStatus}
                           onChange={e => {
                             const val = e.target.value;
-                            if (val === "delivered" || val === "returned") {
+                            // Luôn hiện popup xác nhận khi chuyển trạng thái
+                            if (val !== order.orderStatus) {
                               setConfirmModal({ show: true, orderId: order._id, newStatus: val });
-                            } else {
-                              updateOrderStatus(order._id, val);
                             }
                           }}
                           disabled={getNextStatusOptions(order.orderStatus).length === 0}
