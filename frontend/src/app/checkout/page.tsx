@@ -51,6 +51,7 @@ const CheckoutPage: React.FC = () => {
   const [selectedCity, setSelectedCity] = useState("");
   const [selectedDistrict, setSelectedDistrict] = useState("");
   const [selectedWard, setSelectedWard] = useState("");
+  
 
   //Chi tiết sp
   const [buyNowItem, setBuyNowItem] = useState<any | null>(null);
@@ -282,7 +283,7 @@ const CheckoutPage: React.FC = () => {
       totalPrice: totalWithShipping,
       shippingFee: SHIPPING_FEE, //lấy phí ship
       paymentMethod: payment,
-      coupon: coupon || undefined,
+      coupon: appliedVoucher ? coupon : undefined, // <-- chỉ gửi coupon nếu đã áp dụng thành công
     }, {
       headers: {
         Authorization: `Bearer ${token}`,
@@ -346,40 +347,40 @@ const CheckoutPage: React.FC = () => {
   };
 
   // Hàm áp dụng mã giảm giá
-  const handleApplyCoupon = async () => {
-    setVoucherMessage("");
-    setDiscount(0);
-    setAppliedVoucher(null);
-    if (!coupon.trim()) {
-      setVoucherMessage("Vui lòng nhập mã giảm giá");
+// Hàm áp dụng mã giảm giá
+const handleApplyCoupon = async () => {
+  setVoucherMessage("");
+  setDiscount(0);
+  setAppliedVoucher(null);
+  if (!coupon.trim()) {
+    setVoucherMessage("Vui lòng nhập mã giảm giá");
+    return;
+  }
+  try {
+    const vouchers = await getVouchers();
+    const voucher = vouchers.find(v => v.discountCode.toLowerCase() === coupon.trim().toLowerCase());
+    if (!voucher) {
+      setVoucherMessage("Mã giảm giá không tồn tại");
       return;
     }
-    try {
-      const vouchers = await getVouchers();
-      const voucher = vouchers.find(v => v.discountCode.toLowerCase() === coupon.trim().toLowerCase());
-      if (!voucher) {
-        setVoucherMessage("Mã giảm giá không tồn tại");
-        return;
-      }
-      const result = validateVoucher({
-        voucher,
-        cartItems,
-        total,
-      });
-      if (!result.valid) {
-        setVoucherMessage(result.message || "Mã giảm giá không hợp lệ");
-        setDiscount(0);
-        setAppliedVoucher(null);
-      } else {
-        setDiscount(result.discount || 0);
-        setVoucherMessage("Áp dụng mã giảm giá thành công!");
-        setAppliedVoucher(voucher);
-      }
-    } catch (err) {
-      setVoucherMessage("Có lỗi khi kiểm tra mã giảm giá");
+    const result = validateVoucher({
+      voucher,
+      cartItems,
+      total,
+    });
+    if (!result.valid) {
+      setVoucherMessage(result.message || "Mã giảm giá không hợp lệ");
+      setDiscount(0);
+      setAppliedVoucher(null);
+    } else {
+      setDiscount(result.discount || 0);
+      setVoucherMessage("Áp dụng mã giảm giá thành công!");
+      setAppliedVoucher(voucher); // <-- chỉ set khi hợp lệ
     }
-  };
-
+  } catch (err) {
+    setVoucherMessage("Có lỗi khi kiểm tra mã giảm giá");
+  }
+};
   // Xử lý đặt hàng
   // - Nếu chọn COD thì giữ logic cũ
   // - Nếu chọn MOMO thì gọi handleOnlineOrderMomo()
