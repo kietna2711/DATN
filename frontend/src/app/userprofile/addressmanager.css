@@ -127,6 +127,24 @@
   transform: translateY(0);
   box-shadow: 0 2px 7px rgba(236, 64, 122, 0.4);
 }
+.default-badge {
+  background-color: #4caf50;
+  color: white;
+  font-size: 12px;
+  padding: 2px 6px;
+  border-radius: 4px;
+  margin-left: 8px;
+}
+
+.set-default-btn {
+  margin-left: 6px;
+  cursor: pointer;
+  background: none;
+  border: none;
+  color: #f39c12;
+  font-size: 16px;
+}
+
 
 /* ========== Responsive ========== */
 @media (max-width: 768px) {
