@@ -263,21 +263,28 @@ const cartCount = useAppSelector((state) => state.cart.items.length);
                 cursor: "pointer",
               }}
             />
-            {showSuggestions && suggestions.length > 0 && (
+            {/* Desktop suggestions */}
+           {showSuggestions && suggestions.length > 0 && (
               <div className={styles.suggestionBox} ref={suggestionBoxRef}>
                 <ul className={styles.suggestionList}>
                   {suggestions.map((prod) => (
                     <li
                       key={prod._id}
                       className={styles.suggestionItem}
-                     onMouseDown={() => handleSuggestionClick(prod._id)}
+                      onMouseDown={() => handleSuggestionClick(prod._id)}
+                      style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}
                     >
-                      <img
-                        src={`http://localhost:3000/images/${prod.images[0]}`}
-                        alt={prod.name}
-                        className={styles.suggestionImg}
-                      />
-                      <span>{prod.name}</span>
+                      <div style={{ display: "flex", alignItems: "center" }}>
+                        <img
+                          src={`http://localhost:3000/images/${prod.images[0]}`}
+                          alt={prod.name}
+                          className={styles.suggestionImg}
+                        />
+                        <span>{prod.name}</span>
+                      </div>
+                      <div style={{ color: "#e87ebd", fontWeight: 500 }}>
+                        {prod.price?.toLocaleString()} đ
+                      </div>
                     </li>
                   ))}
                 </ul>
@@ -520,6 +527,7 @@ const cartCount = useAppSelector((state) => state.cart.items.length);
               }}
             />
           </form>
+          {/* Mobile suggestions */}
           {showSuggestions && suggestions.length > 0 && (
             <div className={styles.suggestionBox} ref={suggestionBoxRef}>
               <ul className={styles.suggestionList}>
@@ -528,13 +536,19 @@ const cartCount = useAppSelector((state) => state.cart.items.length);
                     key={prod._id}
                     className={styles.suggestionItem}
                     onClick={() => handleSuggestionClick(prod._id)}
+                    style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}
                   >
-                    <img
-                      src={`http://localhost:3000/images/${prod.images[0]}`}
-                      alt={prod.name}
-                      className={styles.suggestionImg}
-                    />
-                    <span>{prod.name}</span>
+                    <div style={{ display: "flex", alignItems: "center" }}>
+                      <img
+                        src={`http://localhost:3000/images/${prod.images[0]}`}
+                        alt={prod.name}
+                        className={styles.suggestionImg}
+                      />
+                      <span>{prod.name}</span>
+                    </div>
+                    <div style={{ color: "#e87ebd", fontWeight: 500 }}>
+                      {prod.price?.toLocaleString()} đ
+                    </div>
                   </li>
                 ))}
               </ul>
