@@ -171,13 +171,14 @@ export default function ProductsPage() {
       <div className={styles["filter-bar"]}>
         <div
           className={styles["filter-left"]}
-          style={{
-            display: "flex",
-            flexDirection: "column",
-            gap: 8,
-            alignItems: "flex-start"
-          }}
+          // style={{
+          //   display: "flex",
+          //   flexDirection: "column",
+          //   gap: 8,
+          //   alignItems: "flex-start"
+          // }}
         >
+          
           <div style={{ width: "100%" }}>
             {/* Lọc giá tiền */}
             <select
@@ -187,7 +188,7 @@ export default function ProductsPage() {
                 updateQuery({ price: e.target.value, page: 1 });
               }}
             >
-              <option>Tất cả</option>
+              <option>Lọc theo giá</option>
               <option>Dưới 300.000 đ</option>
               <option>Từ 300.000 đ - 500.000 đ</option>
               <option>Từ 500.000 đ - 1.000.000 đ</option>
@@ -205,7 +206,7 @@ export default function ProductsPage() {
                   updateQuery({ category: e.target.value, subcategory: "", page: 1 });
                 }}
               >
-                <option value="">Tất cả danh mục</option>
+                <option value="">Lọc theo danh mục</option>
                 {categories
                   .filter(cat => !cat.hidden)
                   .map(cat => (
@@ -220,7 +221,7 @@ export default function ProductsPage() {
                   value={subCategoryId}
                   onChange={e => updateQuery({ subcategory: e.target.value, page: 1 })}
                 >
-                  <option value="">Tất cả danh mục con</option>
+                  <option value="">Lọc danh mục con</option>
                   {currentCategory.subcategories
                     .filter(sub => !sub.hidden)
                     .map(sub => (
@@ -234,7 +235,7 @@ export default function ProductsPage() {
           </div>
         </div>
         <div className={styles["filter-right"]}>
-          <span className={styles["product-total"]}>{filtered.length} Sản phẩm</span>
+          {/* <span className={styles["product-total"]}>{filtered.length} Sản phẩm</span> */}
           <select
             className={styles["filter-select"]}
             value={sortParam}
@@ -246,16 +247,17 @@ export default function ProductsPage() {
             <option>Bán chạy nhất</option>
             <option>Giá : Thấp đến cao</option>
             <option>Giá : Cao đến thấp</option>
-            <option>% Giảm giá</option>
-            <option>Nổi bật</option>
+            {/* <option>% Giảm giá</option> */}
+            {/* <option>Nổi bật</option> */}
           </select>
         </div>
       </div>
+      <span className={styles["product-total"]}>{filtered.length} Sản phẩm</span>
 
       {/* Danh sách sản phẩm */}
       <ProductList
         props={{
-          title: isNewProductsPage ? " Sản phẩm mới nhất" : "Tất cả sản phẩm",
+          title: isNewProductsPage ? " Sản phẩm mới nhất" : "",
           product: pagedProducts,
         }}
       />
