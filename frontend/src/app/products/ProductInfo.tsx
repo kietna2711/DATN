@@ -10,7 +10,7 @@ import { addToCart } from "../store/features/cartSlice";
 import { App } from "antd";
 import { useRouter } from "next/navigation";
 import { useShowMessage } from "../utils/useShowMessage";
-
+import { Popconfirm } from "antd";
 const ProductInfo = ({ product }: { product: Products }) => {
   const variants = product.variants ?? [];
   const [activeSize, setActiveSize] = useState(0);
@@ -18,6 +18,8 @@ const ProductInfo = ({ product }: { product: Products }) => {
   const [isFavorite, setIsFavorite] = useState(false);
   const productId = (product._id ?? product._id)?.toString();
   const { error, success } = useShowMessage();
+
+  const [showOverPop, setShowOverPop] = useState(false);
 
   const userStr =
     typeof window !== "undefined" ? localStorage.getItem("user") : null;
@@ -236,12 +238,35 @@ const ProductInfo = ({ product }: { product: Products }) => {
               value={quantity}
               readOnly
             />
-            <button
-              className={styles.quantity_v4_button}
-              onClick={() => setQuantity((q) => q + 1)}
+            <Popconfirm
+              title="Số lượng tối đa"
+              description="Bạn đã đạt số lượng tối đa cho sản phẩm này!"
+              okText="Đã hiểu"
+              showCancel={false}
+              open={showOverPop}
+              onOpenChange={(visible) => {
+                if (!visible) setShowOverPop(false);
+              }}
+              onConfirm={() => setShowOverPop(false)}
             >
-              +
-            </button>
+              <button
+                className={styles.quantity_v4_button}
+                onClick={() => {
+                  const maxQuantity =
+                    currentVariant?.quantity ?? product.quantity;
+                  if (
+                    typeof maxQuantity === "number" &&
+                    quantity >= maxQuantity
+                  ) {
+                    setShowOverPop(true);
+                    return;
+                  }
+                  setQuantity((q) => q + 1);
+                }}
+              >
+                +
+              </button>
+            </Popconfirm>
           </div>
           <button
             className={styles.addToCart_v4}
