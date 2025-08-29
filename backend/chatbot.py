@@ -3,18 +3,25 @@ from bson import ObjectId
 from dotenv import load_dotenv
 import os
 import requests
+import re
 
 load_dotenv()
 
-def ask_ai(message: str) -> str:
+def ask_ai(message: str, history: list = None) -> str:
     api_key = os.getenv("GOOGLE_GEMINI_API_KEY")
     url = "https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent"
     headers = {"Content-Type": "application/json"}
+    prompt = "Bạn là trợ lý bán hàng gấu bông, trả lời thân thiện, ngắn gọn, dễ hiểu cho khách hàng.\n"
+    # Thêm lịch sử hội thoại vào prompt
+    if history:
+        for h in history:
+            prompt += f"Khách: {h['user']}\nTrợ lý: {h['bot']}\n"
+    prompt += f"Khách: {message}\nTrợ lý:"
     data = {
         "contents": [
             {
                 "parts": [
-                    {"text": f"Bạn là trợ lý bán hàng gấu bông, trả lời thân thiện, ngắn gọn, dễ hiểu cho khách hàng.\n{message}"}
+                    {"text": prompt}
                 ]
             }
         ]
@@ -30,9 +37,87 @@ def ask_ai(message: str) -> str:
         print("Gemini API error:", response.text)
         return "Xin lỗi, hệ thống AI đang bận hoặc hết lượt miễn phí."
 
-def chatbot_reply(message: str) -> dict:
+def extract_gift_event(message: str) -> str:
+    """
+    Dùng AI để xác định dịp tặng/quà tặng từ câu hỏi.
+    Trả về chuỗi dịp tặng (ví dụ: 'sinh nhật', 'bạn gái', 'bé gái', ...)
+    """
+    prompt = (
+        "Bạn là trợ lý bán hàng gấu bông. "
+        "Hãy đọc câu hỏi của khách và trả lời duy nhất một từ hoặc cụm từ ngắn gọn mô tả dịp tặng hoặc đối tượng nhận quà, "
+        "ví dụ: sinh nhật, bạn gái, bé gái, bé trai, valentine, mẹ, bạn thân, tốt nghiệp, ... "
+        "Nếu không xác định được thì trả về 'không xác định'.\n"
+        f"Câu hỏi: {message}\n"
+        "Dịp tặng/quà tặng:"
+    )
+    api_key = os.getenv("GOOGLE_GEMINI_API_KEY")
+    url = "https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent"
+    headers = {"Content-Type": "application/json"}
+    data = {
+        "contents": [
+            {
+                "parts": [
+                    {"text": prompt}
+                ]
+            }
+        ]
+    }
+    response = requests.post(f"{url}?key={api_key}", headers=headers, json=data, timeout=20)
+    if response.ok:
+        res = response.json()
+        try:
+            return res["candidates"][0]["content"]["parts"][0]["text"].strip().lower()
+        except Exception:
+            return "không xác định"
+    else:
+        return "không xác định"
+
+def chatbot_reply(message: str, history: list = None) -> dict:
     message_lower = message.lower()
     products = list(products_collection.find())
+
+    # Dùng AI xác định dịp tặng/quà tặng
+    gift_event = extract_gift_event(message)
+    if gift_event and gift_event != "không xác định":
+        matched = []
+        for p in products:
+            name = p.get("name", "").lower()
+            desc = p.get("description", "").lower()
+            if gift_event in name or gift_event in desc:
+                matched.append(p)
+        if matched:
+            unique_matched = []
+            ids = set()
+            for p in matched:
+                if str(p["_id"]) not in ids:
+                    unique_matched.append(p)
+                    ids.add(str(p["_id"]))
+            result = []
+            for p in unique_matched[:4]:
+                images = p.get("images", [])
+                image_url = f"http://localhost:3000/images/{images[0]}" if images else None
+                variants = list(variants_collection.find({"productId": p["_id"]}))
+                sizes = []
+                prices = []
+                for v in variants:
+                    sz = v.get("size")
+                    pr = v.get("price")
+                    if sz:
+                        sizes.append(sz)
+                    if pr is not None:
+                        prices.append(pr)
+                result.append({
+                    "_id": str(p["_id"]),
+                    "name": p.get("name"),
+                    "sizes": sizes,
+                    "price": prices,
+                    "image": image_url
+                })
+            return {
+                "type": "products",
+                "content": f"Shop gợi ý các sản phẩm phù hợp với dịp tặng '{gift_event}':",
+                "products": result
+            }
 
     # Ưu tiên: Nếu câu hỏi chứa tên sản phẩm, trả về sản phẩm luôn
     matched_products = [
@@ -160,13 +245,41 @@ def chatbot_reply(message: str) -> dict:
                 "content": "Hiện chưa có sản phẩm nào."
             }
 
-    ai_reply = ask_ai(message)
-    # Nếu AI trả về câu mặc định, chỉ trả về text, không trả về sản phẩm
-    if ai_reply.strip() in [
-        "Xin lỗi, mình chưa hiểu ý bạn.",
-        "Xin lỗi, hệ thống AI đang bận hoặc hết lượt miễn phí.",
-        "Em chưa hiểu ý Anh/Chị, vui lòng hỏi lại nhé!"
-    ]:
-        return {"type": "text", "content": ai_reply}
+    ai_reply = ask_ai(message, history)
 
+    # Nếu AI trả về tên sản phẩm, trả về mảng sản phẩm có trong database
+    matched = []
+    for p in products:
+        name = p.get("name", "")
+        if name and name.lower() in ai_reply.lower():
+            matched.append(p)
+    if matched:
+        result = []
+        for p in matched[:4]:
+            images = p.get("images", [])
+            image_url = f"http://localhost:3000/images/{images[0]}" if images else None
+            variants = list(variants_collection.find({"productId": p["_id"]}))
+            sizes = []
+            prices = []
+            for v in variants:
+                sz = v.get("size")
+                pr = v.get("price")
+                if sz:
+                    sizes.append(sz)
+                if pr is not None:
+                    prices.append(pr)
+            result.append({
+                "_id": str(p["_id"]),
+                "name": p.get("name"),
+                "sizes": sizes,
+                "price": prices,
+                "image": image_url
+            })
+        return {
+            "type": "products",
+            "content": ai_reply,
+            "products": result
+        }
+
+    # Nếu không có sản phẩm, trả về text như cũ
     return {"type": "text", "content": ai_reply}

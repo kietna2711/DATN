@@ -146,12 +146,22 @@ export default function AIChatBox() {
     setInput("");
     setLoading(true);
 
-    // Nhận diện yêu cầu tạo lời chúc
+    // Tạo lịch sử hội thoại (chỉ lấy các cặp user-bot trước đó)
+    const history = [];
+    for (let i = 0; i < messages.length; i++) {
+      if (messages[i].role === "user" && messages[i + 1]?.role === "bot") {
+        history.push({
+          user: messages[i].content,
+          bot: messages[i + 1].content
+        });
+      }
+    }
+
     try {
       const res = await fetch("http://localhost:3001/api/chatbot", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ message: userMsg })
+        body: JSON.stringify({ message: userMsg, history })
       });
       const data = await res.json();
       setMessages(msgs => {
@@ -159,39 +169,36 @@ export default function AIChatBox() {
         const idx = newMsgs.findIndex(m => m.isLoading);
         if (idx !== -1) newMsgs.splice(idx, 1);
 
-        // Kiểm tra nội dung trả về của AI
         const botContent = data.message || data.content || "";
         const isDefaultReply =
           botContent === "Em chưa hiểu ý Anh/Chị, vui lòng hỏi lại nhé!"
           || botContent.startsWith("Xin lỗi, mình chưa hiểu ý bạn.")
           || botContent.startsWith("Xin lỗi, hệ thống AI đang bận hoặc hết lượt miễn phí.");
 
-       if (isDefaultReply) {
-  // AI không hiểu, chỉ trả về text
-  return [
-    ...newMsgs,
-    {
-      role: "bot",
-      content: botContent
-    }
-  ];
-}
+        if (isDefaultReply) {
+          return [
+            ...newMsgs,
+            {
+              role: "bot",
+              content: botContent
+            }
+          ];
+        }
 
-// AI hiểu, trả về sản phẩm như cũ
-return [
-  ...newMsgs,
-  {
-    role: "bot",
-    content: botContent,
-    products: data.products,
-    image: data.image,
-    name: data.name,
-    sizes: data.sizes,
-    price: data.price,
-    old_price: data.old_price,
-    _id: data._id
-  }
-];
+        return [
+          ...newMsgs,
+          {
+            role: "bot",
+            content: botContent,
+            products: data.products,
+            image: data.image,
+            name: data.name,
+            sizes: data.sizes,
+            price: data.price,
+            old_price: data.old_price,
+            _id: data._id
+          }
+        ];
       });
     } catch {
       setMessages(msgs => [
