@@ -107,6 +107,11 @@ export default function ProductsPage() {
         (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
       );
     }
+    if (sortParam === "Bán chạy nhất") {
+      return [...list].sort(
+        (a, b) => (b.sold || 0) - (a.sold || 0)
+      );
+    }
     if (sortParam === "Giá : Thấp đến cao") {
       return [...list].sort(
         (a, b) =>
