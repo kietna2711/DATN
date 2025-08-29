@@ -20,6 +20,7 @@ const ProductInfo = ({ product }: { product: Products }) => {
   const { error, success } = useShowMessage();
 
   const [showOverPop, setShowOverPop] = useState(false);
+  const [showInvalidPop, setShowInvalidPop] = useState(false);
 
   const userStr =
     typeof window !== "undefined" ? localStorage.getItem("user") : null;
@@ -226,18 +227,62 @@ const ProductInfo = ({ product }: { product: Products }) => {
 
         <div className={styles.buyRow}>
           <div className={styles.quantity_v4}>
-            <button
-              className={styles.quantity_v4_button}
-              onClick={() => setQuantity((q) => Math.max(1, q - 1))}
+            <Popconfirm
+              title="Số lượng không hợp lệ"
+              description="Vui lòng nhập số lượng lớn hơn 0!"
+              okText="Đã hiểu"
+              showCancel={false}
+              open={showInvalidPop}
+              onOpenChange={(visible) => {
+                if (!visible) setShowInvalidPop(false);
+              }}
+              onConfirm={() => setShowInvalidPop(false)}
             >
-              -
-            </button>
+              <button
+                className={styles.quantity_v4_button}
+                onClick={() => {
+                  if (quantity <= 1) {
+                    setShowInvalidPop(true);
+                    setQuantity(1);
+                    return;
+                  }
+                  setQuantity((q) => q - 1);
+                }}
+              >
+                -
+              </button>
+            </Popconfirm>
+
             <input
               className={styles.quantity_v4_input}
-              type="text"
-              value={quantity}
-              readOnly
+              type="number"
+              min={1}
+              max={currentVariant?.quantity ?? product.quantity}
+              value={quantity === 0 ? "" : quantity}
+              onChange={(e) => {
+                const maxQuantity =
+                  currentVariant?.quantity ?? product.quantity;
+                let val = e.target.value === "" ? 0 : Number(e.target.value);
+                if (isNaN(val) || val < 0) val = 0;
+                // Ẩn cảnh báo nếu nhập số hợp lệ
+                if (val > 0) {
+                  setShowInvalidPop(false);
+                }
+                if (val === 0) {
+                  setShowInvalidPop(true);
+                }
+                if (val > maxQuantity) {
+                  setShowOverPop(true);
+                  val = maxQuantity;
+                }
+                setQuantity(val);
+              }}
+              onBlur={() => {
+                // Nếu người dùng xóa hết, khi blur sẽ trả về 1
+                if (quantity === 0) setQuantity(1);
+              }}
             />
+
             <Popconfirm
               title="Số lượng tối đa"
               description="Bạn đã đạt số lượng tối đa cho sản phẩm này!"
@@ -275,7 +320,6 @@ const ProductInfo = ({ product }: { product: Products }) => {
             THÊM VÀO GIỎ HÀNG
           </button>
         </div>
-
         <div className={styles.phoneBuy}>
           <a href="https://zalo.me/0373828100" className={styles.phone_v4}>
             <img
