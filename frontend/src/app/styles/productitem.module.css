@@ -963,6 +963,10 @@
     font-size: 0.9rem;
     padding-top: 5px;
   }
+  .tieude{
+    font-size: 20px;
+    padding: 8px 0;
+  }
   .img_category_product img {
     border-radius: 18px;
     margin-bottom: 8px;
