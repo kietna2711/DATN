@@ -66,6 +66,17 @@ const AddressManager: React.FC<AddressManagerProps> = ({
     setWards(district?.Wards || []);
     setSelectedWard('');
   };
+   const handleSetDefaultAddress = (id: string) => {
+  // tìm địa chỉ được chọn
+  const idx = addresses.findIndex(addr => addr.id === id);
+  if (idx === -1) return;
+
+  const selected = addresses[idx];
+  const updated = [selected, ...addresses.filter((_, i) => i !== idx)];
+
+  onUpdateAddresses(updated);
+  if (onSaveAddresses) onSaveAddresses();
+};
   const [newAddress, setNewAddress] = useState('');
 
 const handleAddAddress = () => {
@@ -178,21 +189,36 @@ const handleAddAddress = () => {
       ) : (
         <>
           <ul className="address-list">
-            {addresses.map(addr => (
-              <li key={addr.id}>
-                {`${addr.detail}, ${addr.ward}, ${addr.district}, ${addr.city}`}
-                {!readOnly && (
-                  <button
-                    className="delete-btn"
-                    title="Xóa địa chỉ"
-                    onClick={() => handleDeleteAddress(addr.id)}
-                  >
-                    ❌
-                  </button>
-                )}
-              </li>
-            ))}
-          </ul>
+  {addresses.map((addr, index) => (
+    <li key={addr.id}>
+      {`${addr.detail}, ${addr.ward}, ${addr.district}, ${addr.city}`}
+      
+      {index === 0 && <span className="default-badge">Mặc định</span>} 
+
+      {!readOnly && (
+        <>
+          <button
+            className="delete-btn"
+            title="Xóa địa chỉ"
+            onClick={() => handleDeleteAddress(addr.id)}
+          >
+            ❌
+          </button>
+          {index !== 0 && (
+            <button
+              className="set-default-btn"
+              title="Đặt làm mặc định"
+              onClick={() => handleSetDefaultAddress(addr.id)}
+            >
+              ⭐
+            </button>
+          )}
+        </>
+      )}
+    </li>
+  ))}
+</ul>
+
           {!readOnly && (
             <div className="input-group">
               <input

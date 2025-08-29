@@ -117,7 +117,7 @@ exports.createReview = async (req, res) => {
     // ✅ Lấy danh sách order đã giao của user
     const deliveredOrders = await Order.find({
       "shippingInfo.userId": userId,
-      orderStatus: "delivered",
+      orderStatus: { $in: ["delivered", "paid"] },
     }).select('_id');
 
     const deliveredOrderIds = deliveredOrders.map(order => order._id);

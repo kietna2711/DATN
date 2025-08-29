@@ -61,24 +61,32 @@ router.post('/:username', async (req, res) => {
 router.put('/:username', async (req, res) => {
   try {
     const { username } = req.params;
-    const { phone, gender, birthDate, addresses, firstName, lastName } = req.body;
+    const { phone, gender, birthDate, addresses, firstName, lastName, defaultAddressId } = req.body;
 
     const user = await User.findOne({ username });
     if (!user) return res.status(404).json({ message: 'User không tồn tại' });
 
-    // Cập nhật họ tên nếu có
     if (firstName) user.firstName = firstName;
     if (lastName) user.lastName = lastName;
     await user.save();
 
-    // Cập nhật profile
     const profile = await Profile.findOne({ username });
     if (!profile) return res.status(404).json({ message: 'Profile chưa tồn tại' });
 
     profile.phone = phone;
     profile.gender = gender;
     profile.birthDate = birthDate;
-    profile.addresses = addresses;
+
+    if (addresses && addresses.length > 0) {
+      if (defaultAddressId) {
+        const idx = addresses.findIndex(a => a.id === defaultAddressId);
+        if (idx !== -1) {
+          const [selected] = addresses.splice(idx, 1);
+          addresses.unshift(selected); // đưa mặc định lên đầu
+        }
+      }
+      profile.addresses = addresses;
+    }
 
     await profile.save();
 
@@ -87,6 +95,7 @@ router.put('/:username', async (req, res) => {
     res.status(500).json({ message: 'Lỗi server khi cập nhật profile', error: error.message });
   }
 });
+
 
 
 // Lấy đơn hàng có shippingInfo.name trùng username
