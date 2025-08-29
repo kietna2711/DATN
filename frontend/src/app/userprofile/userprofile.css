@@ -1,4 +1,4 @@
-    * {
+* {
       margin: 0;
       padding: 0;
       box-sizing: border-box;
@@ -284,6 +284,16 @@
   background: #ff4f91;
 }
 
+.returned-info {
+  background-color: #fdf2e9;
+  color: #d35400;
+  padding: 8px 12px;
+  border-radius: 4px;
+  font-weight: 500;
+  margin-top: 8px;
+}
+
+
 @keyframes popIn {
   0% {
     opacity: 0;
@@ -292,6 +302,37 @@
   100% {
     opacity: 1;
     transform: scale(1);
+  }
+}
+
+.change-password-box {
+  max-width: 400px;
+  margin: 0 auto;
+  background: #fff;
+  border-radius: 12px;
+  padding: 24px 24px 16px 24px;
+  box-shadow: 0 2px 12px #f7a5c933;
+}
+
+@media (max-width: 600px) {
+  .change-password-box {
+    max-width: 98vw;
+    padding: 16px 4vw 12px 4vw;
+    box-shadow: none;
+  }
+  .change-password-box h3 {
+    font-size: 20px !important;
+  }
+  .change-password-box .form-group label {
+    font-size: 15px;
+  }
+  .change-password-box input[type="password"] {
+    font-size: 15px;
+    padding: 8px 10px;
+  }
+  .change-password-box button {
+    width: 100%;
+    font-size: 16px;
   }
 }
 

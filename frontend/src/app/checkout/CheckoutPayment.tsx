@@ -56,30 +56,7 @@ const CheckoutPayment: React.FC<Props> = ({
         />
       </div>
     </div>
-    {/* <div className="payment-method" onClick={() => handlePaymentChange("zalopay")}>
-      <input
-        type="radio"
-        name="pay"
-        checked={payment === "zalopay"}
-        onChange={() => handlePaymentChange("zalopay")}
-      />
-      <label>Thanh toán qua ZaloPay</label>
-      <div className="cod">
-        <img src="http://localhost:3000/images/zalopay.png" alt="ZaloPay" style={{ width: 65 }} />
-      </div>
-    </div> */}
-    <div className="payment-method" onClick={() => handlePaymentChange("vnpay")}>
-      <input
-        type="radio"
-        name="pay"
-        checked={payment === "vnpay"}
-        onChange={() => handlePaymentChange("vnpay")}
-      />
-      <label>Thanh toán qua VnPay</label>
-      <div className="cod">
-        <img src="http://localhost:3000/images/vnpay.png" alt="VnPay" style={{ width: 85 }} />
-      </div>
-    </div>
+
     <div className="payment-method" onClick={() => handlePaymentChange("momo")}>
       <input
         type="radio"

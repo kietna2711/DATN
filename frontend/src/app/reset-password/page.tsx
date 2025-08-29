@@ -54,6 +54,14 @@ export default function ResetPassword() {
     setErrors(newErrors);
     if (hasError) return;
 
+    if (!email || !otp) {
+      setMessage({ type: "error", text: "Thiếu email hoặc mã OTP!" });
+      return;
+    }
+
+    // Debug log
+    console.log("RESET PASSWORD gửi:", { email, otp, password });
+
     const res = await fetch("http://localhost:3000/users/reset-password", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -120,3 +128,4 @@ export default function ResetPassword() {
     </div>
   );
 }
+

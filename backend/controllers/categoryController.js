@@ -30,6 +30,7 @@ const getCategoryById = async (req, res, next) => {
   }
 }
 
+// Hàm thêm danh mục mới
 const addCate = async (req, res) => {
     try {
         const { name, hidden } = req.body;
@@ -54,7 +55,7 @@ const addCate = async (req, res) => {
     }
 };
 
-
+// Hàm cập nhật danh mục
 const editCate = async (req, res) => {
   try {
     const { name, hidden } = req.body;

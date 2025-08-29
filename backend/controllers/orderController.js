@@ -1,5 +1,9 @@
 const Order = require('../models/orderModel');
 const OrderDetail = require('../models/orderDetailModel');
+const mongoose = require("mongoose");
+const Product = require('../models/productModel');
+const Variant = require('../models/variantsModel');
+const Voucher = require('../models/voucherModel');
 
 // POST: Tạo đơn hàng mới
 exports.createOrder = async (req, res) => {
@@ -55,7 +59,7 @@ exports.createOrder = async (req, res) => {
   }
 };
 
-// GET: lấy tất cả đơn hàng (ADMIN)
+//GET: lấy tất cả đơn hàng 
 exports.getAllOrders = async (req, res) => {
   try {
     const orders = await Order.find().sort({ createdAt: -1 });
@@ -66,7 +70,7 @@ exports.getAllOrders = async (req, res) => {
   }
 };
 
-// PUT: Cập nhật trạng thái đơn hàng (ADMIN)
+//PUT: Cập nhật trạng thái đơn hàng 
 exports.updateOrderStatus = async (req, res) =>{
   try{
     const { orderId } = req.params;
@@ -83,31 +87,54 @@ exports.updateOrderStatus = async (req, res) =>{
   }
 };
 
-// GET: Kiểm tra trạng thái đơn hàng (bổ sung để tránh lỗi route)
+// ✅ GET: Kiểm tra trạng thái đơn hàng sau thanh toán (dành cho VNPay & Momo)
 exports.getOrderStatus = async (req, res) => {
-  try {
-    const { orderId } = req.params;
-    const { resultCode } = req.query;
+  const { orderId } = req.params;
+  const { vnp_ResponseCode, resultCode } = req.query;
 
-    const order = await Order.findOne({ orderId: orderId });
+  try {
+    const order = await Order.findOne({ orderId });
+
     if (!order) {
       return res.status(404).json({ message: "Không tìm thấy đơn hàng" });
     }
-    // Nếu đang pending và resultCode=0 (thành công), cập nhật trạng thái thanh toán sang paid
-    if (order.paymentStatus === "pending" && resultCode === "0") {
+
+    // Nếu đã thanh toán, không làm gì
+    if (order.paymentStatus === "paid") {
+      return res.status(200).json({ status: "paid" });
+    }
+
+    // ✅ Nếu thanh toán VNPAY thành công
+    if (vnp_ResponseCode === "00") {
       order.paymentStatus = "paid";
       await order.save();
+      return res.status(200).json({ status: "paid" });
     }
-    if (order.paymentStatus === "pending" && resultCode && resultCode !== "0") {
-      order.paymentStatus = "unpaid";
+
+    // ✅ Nếu thanh toán Momo thành công
+    if (resultCode === "0") {
+      order.paymentStatus = "paid";
       await order.save();
+      return res.status(200).json({ status: "paid" });
     }
-    res.json({ status: order.paymentStatus });
+
+    // ❌ Nếu thanh toán thất bại
+    if (vnp_ResponseCode || resultCode) {
+      order.paymentStatus = "failed";
+      await order.save();
+      return res.status(200).json({ status: "failed" });
+    }
+
+    // ⏳ Nếu chưa có callback
+    return res.status(200).json({ status: "pending" });
   } catch (err) {
-    res.status(500).json({ message: "Lỗi server", error: err.message });
+    console.error("Get order status error:", err);
+    res.status(500).json({ message: "Lỗi server", detail: err.message });
   }
 };
 
+
+// GET: lấy tất cả đơn hàng (ADMIN )
 exports.getOrders = async (req, res) => {
   try {
     const orders = await Order.find().sort({ createdAt: -1 });
@@ -132,21 +159,154 @@ exports.getOrders = async (req, res) => {
   }
 };
 
+// PUT: Cập nhật trạng thái đơn hàng (Admin)
 exports.updateOrderStatus = async (req, res) => {
   try {
     const { orderStatus } = req.body;
     const { id } = req.params;
-    const order = await Order.findOneAndUpdate(
-      { $or: [{ orderId: id }, { _id: id }] },
-      { orderStatus },
-      { new: true }
-    );
+
+    const order = await Order.findOne({
+      $or: [{ orderId: id }, { _id: id }]
+    });
+
     if (!order) return res.status(404).json({ error: "Order not found" });
-    res.json(order);
+
+    const currentStatus = order.orderStatus;
+    order.orderStatus = orderStatus;
+
+    // ✅ Nếu chuyển sang "delivered" mà chưa thanh toán
+    if (orderStatus === 'delivered' && order.paymentStatus !== 'paid') {
+      order.paymentStatus = 'paid';
+    }
+
+    const orderDetails = await OrderDetail.find({
+      $or: [
+        { orderId: order.orderId },
+        { orderId: order._id.toString() }
+      ]
+    });
+
+    // ✅ Nếu chuyển sang "delivered" thì luôn cập nhật kho
+    if (orderStatus === 'delivered') {
+      for (const detail of orderDetails) {
+        if (!detail.productId) continue;
+
+        let productObjectId;
+        try {
+          productObjectId = typeof detail.productId === 'string'
+            ? mongoose.Types.ObjectId(detail.productId)
+            : detail.productId;
+        } catch (e) {
+          console.warn(`❌ Không thể ép kiểu productId: ${detail.productId}`);
+          continue;
+        }
+
+        // Tăng sold trong Product
+        await Product.findByIdAndUpdate(
+          productObjectId,
+          { $inc: { sold: detail.quantity } }
+        );
+
+        // Giảm tồn kho trong Variant
+        await Variant.findOneAndUpdate(
+          {
+            productId: productObjectId,
+            size: detail.variant
+          },
+          { $inc: { quantity: -detail.quantity } }
+        );
+      }
+// ...bên trong hàm async exports.updateOrderStatus...
+
+if (orderStatus === 'delivered') {
+  for (const detail of orderDetails) {
+    // ...giảm tồn kho...
+  }
+
+  // THÊM ĐOẠN NÀY VÀO ĐÂY
+  for (const detail of orderDetails) {
+    if (!detail.productId) continue;
+    let productObjectId;
+    try {
+      productObjectId = typeof detail.productId === 'string'
+        ? mongoose.Types.ObjectId(detail.productId)
+        : detail.productId;
+    } catch (e) {
+      continue;
+    }
+
+    // Lấy tất cả variants của sản phẩm này
+    const allVariants = await Variant.find({ productId: productObjectId });
+    const totalQuantity = allVariants.reduce((sum, v) => sum + (v.quantity || 0), 0);
+
+    // Cập nhật trạng thái sản phẩm
+    const product = await Product.findById(productObjectId);
+    if (product) {
+      product.status = totalQuantity === 0 ? "Ẩn" : "Còn hàng";
+      await product.save();
+    }
+  }
+}
+      // ✅ Nếu đơn hàng có dùng voucher thì cập nhật usage
+        if (order.coupon) {
+          const voucher = await Voucher.findOne({ discountCode: order.coupon });
+          if (voucher) {
+            voucher.used = (voucher.used || 0) + 1;
+            if (voucher.usageLimit && voucher.usageLimit > 0) {
+              voucher.usageLimit -= 1;
+            }
+            await voucher.save();
+          } else {
+            console.warn(`⚠️ Không tìm thấy voucher với discountCode: ${order.coupon}`);
+          }
+        }
+    }
+
+    // ✅ Nếu chuyển sang "returned" thì luôn rollback kho
+    if (orderStatus === 'returned') {
+      for (const detail of orderDetails) {
+        if (!detail.productId) continue;
+
+        let productObjectId;
+        try {
+          productObjectId = typeof detail.productId === 'string'
+            ? mongoose.Types.ObjectId(detail.productId)
+            : detail.productId;
+        } catch (e) {
+          console.warn(`❌ Không thể ép kiểu productId: ${detail.productId}`);
+          continue;
+        }
+
+        // Giảm sold trong Product
+        await Product.findByIdAndUpdate(
+          productObjectId,
+          { $inc: { sold: -detail.quantity } }
+        );
+
+        // Tăng lại tồn kho trong Variant
+        await Variant.findOneAndUpdate(
+          {
+            productId: productObjectId,
+            size: detail.variant
+          },
+          { $inc: { quantity: detail.quantity } }
+        );
+      }
+
+      // Nếu đã thanh toán thì đánh dấu hoàn tiền
+      if (order.paymentStatus === 'paid') {
+        order.paymentStatus = 'refunded';
+      }
+    }
+
+    await order.save();
+    res.json({ message: '✅ Cập nhật trạng thái thành công', order });
   } catch (error) {
+    console.error("❌ Error updating order status:", error);
     res.status(500).json({ error: "Server error" });
   }
 };
+
 
 exports.getLatestOrders = async (req, res) => {
   try {

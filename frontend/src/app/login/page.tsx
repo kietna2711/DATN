@@ -1,7 +1,6 @@
 "use client";
 import React, { useState } from "react";
 import "./login.css";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useShowMessage } from "../utils/useShowMessage";
 
@@ -55,6 +54,9 @@ export default function Login() {
       localStorage.setItem("user", JSON.stringify(data.user));
       localStorage.setItem("token", data.token);
       window.dispatchEvent(new Event("userChanged"));
+
+      // Thông báo thành công
+      showMessage.success("Đăng nhập thành công!");
 
       // Chuyển trang phù hợp
       if (data.user.role === "admin") {
@@ -126,9 +128,9 @@ export default function Login() {
             />
             Nhớ tôi sau nhé
           </label>
-          <Link href="/forget" className="forgot">
+          <a href="/forget" className="forgot">
             Quên mật khẩu?
-          </Link>
+          </a>
         </div>
         <button type="submit">Đăng nhập</button>
         <div className="social-login">
@@ -145,17 +147,11 @@ export default function Login() {
             />
             Google
           </button>
-          <button className="facebook-btn" type="button">
-            <img
-              src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/facebook/facebook-original.svg"
-              alt=""
-            />
-            Facebook
-          </button>
+          
         </div>
-        <Link href="/register" className="register-link">
+        <a href="/register" className="register-link">
           Bạn chưa có tài khoản?
-        </Link>
+        </a>
       </form>
     </div>
   );

@@ -77,10 +77,6 @@ export default function AIChatBox() {
   const [reactions, setReactions] = useState<{ [key: number]: string | null }>({});
   const [showEmoji, setShowEmoji] = useState<number | null>(null);
   const [hoverMsg, setHoverMsg] = useState<number | null>(null);
-  const [showTeddy, setShowTeddy] = useState(false);
-  const [teddyInput, setTeddyInput] = useState("");
-  const [teddyReply, setTeddyReply] = useState<string | null>(null);
-  const [teddyLoading, setTeddyLoading] = useState(false);
   const [categories, setCategories] = useState<any[]>([]);
   const [selectedSizes, setSelectedSizes] = useState<{ [key: number]: number }>({});
   const [selectedProductSizes, setSelectedProductSizes] = useState<{ [msgIdx: number]: { [prodIdx: number]: number } }>({});
@@ -227,100 +223,8 @@ return [
     recognition.start();
   };
 
-  const sendTeddy = async () => {
-    const userMsg = teddyInput.trim();
-    if (!userMsg) return;
-    setTeddyInput("");
-    setTeddyLoading(true);
-
-    try {
-      const res = await fetch("http://localhost:3001/api/bear-voice", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ message: userMsg })
-      });
-      const blob = await res.blob();
-      // Phát audio trả về
-      const url = URL.createObjectURL(blob);
-      const audio = new Audio(url);
-      audio.play();
-      setTeddyReply("Gấu đã trả lời, bé hãy lắng nghe nhé!");
-    } catch {
-      setTeddyReply("Có lỗi khi gửi tin nhắn, vui lòng thử lại!");
-    }
-    setTeddyLoading(false);
-  };
-
-  const startTeddyVoice = () => {
-    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-    if (!SpeechRecognition) {
-      antMessage.warning("Trình duyệt không hỗ trợ nhận diện giọng nói!");
-      return;
-    }
-    const recognition = new SpeechRecognition();
-    recognition.lang = "vi-VN";
-    recognition.continuous = false;
-    recognition.interimResults = false;
-    recognition.onresult = (event: any) => {
-      const transcript = event.results[0][0].transcript;
-      setTeddyInput(transcript);
-      setTimeout(sendTeddy, 300); // Gửi luôn sau khi nhận giọng nói
-    };
-    recognition.start();
-  };
-
   return (
     <>
-      {/* Modal Gấu biết nói luôn được render */}
-      <Modal
-        open={showTeddy}
-        title="🐻 Gấu biết nói"
-        onCancel={() => setShowTeddy(false)}
-        footer={null}
-        centered
-      >
-        <div style={{ marginBottom: 12, color: "#d63384", fontWeight: 500 }}>
-          Gợi ý cho bé: <br />
-          <span style={{ marginRight: 8 }}>“Gấu tên gì?”</span>
-          <span style={{ marginRight: 8 }}>“Gấu thích ăn gì?”</span>
-          <span>“Hôm nay gấu làm gì?”</span>
-        </div>
-        <div style={{ marginBottom: 12 }}>
-          <Input
-            placeholder="Bé hỏi gì với Gấu?"
-            value={teddyInput}
-            onChange={e => setTeddyInput(e.target.value)}
-            onPressEnter={sendTeddy}
-            style={{ marginBottom: 8 }}
-          />
-          <Button
-            icon={<AudioOutlined />}
-            onClick={startTeddyVoice}
-            style={{ marginRight: 8 }}
-          >
-            Nói với Gấu
-          </Button>
-          <Button
-            type="primary"
-            style={{ background: PINK_DARK, border: "none" }}
-            onClick={sendTeddy}
-          >
-            Gửi
-          </Button>
-        </div>
-        <div style={{ minHeight: 40 }}>
-          {teddyLoading ? (
-            <Spin indicator={<LoadingOutlined style={{ fontSize: 22, color: PINK_DARK }} spin />} />
-          ) : (
-            teddyReply && (
-              <div style={{ background: PINK, borderRadius: 10, padding: 10, color: "#d63384" }}>
-                <b>Gấu:</b> {teddyReply}
-              </div>
-            )
-          )}
-        </div>
-      </Modal>
-
       {/* Giao diện chatbox lớn hoặc mini */}
       {showChat ? (
         <div
@@ -329,31 +233,54 @@ return [
             bottom: 0,
             right: 0,
             zIndex: 1000,
-            width: 440, // <-- SỬA từ 400 thành 440
-            height: 600,
+            width:
+              window.innerWidth < 600
+                ? "100vw"
+                : window.innerWidth < 900
+                ? 380
+                : 440,
+            height:
+              window.innerHeight < 600
+                ? "100vh"
+                : window.innerWidth < 900
+                ? 480
+                : 600,
             background: WHITE,
-            borderRadius: "18px 0 0 0",
+            borderRadius:
+              window.innerWidth < 600
+                ? "0"
+                : "18px 0 0 0",
             boxShadow: "0 4px 24px #eeb6d2",
             display: "flex",
-            flexDirection: "column"
+            flexDirection: "column",
+            maxWidth: "100vw",
+            maxHeight: "100vh",
           }}
         >
           {/* Header */}
-          <div style={{
-            background: PINK_DARK,
-            borderRadius: "18px 0 0 0",
-            padding: "16px 20px 12px 20px",
-            display: "flex",
-            alignItems: "center",
-            color: "#fff",
-            position: "relative"
-          }}>
+          <div
+            style={{
+              background: PINK_DARK,
+              borderRadius:
+                window.innerWidth < 600
+                  ? "0"
+                  : "18px 0 0 0",
+              padding:
+                window.innerWidth < 600
+                  ? "12px 10px"
+                  : "16px 20px 12px 20px",
+              display: "flex",
+              alignItems: "center",
+              color: "#fff",
+              position: "relative",
+            }}
+          >
             <Avatar
               src="https://cdn-icons-png.flaticon.com/512/4712/4712035.png"
-              size={36}
+              size={window.innerWidth < 600 ? 28 : 36}
               style={{ marginRight: 12, background: "#fff" }}
             />
-            <span style={{ fontWeight: 600, fontSize: 20 }}>
+            <span style={{ fontWeight: 600, fontSize: window.innerWidth < 600 ? 16 : 20 }}>
               MiMiBear
             </span>
             <Button
@@ -364,23 +291,25 @@ return [
                 right: 12,
                 top: 10,
                 color: "#fff",
-                fontSize: 22
+                fontSize: 22,
               }}
               onClick={() => setShowChat(false)}
             />
           </div>
           {/* Nội dung chat */}
-          <div style={{
-            flex: 1,
-            padding: "24px 0 0 0",
-            overflowY: "auto",
-            background: WHITE
-          }}>
+          <div
+            style={{
+              flex: 1,
+              padding: window.innerWidth < 600 ? "12px 0 0 0" : "24px 0 0 0",
+              overflowY: "auto",
+              background: WHITE,
+            }}
+          >
             <div
               style={{
-                margin: "0 24px 16px 24px",
+                margin: window.innerWidth < 600 ? "0 8px 12px 8px" : "0 24px 16px 24px",
                 display: "flex",
-                flexDirection: "column"
+                flexDirection: "column",
               }}
             >
               {messages.map((msg, i) => (
@@ -834,11 +763,13 @@ return [
             </div>
           </div>
           {/* Input chat */}
-          <div style={{
-            padding: "16px 16px 8px 16px",
-            borderTop: `1px solid ${PINK}`,
-            background: WHITE
-          }}>
+          <div
+            style={{
+              padding: window.innerWidth < 600 ? "10px 8px 6px 8px" : "16px 16px 8px 16px",
+              borderTop: `1px solid ${PINK}`,
+              background: WHITE,
+            }}
+          >
             <div>
               <Input
                 placeholder="Nhập tin nhắn..."
@@ -853,13 +784,6 @@ return [
                     overlay={
                       <Menu>
                        
-                        <Menu.Item key="teddy" onClick={() => {
-                          setShowTeddy(true);
-                          setTeddyInput("");
-                          setTeddyReply(null);
-                        }}>
-                          🐻 AI nói chuyện với bé
-                        </Menu.Item>
                         {/* Hiển thị tất cả danh mục con luôn */}
                         {categories
                           .filter(cat => Array.isArray(cat.subcategories) && cat.subcategories.length > 0)

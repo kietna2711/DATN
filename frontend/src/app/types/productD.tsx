@@ -2,6 +2,7 @@ import { Category, SubCategory } from "./categoryD";
 import { Variant } from "./variantD";
 
 export interface Products {
+  quantity: any;
   isNew: any;
   id: string;
 

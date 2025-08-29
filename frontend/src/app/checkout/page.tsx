@@ -32,6 +32,17 @@ const CheckoutPage: React.FC = () => {
   const [discount, setDiscount] = useState(0);
   const [voucherMessage, setVoucherMessage] = useState("");
   const [appliedVoucher, setAppliedVoucher] = useState<any>(null);
+  
+  const [shippingInfo, setShippingInfo] = useState({
+    userId: "",
+    name: "",
+    phone: "",
+    address: "",
+    note: "",
+    cityId: "",
+    districtId: "",
+    wardId: "",
+  });
 
   // Địa chỉ động
   const [cities, setCities] = useState<any[]>([]);
@@ -44,7 +55,9 @@ const CheckoutPage: React.FC = () => {
   //Chi tiết sp
   const [buyNowItem, setBuyNowItem] = useState<any | null>(null);
   const searchParams = useSearchParams();
-  //
+  const productId = searchParams.get("productId");
+  const [luckyProduct, setLuckyProduct] = useState<any | null>(null);
+
   useEffect(() => {
     const isBuyNow = searchParams.get("buyNow") === "1";
     if (isBuyNow) {
@@ -59,6 +72,19 @@ const CheckoutPage: React.FC = () => {
       }
     }
   }, [searchParams]);
+
+  useEffect(() => {
+    if (productId) {
+      fetch(`http://localhost:3000/products/${productId}`)
+        .then(res => res.json())
+        .then(data => {
+          setLuckyProduct({
+            product: { ...data, price: 0 },
+            quantity: 1,
+          });
+        });
+    }
+  }, [productId]);
 
   // Thông báo lỗi
   const [errors, setErrors] = useState<{ [k: string]: string }>({});
@@ -194,7 +220,7 @@ const CheckoutPage: React.FC = () => {
 
   // const cartItems = useAppSelector((state) => state.cart.items);
   const cartItemsRedux = useAppSelector((state) => state.cart.items);
-  const cartItems = buyNowItem ? [buyNowItem] : cartItemsRedux;
+  const cartItems = luckyProduct ? [luckyProduct] : buyNowItem ? [buyNowItem] : cartItemsRedux;
   // 
   const handlePaymentChange = (value: string) => {
     setPayment(value);
@@ -312,47 +338,6 @@ const CheckoutPage: React.FC = () => {
   };
 
 
-  // --- HÀM GỬI ĐƠN HÀNG ĐỂ LẤY LINK THANH TOÁN VNPAY (THÊM MỚI) ---
-  const handleOnlineOrderVnpay = async () => {
-    const orderId = "order" + Date.now() + Math.floor(Math.random() * 1000000); // Luôn duy nhất
-    const shippingInfo = {
-      name: fullName,
-      phone,
-      address: `${address}, ${wards.find(w => w.Id === selectedWard)?.Name || ""}, ${districts.find(d => d.Id === selectedDistrict)?.Name || ""}, ${cities.find(c => c.Id === selectedCity)?.Name || ""}`,
-      note,
-      city: cities.find(c => c.Id === selectedCity)?.Name || "",
-      district: districts.find(d => d.Id === selectedDistrict)?.Name || "",
-      ward: wards.find(w => w.Id === selectedWard)?.Name || "",
-    };
-    const items = cartItems.map(item => ({
-      productId: item.product._id,
-      productName: item.product.name,
-      variant: item.selectedVariant ? item.selectedVariant.size : undefined,
-      quantity: item.quantity,
-      price: item.selectedVariant ? item.selectedVariant.price : item.product.price,
-      image: item.product.images?.[0],
-    }));
-
-    try {
-      const res = await axios.post("http://localhost:3000/payment/vnpay", {
-        amount: totalWithShipping,
-        orderId,
-        orderInfo: "Thanh toán đơn hàng MimiBear qua VNPAY",
-        items,
-        shippingInfo,
-        coupon,
-        shippingFee: SHIPPING_FEE,
-      }, {
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem("token")}`,
-        }
-      });
-      window.location.href = res.data.paymentUrl;
-    } catch (err) {
-      Swal.fire("Lỗi", "Không thể tạo thanh toán VNPAY!", "error");
-    }
-  };
-
 
   // Khi bấm nút đăng nhập ở trang thanh toán
   const handleLoginRedirect = () => {
@@ -402,6 +387,20 @@ const CheckoutPage: React.FC = () => {
   const handleOrder = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrors({});
+
+    // Kiểm tra đăng nhập trước
+    if (!isLoggedIn) {
+      Swal.fire({
+        title: "Vui lòng đăng nhập",
+        text: "Bạn cần đăng nhập để tiếp tục thanh toán.",
+        icon: "warning",
+        confirmButtonText: "Đăng nhập",
+      }).then(() => {
+        handleLoginRedirect();
+      });
+      return;
+    }
+
     const check = validate();
     setErrors(check);
 
@@ -427,6 +426,11 @@ const CheckoutPage: React.FC = () => {
           if (result.isConfirmed) {
             try {
               await saveOrder();
+
+              // Tăng lượt quay lucky wheel
+              const turns = Number(localStorage.getItem("turns") || "0");
+              localStorage.setItem("turns", String(turns + 1));
+
               swalWithBootstrapButtons.fire({
                 title: "Đặt hàng thành công!",
                 text: "Cảm ơn bạn đã mua hàng.",
@@ -438,6 +442,7 @@ const CheckoutPage: React.FC = () => {
                 localStorage.removeItem("buyNowItem");
                 window.location.href = "/"; // quay về trang chủ
               });
+
             } catch (err) {
               swalWithBootstrapButtons.fire({
                 title: "Lỗi!",
@@ -456,20 +461,26 @@ const CheckoutPage: React.FC = () => {
           }
         });
       } else if (payment === "momo") {
+        // Tăng lượt quay lucky wheel
+        const turns = Number(localStorage.getItem("turns") || "0");
+        localStorage.setItem("turns", String(turns + 1));
         // THANH TOÁN ONLINE MOMO: chuyển sang cổng thanh toán
         await handleOnlineOrderMomo();
       } else if(payment === "vnpay") {
         // thanh toán online VNPAY
-        await handleOnlineOrderVnpay();
+        // await handleOnlineOrderVnpay();
       } else {
         // Các phương thức khác (ví dụ: zalopay, thanh toán thông thường)
         try {
           await saveOrder();
+          // Tăng lượt quay lucky wheel
+          const turns = Number(localStorage.getItem("turns") || "0");
+          localStorage.setItem("turns", String(turns + 1));
           Swal.fire("Thanh toán thành công", "Cảm ơn bạn đã mua hàng!", "success").then(() => {
             if (!buyNowItem) {
-                  dispatch(clearCart());
-                }
-                localStorage.removeItem("buyNowItem");
+              dispatch(clearCart());
+            }
+            localStorage.removeItem("buyNowItem");
             window.location.href = "/";
           });
         } catch (err) {

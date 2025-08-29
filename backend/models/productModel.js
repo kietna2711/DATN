@@ -2,9 +2,13 @@ const mongoose = require('mongoose');
 
 const productSchema = new mongoose.Schema({
   name: { type: String, required: true },
-  description: { type: String },
+  description: { type: String, required: true },
   images: { type: [String], required: true },
   price: { type: Number, required: true }, // Thêm dòng này
+   sold: {            // Số lượng đã bán
+    type: Number,
+    default: 0
+  },
   categoryId: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'categories', // Đúng nếu model export là 'categories'
@@ -13,9 +17,10 @@ const productSchema = new mongoose.Schema({
   subcategoryId: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'subcategories',
-  }
+  },
+  status: { type: String, default: "Còn hàng" },
 }, {
-  timestamps: true, // ✅ Tự động thêm createdAt và updatedAt
+  timestamps: true, 
   versionKey: false,
   toJSON: {
     virtuals: true,

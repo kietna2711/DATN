@@ -151,22 +151,25 @@ useEffect(() => {
 
 
   // Toggle ẩn/hiện
-  const handleToggleVisibility = async (id: string) => {
-    const post = posts.find((p) => p._id === id);
-    if (!post) return;
-    const isVisible = typeof post.visible === "boolean"
-      ? post.visible
-      : !post.hidden;
-    await fetch(`http://localhost:3000/api/posts/${id}`, {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        visible: !isVisible,
-        hidden: isVisible,
-      }),
-    });
-    fetchPosts();
-  };
+const handleToggleVisibility = async (id: string) => {
+  const post = posts.find(p => p._id === id);
+  if (!post) return;
+
+  const isVisible = typeof post.visible === 'boolean' ? post.visible : !post.hidden;
+
+  await fetch(`http://localhost:3000/api/posts/${id}`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      visible: !isVisible,
+      hidden: isVisible,
+    }),
+  });
+
+  fetchPosts();
+};
+
+
 
   // Xóa bài viết
   const handleDeletePost = (post: Post) => {
@@ -507,14 +510,14 @@ const handleSubmit = async (e: React.FormEvent) => {
                             >
                               <i className="fas fa-edit"></i>
                             </button>
-                            <button
+                            {/* <button
                               className="btn btn-danger btn-sm"
                               type="button"
                               title="Xóa"
                               onClick={() => handleDeletePost(post)}
                             >
                               <i className="fas fa-trash-alt"></i>
-                            </button>
+                            </button> */}
                           </div>
                         </td>
 
@@ -529,7 +532,7 @@ const handleSubmit = async (e: React.FormEvent) => {
         </div>
       </div>
       {/* Modal xác nhận xoá */}
-     {showDeleteConfirm && postToDelete && (
+     {/* {showDeleteConfirm && postToDelete && (
     <div
       className="modal fade show d-block"
       tabIndex={-1}
@@ -566,7 +569,7 @@ const handleSubmit = async (e: React.FormEvent) => {
         </div>
       </div>
     </div>
-  )}
+  )} */}
 
 
     </main>

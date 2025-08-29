@@ -5,6 +5,9 @@ const Profile = require('../models/profileModel');
 const Order = require('../models/orderModel');
 const OrderDetail = require('../models/orderDetailModel');
 const Product = require('../models/productModel');
+const variants = require('../models/variantsModel');
+const Voucher = require('../models/voucherModel');
+
 
 
 
@@ -58,24 +61,32 @@ router.post('/:username', async (req, res) => {
 router.put('/:username', async (req, res) => {
   try {
     const { username } = req.params;
-    const { phone, gender, birthDate, addresses, firstName, lastName } = req.body;
+    const { phone, gender, birthDate, addresses, firstName, lastName, defaultAddressId } = req.body;
 
     const user = await User.findOne({ username });
     if (!user) return res.status(404).json({ message: 'User không tồn tại' });
 
-    // Cập nhật họ tên nếu có
     if (firstName) user.firstName = firstName;
     if (lastName) user.lastName = lastName;
     await user.save();
 
-    // Cập nhật profile
     const profile = await Profile.findOne({ username });
     if (!profile) return res.status(404).json({ message: 'Profile chưa tồn tại' });
 
     profile.phone = phone;
     profile.gender = gender;
     profile.birthDate = birthDate;
-    profile.addresses = addresses;
+
+    if (addresses && addresses.length > 0) {
+      if (defaultAddressId) {
+        const idx = addresses.findIndex(a => a.id === defaultAddressId);
+        if (idx !== -1) {
+          const [selected] = addresses.splice(idx, 1);
+          addresses.unshift(selected); // đưa mặc định lên đầu
+        }
+      }
+      profile.addresses = addresses;
+    }
 
     await profile.save();
 
@@ -84,6 +95,7 @@ router.put('/:username', async (req, res) => {
     res.status(500).json({ message: 'Lỗi server khi cập nhật profile', error: error.message });
   }
 });
+
 
 
 // Lấy đơn hàng có shippingInfo.name trùng username
@@ -137,7 +149,7 @@ router.get('/by-username-ordername/:username', async (req, res) => {
   }
 });
 
-// routes/orders.js
+// Cập nhật trạng thái + trừ kho / tăng sold
 router.put('/update-status/:orderId', async (req, res) => {
   const { orderId } = req.params;
   if (!orderId) return res.status(400).json({ error: 'Thiếu orderId' });
@@ -147,34 +159,94 @@ router.put('/update-status/:orderId', async (req, res) => {
     if (!order) return res.status(404).json({ error: 'Không tìm thấy đơn hàng' });
 
     const currentStatus = order.orderStatus;
-    const paymentMethod = order.paymentMethod.toLowerCase();
     const paymentStatus = order.paymentStatus;
 
-    // ✅ Trường hợp: Huỷ đơn khi đang chờ xác nhận
     if (currentStatus === 'waiting') {
       order.orderStatus = 'cancelled';
-    }
-
-    // ✅ Trường hợp: Xác nhận đã nhận hàng khi đang giao
-    else if (currentStatus === 'shipping') {
+    } else if (currentStatus === 'shipping') {
       order.orderStatus = 'delivered';
 
-      // ✅ Nếu là COD thì chuyển sang đã thanh toán
-      if (paymentMethod === 'cod' && paymentStatus !== 'paid') {
+      if (paymentStatus !== 'paid') {
         order.paymentStatus = 'paid';
       }
 
-      // ✅ Nếu là momo thì không đổi paymentStatus vì đã là 'paid'
+      // 🔹 Cập nhật kho & sold
+      const orderDetails = await OrderDetail.find({
+        $or: [
+          { orderId: order.orderId },
+          { orderId: order._id.toString() }
+        ]
+      });
+
+      for (const detail of orderDetails) {
+        if (!detail.productId) continue;
+
+        let productObjectId;
+        try {
+          productObjectId = typeof detail.productId === 'string'
+            ? mongoose.Types.ObjectId(detail.productId)
+            : detail.productId;
+        } catch (e) {
+          console.warn(`❌ Không thể ép kiểu productId: ${detail.productId}`);
+          continue;
+        }
+
+        const updatedProduct = await Product.findByIdAndUpdate(
+          productObjectId,
+          { $inc: { sold: detail.quantity } },
+          { new: true }
+        );
+
+        if (!updatedProduct) {
+          console.warn(`❌ Không tìm thấy sản phẩm với ID ${detail.productId}`);
+        } else {
+          console.log(`✅ Đã cập nhật sold cho product: ${updatedProduct._id}`);
+        }
+
+        const updatedVariant = await variants.findOneAndUpdate(
+          {
+            productId: productObjectId,
+            size: detail.variant
+          },
+          { $inc: { quantity: -detail.quantity } },
+          { new: true }
+        );
+
+        if (!updatedVariant) {
+          console.warn(`❌ Không tìm thấy variant cho productId ${detail.productId} và size ${detail.variant}`);
+        } else {
+          console.log(`✅ Đã cập nhật variant:`, updatedVariant);
+        }
+      }
+
+      // ✅ Trừ lượt sử dụng voucher (nếu có coupon)
+      if (order.coupon) {
+        const voucher = await Voucher.findOne({ discountCode: order.coupon });
+
+        if (voucher) {
+          if (voucher.usageLimit > 0) {
+            voucher.usageLimit -= 1;
+            voucher.used += 1;
+            await voucher.save();
+            console.log(`✅ Đã trừ lượt sử dụng voucher ${voucher.discountCode}`);
+          } else {
+            console.warn(`❌ Voucher ${voucher.discountCode} không còn lượt sử dụng`);
+          }
+        } else {
+          console.warn(`❌ Không tìm thấy voucher với mã: ${order.coupon}`);
+        }
+      }
     }
 
     await order.save();
-
-    return res.json({ message: 'Cập nhật trạng thái thành công', order });
+    res.json({ message: '✅ Cập nhật trạng thái thành công', order });
   } catch (error) {
-    console.error('Lỗi cập nhật trạng thái:', error);
-    return res.status(500).json({ error: 'Lỗi server khi cập nhật trạng thái' });
+    console.error('❌ Lỗi cập nhật trạng thái:', error);
+    res.status(500).json({ error: 'Lỗi server khi cập nhật trạng thái' });
   }
 });
+
+
 
 
 module.exports = router;

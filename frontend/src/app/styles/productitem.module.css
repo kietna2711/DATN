@@ -42,7 +42,6 @@
 .container_product {
   max-width: 1200px;
   margin: 0 auto;
-  padding: 40px 0px;
   text-align: center;
   
 }
@@ -344,6 +343,10 @@
   margin: 10px 10px;
 }
 
+.danhmucgau button.active {
+  background: #f05599;
+  color: #fff;
+}
 .tabs {
   display: flex;
   justify-content: center;
@@ -1198,21 +1201,28 @@
   color: whitesmoke;
 }
 }
-/* Responsive: max-width 486px */
-@media (max-width: 486px) {
+/* Responsive: max-width 480px */
+@media (max-width: 480px) {
   .filter-bar {
     max-width: 100%;
+    display: flex;
+    flex-wrap: nowrap; /* Không cho xuống dòng */
+    justify-content: space-between;
     margin: 15px 5px;
     padding: 0 6px;
-    flex-direction: column;
     gap: 10px;
   }
-  .filter-left,
+  .filter-left {
+    align-items: center;
+    gap: 6px;
+    width: 200px;
+  }
   .filter-right {
     flex-direction: column;
-    align-items: flex-start;
-    gap: 6px;
-    width: 100%;
+    align-items: center;
+    gap: 12px;
+    margin-top: 42px;
+    width: 200px;
   }
   .filter-button {
   display: flex;
@@ -1230,11 +1240,13 @@
   }
   .filter-select {
     width: 100%;
+    height: 25px;
     box-sizing: border-box;
-    font-size: 15px;
+    font-size: 10px;
+    text-align: center;
   }
   .product-total {
-    font-size: 15px;
+    font-size: 12px;
   }
 }
 
@@ -1242,9 +1254,9 @@
 .pagination {
   display: flex;
   gap: 8px;
-  margin: 40px auto;
+  margin: 25px auto;
   justify-content: center;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
 }
 
 /* Mỗi item (số trang, mũi tên, ...) */
@@ -1317,14 +1329,15 @@
 
 @media (max-width: 600px) {
   .pagination {
-    gap: 2px;
+    gap: 5px;
+    max-width: 600px;
     margin-right: 20px;
   }
   .pageLink {
     margin: 0 auto;
-    max-width: 24px;
-    height: 20px;
-    font-size: 14px;
+    width: 10px;
+    height: 15px;
+    font-size: 10px;
   }
 }
 

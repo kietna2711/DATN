@@ -93,7 +93,7 @@ const login = [upload.single('img'), async (req, res) => {
             role: checkUser.role,
             username: checkUser.username
         }, process.env.JWT_SECRET, {
-            expiresIn: '1h'
+           expiresIn: '15d'
         });
         // Không trả về password!
         const { password, ...userWithoutPassword } = checkUser.toObject();
@@ -141,8 +141,8 @@ const getUser = async (req, res) => {
 //xác thực admin 
 const verifyAdmin = async (req, res, next) => {
     try {
-        // Lấy thông tin user từ id lưu trong req khi đã xác thực token
-        const user = await userModel.findById(req.userId);
+        // Sửa lại lấy id từ req.user.id
+        const user = await userModel.findById(req.user.id);
         console.log(user);
         console.log(user.role);
         if (!user) {

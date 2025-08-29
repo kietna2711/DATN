@@ -2,7 +2,6 @@
 import React, { useState } from "react";
 import "./forget.css";
 import { useRouter } from "next/navigation";
-import Link from "next/link";
 import { useShowMessage } from "../utils/useShowMessage";
 
 export default function Forget() {
@@ -68,7 +67,7 @@ export default function Forget() {
           />
           {errors.email && <div className="input-error">{errors.email}</div>}
           <button type="submit">Gửi mã xác thực</button>
-          <Link href="/login" className="register-link">Quay lại đăng nhập</Link>
+          <a href="/login" className="register-link">Quay lại đăng nhập</a>
         </form>
       </div>
     </div>

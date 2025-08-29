@@ -38,6 +38,7 @@ const usersProfileRoutes = require('./routes/userprofile'); // Đường dẫn �
 const favoriteRouter = require('./routes/favorites');
 const authenticateToken = require('./middleware/auth');
 const statisticsRouter = require('./routes/statistics');
+const prizesRouter = require('./routes/prizes');
 
 
 var app = express();
@@ -60,23 +61,52 @@ passport.use(new GoogleStrategy({
   callbackURL: "http://localhost:3000/users/auth/google/callback"
 },
 async (_accessToken, _refreshToken, profile, done) => {
-  let user = await User.findOne({ googleId: profile.id });
-  if (!user) {
-    // Lấy username từ displayName hoặc tự tạo
-    const username = profile.displayName
-      ? profile.displayName.replace(/\s+/g, '').toLowerCase()
-      : profile.emails[0].value.split('@')[0];
-    user = await User.create({
-      googleId: profile.id,
-      email: profile.emails[0].value,
-      firstName: profile.name.givenName,
-      lastName: profile.name.familyName,
-      username: username
-    });
+  try {
+    // 1. Lấy email từ profile
+    const email = profile.emails && profile.emails.length > 0
+      ? profile.emails[0].value
+      : null;
+
+    if (!email) {
+      return done(new Error('Google account has no email'), null);
+    }
+
+    // 2. Tìm theo googleId trước
+    let user = await User.findOne({ googleId: profile.id });
+
+    // 3. Nếu chưa có, tìm theo email
+    if (!user) {
+      user = await User.findOne({ email });
+
+      if (user) {
+        // Nếu đã có email nhưng chưa có googleId -> liên kết Google
+        if (!user.googleId) {
+          user.googleId = profile.id;
+          await user.save();
+        }
+      } else {
+        // 4. Nếu chưa có email luôn -> tạo mới
+        const username = profile.displayName
+          ? profile.displayName.replace(/\s+/g, '').toLowerCase()
+          : email.split('@')[0];
+
+        user = await User.create({
+          googleId: profile.id,
+          email,
+          firstName: profile.name?.givenName || '',
+          lastName: profile.name?.familyName || '',
+          username
+        });
+      }
+    }
+
+    return done(null, user);
+
+  } catch (err) {
+    console.error('Google OAuth error:', err);
+    return done(err, null);
   }
-  return done(null, user);
-}
-));
+}));
 
 passport.serializeUser((user, done) => {
   done(null, user.id);
@@ -120,7 +150,6 @@ app.use("/payment", paymentRouter); //Momo, thanh toán
 app.use(require('./routes/payment')); //IPN
 // app.use("/payment", require("./routes/payment")); //đường dẫn file routes/payment.js
 app.use("/orders", orderRoutes);
-
 app.use('/api/statistics', statisticsRouter);
 app.use("/orderdetails", orderDetailRoutes); //đường dẫn đơn hàng chi tiết
 
@@ -129,8 +158,13 @@ app.use("/reviews", require("./routes/review"));
 app.use("/giftoption", giftRoutes);
 
 app.use(authenticateToken); 
+app.use('/api/prizes', prizesRouter);
 
-
+// Express example
+app.get('/products/:id', async (req, res) => {
+  const product = await Product.findById(req.params.id);
+  res.json(product);
+});
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
@@ -204,5 +238,6 @@ cron.schedule('*/1 * * * *', async () => {
     console.error('[CRON] Lỗi khi tự động tắt voucher:', err);
   }
 });
+
 
 module.exports = app;

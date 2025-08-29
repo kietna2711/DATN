@@ -2,7 +2,7 @@ const express = require("express");
 const router = express.Router();
 
 const reviewController = require("../controllers/reviewController");
-const {verifyToken} = require('../controllers/userController');
+const {verifyToken,verifyAdmin} = require('../controllers/userController');
 const authenticateToken = require("../middleware/auth"); 
 
 // GET: lấy review theo productId (chỉ visible)
@@ -21,7 +21,7 @@ router.get('/stats/:productId', reviewController.getReviewStats);
 router.post("/", authenticateToken, reviewController.createReview);
 
 // PATCH: đổi trạng thái review (ẩn/hiện)
-router.patch("/:id/toggle-status",verifyToken,reviewController.toggleReviewStatus);
+router.patch("/:id/toggle-status",verifyToken,verifyAdmin,reviewController.toggleReviewStatus);
 
-
+router.get('/some-path', reviewController.getReviews);
 module.exports = router;

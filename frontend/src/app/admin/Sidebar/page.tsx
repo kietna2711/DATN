@@ -11,11 +11,9 @@ export default function Sidebar({ currentSection }: { currentSection: string }) 
     { key: "order", label: "Quản lý đơn hàng", icon: "bx bx-receipt" },
     { key: "article", label: "Quản lý bài viết", icon: "bx bx-news" },
     { key: "postscategories", label: "Danh mục bài viết", icon: "bx bx-news" },
-    { key: "comment", label: "Quản lý bình luận", icon: "bx bx-comment-detail" },
-    { key: "Evaluate", label: "Quản lý đánh giá", icon: "bx bx-star" },
+    { key: "evaluate", label: "Quản lý đánh giá", icon: "bx bx-star" },
     { key: "discount", label: "Quản lý mã giảm giá", icon: "bx bx-gift" },
-
-    { key: "report", label: "Báo cáo doanh thu", icon: "bx bx-bar-chart-alt-2" },
+    // { key: "report", label: "Báo cáo doanh thu", icon: "bx bx-bar-chart-alt-2" },
     // { key: "settings", label: "Cài đặt hệ thống", icon: "bx bx-cog" }
   ];
 

@@ -108,16 +108,10 @@ exports.createReview = async (req, res) => {
       return res.status(404).json({ error: 'Không tìm thấy người dùng.' });
     }
 
-    // ❌ Kiểm tra đã đánh giá sản phẩm này chưa
-    const existingReview = await Review.findOne({ productId, userId });
-    if (existingReview) {
-      return res.status(400).json({ error: 'Bạn đã đánh giá sản phẩm này rồi.' });
-    }
-
     // ✅ Lấy danh sách order đã giao của user
     const deliveredOrders = await Order.find({
       "shippingInfo.userId": userId,
-      orderStatus: "delivered",
+      orderStatus: { $in: ["delivered", "paid"] },
     }).select('_id');
 
     const deliveredOrderIds = deliveredOrders.map(order => order._id);
@@ -126,24 +120,30 @@ exports.createReview = async (req, res) => {
       return res.status(403).json({ error: 'Bạn cần mua và nhận hàng sản phẩm này để đánh giá.' });
     }
 
-    // ✅ Kiểm tra OrderDetail có sản phẩm đó không
-    const matchingOrderDetail = await OrderDetail.findOne({
+    // Đếm số lần đã nhận sản phẩm này
+    const orderDetailsCount = await OrderDetail.countDocuments({
       orderId: { $in: deliveredOrderIds },
       productId
     });
 
-    if (!matchingOrderDetail) {
+    if (orderDetailsCount === 0) {
       return res.status(403).json({ error: 'Bạn chưa mua sản phẩm này hoặc đơn hàng chưa được giao.' });
     }
 
-    // ✅ Tạo đánh giá
+    // Đếm số review đã viết cho sản phẩm này
+    const reviewCount = await Review.countDocuments({ productId, userId });
+
+    if (reviewCount >= orderDetailsCount) {
+      return res.status(400).json({ error: 'Bạn đã đánh giá đủ số lần mua sản phẩm này.' });
+    }
+
+    // Tạo đánh giá
     const review = await Review.create({
       productId,
       userId,
       rating,
       comment,
       username: user.username || "Ẩn danh",
-      name: user.name || "",
       status: "visible",
       createdAt: new Date()
     });
