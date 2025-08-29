@@ -20,7 +20,7 @@ export function validateVoucher({
   if (now > end) return { valid: false, message: "Voucher đã hết hạn" };
 
   // Kiểm tra số lượt dùng
-  if (voucher.usageLimit && voucher.used && voucher.used >= voucher.usageLimit) {
+  if (voucher.usageLimit && voucher.used && voucher.used <= voucher.usageLimit) {
     return { valid: false, message: "Voucher đã hết lượt sử dụng" };
   }
 

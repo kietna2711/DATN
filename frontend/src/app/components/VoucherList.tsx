@@ -16,6 +16,12 @@ export default function VoucherList() {
           if (v.active === false) return false;
           if (v.startDate && new Date(v.startDate) > now) return false;
           if (v.endDate && new Date(v.endDate) < now) return false;
+          if (
+            typeof v.usageLimit === "number" &&
+            typeof v.used === "number" &&
+            v.used >= v.usageLimit
+          )
+            return false;
           return true;
         })
       );

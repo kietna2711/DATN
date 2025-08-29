@@ -49,16 +49,6 @@
   text-decoration: none;
 }
 
-.tieude {
-  text-align: center;
-  color: #b576e6;
-  font-size: 2.5rem;
-  font-family: 'Baloo 2', cursive, sans-serif;
-  font-weight: 700;
-  margin: 20px 0px;
-  margin-top: 0;
-  letter-spacing: 2px;
-}
 .products {
   display: flex;
   flex-wrap: wrap;
@@ -962,10 +952,6 @@
     font-size: 0.9rem;
     padding-top: 5px;
   }
-  .tieude {
-    font-size: 20px;
-    padding: 8px 0;
-  }
   .img_category_product img {
     border-radius: 18px;
     margin-bottom: 8px;
@@ -1072,18 +1058,16 @@
   max-width: 1200px;
   display: flex;
   align-items: center;
-  margin: 20px auto;
+  margin:20px auto;
   flex-wrap: wrap;
   justify-content: space-between;
 }
-
 .filter-left {
   display: flex;
-  /* position: relative; */
+  position: relative;
   align-items: center;
   gap: 12px;
 }
-
 .filter-button {
   display: flex;
   align-items: center;
@@ -1115,28 +1099,26 @@
 .filter-icon {
   stroke: #f72585;
 }
-
 .filter-right {
-  position: relative;
-  top: -20px;
   display: flex;
   align-items: center;
   gap: 14px;
   justify-content: flex-end;
 }
-
 .filter-select option {
   background-color: rgba(218, 210, 210, 0.11);
   backdrop-filter: blur(8px); 
   -webkit-backdrop-filter: blur(8px); 
   border: 1px solid rgba(230, 147, 147, 0.3);
 }
-
 /* Tổng số sản phẩm */
 .product-total {
+  display: flex;
+  margin-left: 160px;
   font-weight: bold;
   color: #ee076ffb;
   font-size: 18px;
+  margin-bottom: 40px;
 }
 @media (max-width: 1024px) {
   .filter-bar {
@@ -1209,10 +1191,11 @@
     flex-wrap: nowrap; /* Không cho xuống dòng */
     justify-content: space-between;
     margin: 15px 5px;
-    padding: 0 6px;
     gap: 10px;
   }
   .filter-left {
+    display: flex;
+    flex-direction: column;
     align-items: center;
     gap: 6px;
     width: 200px;
@@ -1221,7 +1204,7 @@
     flex-direction: column;
     align-items: center;
     gap: 12px;
-    margin-top: 42px;
+    margin-top: -30px;
     width: 200px;
   }
   .filter-button {
@@ -1240,13 +1223,15 @@
   }
   .filter-select {
     width: 100%;
-    height: 25px;
+    height: 26px;
     box-sizing: border-box;
-    font-size: 10px;
+    font-size: 12px;
     text-align: center;
   }
   .product-total {
-    font-size: 12px;
+    margin-bottom: 0px;
+    margin-left: 20px;
+    font-size: 14px;
   }
 }
 
