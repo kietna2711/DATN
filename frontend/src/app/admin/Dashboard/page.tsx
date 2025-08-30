@@ -160,13 +160,13 @@ export default function ReportManagement() {
     });
   }
   if (widgetFilter === "month") {
-    const currentMonth = now.getMonth() + 1;
-    const currentYear = now.getFullYear();
-    return orders.filter(order =>
-      new Date(order.createdAt).getMonth() + 1 === currentMonth &&
-      new Date(order.createdAt).getFullYear() === currentYear
-    );
-  }
+  if (!selectedDate) return [];
+  const [year, month] = selectedDate.split("-");
+  return orders.filter(order => {
+    const d = new Date(order.createdAt);
+    return d.getFullYear() === Number(year) && (d.getMonth() + 1) === Number(month);
+  });
+}
   if (widgetFilter === "year") {
     const currentYear = now.getFullYear();
     return orders.filter(order =>
@@ -207,10 +207,13 @@ export default function ReportManagement() {
     });
   }
     if (widgetFilter === "month") {
-      const monthAgo = new Date();
-      monthAgo.setMonth(monthAgo.getMonth() - 1);
-      return users.filter(u => new Date(u.createdAt) >= monthAgo);
-    }
+  if (!selectedDate) return [];
+  const [year, month] = selectedDate.split("-");
+  return orders.filter(order => {
+    const d = new Date(order.createdAt);
+    return d.getFullYear() === Number(year) && (d.getMonth() + 1) === Number(month);
+  });
+}
     if (widgetFilter === "year") {
       const currentYear = now.getFullYear();
       return users.filter(u => new Date(u.createdAt).getFullYear() === currentYear);
@@ -237,10 +240,13 @@ export default function ReportManagement() {
     });
   }
     if (widgetFilter === "month") {
-      const monthAgo = new Date();
-      monthAgo.setMonth(monthAgo.getMonth() - 1);
-      return products.filter(p => new Date(p.createdAt) >= monthAgo);
-    }
+  if (!selectedDate) return [];
+  const [year, month] = selectedDate.split("-");
+  return orders.filter(order => {
+    const d = new Date(order.createdAt);
+    return d.getFullYear() === Number(year) && (d.getMonth() + 1) === Number(month);
+  });
+}
     if (widgetFilter === "year") {
       const currentYear = now.getFullYear();
       return products.filter(p => new Date(p.createdAt).getFullYear() === currentYear);
@@ -600,19 +606,30 @@ export default function ReportManagement() {
             <option value="year">Theo năm</option>
           </select>
           {widgetFilter === "day" && (
-            <input
-              type="date"
-              className="form-control d-inline w-auto ml-2"
-              value={selectedDate}
-              max={new Date().toISOString().split("T")[0]}
-              min={(() => {
-                const d = new Date();
-                d.setDate(d.getDate() - 29);
-                return d.toISOString().split("T")[0];
-              })()}
-              onChange={e => setSelectedDate(e.target.value)}
-            />
-          )}
+  <input
+    type="date"
+    className="form-control d-inline w-auto ml-2"
+    value={selectedDate}
+    max={new Date().toISOString().split("T")[0]}
+    min={(() => {
+      const d = new Date();
+      d.setDate(d.getDate() - 29);
+      return d.toISOString().split("T")[0];
+    })()}
+    onChange={e => setSelectedDate(e.target.value)}
+  />
+)}
+
+{widgetFilter === "month" && (
+  <input
+    type="month"
+    className="form-control d-inline w-auto ml-2"
+    value={selectedDate}
+    max={new Date().toISOString().slice(0, 7)}
+    min="2023-01"
+    onChange={e => setSelectedDate(e.target.value)}
+  />
+)}
         </div>
       </div>
 
