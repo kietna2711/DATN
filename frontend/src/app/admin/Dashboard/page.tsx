@@ -54,6 +54,13 @@ export default function ReportManagement() {
   const [newCustomers, setNewCustomers] = useState<any[]>([]);
   const [orderDetails, setOrderDetails] = useState<any[]>([]);
 
+  //phân trang 
+  const [latestOrders, setLatestOrders] = useState<any[]>([]);
+  const [currentPage, setCurrentPage] = useState(1);
+  const pageSize = 7;
+  const totalPages = Math.ceil(latestOrders.length / pageSize);
+  const pagedOrders = latestOrders.slice((currentPage - 1) * pageSize, currentPage * pageSize);
+
   const [monthLabels, setMonthLabels] = useState<string[]>([]);
   const [ordersCountByMonth, setOrdersCountByMonth] = useState<number[]>([]);
 
@@ -64,7 +71,6 @@ export default function ReportManagement() {
   const [selectedDate, setSelectedDate] = useState<string>("");
 
   // Thêm vào sau các useState đã có
-  const [latestOrders, setLatestOrders] = useState<any[]>([]);
   const [confirmModal, setConfirmModal] = useState<{ show: boolean, orderId: string, newStatus: string } | null>(null);
 
 /**
@@ -136,7 +142,7 @@ export default function ReportManagement() {
   };
 
   function filterOrdersByWidget(orders: any[]) {
-   if (widgetFilter === "all") return orders;
+  if (widgetFilter === "all") return orders;
   const now = new Date();
   if (widgetFilter === "day") {
     if (!selectedDate) return [];
@@ -145,30 +151,43 @@ export default function ReportManagement() {
       return od.toISOString().split("T")[0] === selectedDate;
     });
   }
-    if (widgetFilter === "week") {
-      const currentWeek = getWeekNumber(now);
-      const currentYear = now.getFullYear();
-      return orders.filter(order => {
-        const od = new Date(order.createdAt);
-        return getWeekNumber(od) === currentWeek && od.getFullYear() === currentYear;
-      });
-    }
-    if (widgetFilter === "month") {
-      const currentMonth = now.getMonth() + 1;
-      const currentYear = now.getFullYear();
-      return orders.filter(order =>
-        new Date(order.createdAt).getMonth() + 1 === currentMonth &&
-        new Date(order.createdAt).getFullYear() === currentYear
-      );
-    }
-    if (widgetFilter === "year") {
-      const currentYear = now.getFullYear();
-      return orders.filter(order =>
-        new Date(order.createdAt).getFullYear() === currentYear
-      );
-    }
-    return orders;
+  if (widgetFilter === "week") {
+    const start = getStartOfWeek(now);
+    const end = getEndOfWeek(now);
+    return orders.filter(order => {
+      const created = new Date(order.createdAt);
+      return created >= start && created <= end;
+    });
   }
+  if (widgetFilter === "month") {
+    const currentMonth = now.getMonth() + 1;
+    const currentYear = now.getFullYear();
+    return orders.filter(order =>
+      new Date(order.createdAt).getMonth() + 1 === currentMonth &&
+      new Date(order.createdAt).getFullYear() === currentYear
+    );
+  }
+  if (widgetFilter === "year") {
+    const currentYear = now.getFullYear();
+    return orders.filter(order =>
+      new Date(order.createdAt).getFullYear() === currentYear
+    );
+  }
+  return orders;
+}
+
+    function getStartOfWeek(date: Date) {
+      const d = new Date(date);
+      const day = d.getDay() || 7; // Chủ nhật là 7
+      d.setHours(0, 0, 0, 0);
+      d.setDate(d.getDate() - day + 1); // Về thứ Hai
+      return d;
+    }
+    function getEndOfWeek(date: Date) {
+      const d = getStartOfWeek(date);
+      d.setDate(d.getDate() + 6); // Chủ nhật
+      return d;
+    }
 
   function filterUsersByWidget(users: any[]) {
     if (widgetFilter === "all") return users;
@@ -179,11 +198,14 @@ export default function ReportManagement() {
         new Date(u.createdAt).toISOString().split("T")[0] === selectedDate
       );
   }
-    if (widgetFilter === "week") {
-      const weekAgo = new Date();
-      weekAgo.setDate(weekAgo.getDate() - 7);
-      return users.filter(u => new Date(u.createdAt) >= weekAgo);
-    }
+   if (widgetFilter === "week") {
+    const start = getStartOfWeek(now);
+    const end = getEndOfWeek(now);
+    return users.filter(u => {
+      const created = new Date(u.createdAt);
+      return created >= start && created <= end;
+    });
+  }
     if (widgetFilter === "month") {
       const monthAgo = new Date();
       monthAgo.setMonth(monthAgo.getMonth() - 1);
@@ -207,10 +229,13 @@ export default function ReportManagement() {
         );
   }
     if (widgetFilter === "week") {
-      const weekAgo = new Date();
-      weekAgo.setDate(weekAgo.getDate() - 7);
-      return products.filter(p => new Date(p.createdAt) >= weekAgo);
-    }
+    const start = getStartOfWeek(now);
+    const end = getEndOfWeek(now);
+    return products.filter(p => {
+      const created = new Date(p.createdAt);
+      return created >= start && created <= end;
+    });
+  }
     if (widgetFilter === "month") {
       const monthAgo = new Date();
       monthAgo.setMonth(monthAgo.getMonth() - 1);
@@ -223,24 +248,24 @@ export default function ReportManagement() {
     return products;
   }
 
-  // Lấy 10 đơn hàng gần nhất, ưu tiên đơn chưa xác nhận
+  // Lấy tất cả đơn hàng chưa duyệt
   useEffect(() => {
-    if (!orders || orders.length === 0) {
-      setLatestOrders([]);
-      return;
-    }
-    const sortedOrders = [...orders].sort(
-      (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-    );
-    const unconfirmedOrders = sortedOrders.filter(order =>
-      order.orderStatus === "waiting" || order.orderStatus === "pending" || order.orderStatus === "chờ xác nhận"
-    );
-    const result = [
-      ...unconfirmedOrders.slice(0, 10),
-      ...sortedOrders.filter(order => !unconfirmedOrders.includes(order)).slice(0, 10 - unconfirmedOrders.length)
-    ].slice(0, 10);
-    setLatestOrders(result);
-  }, [orders]);
+  if (!orders || orders.length === 0) {
+    setLatestOrders([]);
+    return;
+  }
+  // Lấy tất cả đơn hàng chưa duyệt
+  const unapprovedOrders = orders.filter(order =>
+    order.orderStatus === "waiting" ||
+    order.orderStatus === "pending" ||
+    order.orderStatus === "chờ xác nhận"
+  );
+  // Sắp xếp mới nhất lên đầu
+  const sortedUnapproved = [...unapprovedOrders].sort(
+    (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+  );
+  setLatestOrders(sortedUnapproved); // Không slice(0, 10) nữa
+}, [orders]);
 
   // Hàm lấy tên sản phẩm từ orderItems
   function getProductNames(order: any) {
@@ -408,10 +433,12 @@ export default function ReportManagement() {
   }, []);
 
   function getWeekNumber(date: Date) {
-  const firstDayOfYear = new Date(date.getFullYear(), 0, 1);
-  const pastDaysOfYear = (date.getTime() - firstDayOfYear.getTime()) / 86400000;
-  return Math.ceil((pastDaysOfYear + firstDayOfYear.getDay() + 1) / 7);
-  }
+  const d = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
+  d.setUTCDate(d.getUTCDate() + 4 - (d.getUTCDay() || 7));
+  const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
+  const weekNo = Math.ceil((((d.getTime() - yearStart.getTime()) / 86400000) + 1) / 7);
+  return weekNo;
+}
 
 
   function getOrdersByFilter(data: any[], filter: "day" | "week" | "month"| "year") {
@@ -433,17 +460,22 @@ export default function ReportManagement() {
     return { labels, counts };
   }
   if (filter === "week") {
-    // 4 tuần gần nhất theo tuần thực tế
-    const currentWeek = getWeekNumber(now);
-    const currentYear = now.getFullYear();
-    const weeks = [currentWeek - 3, currentWeek - 2, currentWeek - 1, currentWeek];
-    const labels = weeks.map(w => `Tuần ${w}`);
-    const counts = weeks.map(w => {
-      return data.filter(order => {
+    // Lấy 4 tuần gần nhất (cả năm và tuần)
+    const weeks: { year: number, week: number }[] = [];
+    let tempDate = new Date(now);
+    for (let i = 0; i < 4; i++) {
+      const year = tempDate.getFullYear();
+      const week = getWeekNumber(tempDate);
+      weeks.unshift({ year, week });
+      tempDate.setDate(tempDate.getDate() - 7);
+    }
+    const labels = weeks.map(w => `Tuần ${w.week} (${w.year})`);
+    const counts = weeks.map(w =>
+      data.filter(order => {
         const od = new Date(order.createdAt);
-        return getWeekNumber(od) === w && od.getFullYear() === currentYear;
-      }).length;
-    });
+        return getWeekNumber(od) === w.week && od.getFullYear() === w.year;
+      }).length
+    );
     return { labels, counts };
   }
   if (filter === "year") {
@@ -547,7 +579,7 @@ export default function ReportManagement() {
         <div className="col-md-12">
           <div className="app-title">
             <ul className="app-breadcrumb breadcrumb">
-              <li className="breadcrumb-item"><b>Báo cáo doanh thu</b></li>
+              <li className="breadcrumb-item"><b>BÁO CÁO DANNH THU</b></li>
             </ul>
             <div id="clock"></div>
           </div>
@@ -555,34 +587,34 @@ export default function ReportManagement() {
       </div>
       {/* Select lọc widget */}
       <div className="row mb-3">
-  <div className="col-md-12 text-right">
-    <select
-      className="form-select w-auto d-inline"
-      value={widgetFilter}
-      onChange={e => setWidgetFilter(e.target.value as any)}
-    >
-      <option value="all">Tất cả</option>
-      <option value="day">Theo ngày</option>
-      <option value="week">Theo tuần</option>
-      <option value="month">Theo tháng</option>
-      <option value="year">Theo năm</option>
-    </select>
-    {widgetFilter === "day" && (
-      <input
-        type="date"
-        className="form-control d-inline w-auto ml-2"
-        value={selectedDate}
-        max={new Date().toISOString().split("T")[0]}
-        min={(() => {
-          const d = new Date();
-          d.setDate(d.getDate() - 29);
-          return d.toISOString().split("T")[0];
-        })()}
-        onChange={e => setSelectedDate(e.target.value)}
-      />
-    )}
-  </div>
-</div>
+        <div className="col-md-12 text-right">
+          <select
+            className="form-select w-auto d-inline"
+            value={widgetFilter}
+            onChange={e => setWidgetFilter(e.target.value as any)}
+          >
+            <option value="all">Tất cả</option>
+            <option value="day">Theo ngày</option>
+            <option value="week">Theo tuần</option>
+            <option value="month">Theo tháng</option>
+            <option value="year">Theo năm</option>
+          </select>
+          {widgetFilter === "day" && (
+            <input
+              type="date"
+              className="form-control d-inline w-auto ml-2"
+              value={selectedDate}
+              max={new Date().toISOString().split("T")[0]}
+              min={(() => {
+                const d = new Date();
+                d.setDate(d.getDate() - 29);
+                return d.toISOString().split("T")[0];
+              })()}
+              onChange={e => setSelectedDate(e.target.value)}
+            />
+          )}
+        </div>
+      </div>
 
         {/* Widgets */}
         <div className="row">
@@ -673,11 +705,57 @@ export default function ReportManagement() {
         </div>
       </div>
 
-      {/* BẢNG 10 ĐƠN HÀNG GẦN NHẤT */}
+      {/* option chọn thời gian */}
+      <div className="row mb-3">
+        <div className="col-md-12 text-right">
+          <select
+            className="form-select w-auto d-inline"
+            value={timeFilter}
+            onChange={(e) => setTimeFilter(e.target.value as any)}
+          >
+            <option value="day">Theo ngày</option>
+            <option value="week">Theo tuần</option>
+            <option value="month">Theo tháng</option>
+            <option value="year">Theo năm</option>
+          </select>
+        </div>
+      </div>
+
+      {/* Charts */}
+     <div className="row">
+        <div className="col-md-6">
+          <div className="tile">
+            <h3 className="tile-title" style={{ textAlign: "center", marginTop: 12 }}>
+              {timeFilter === "day"
+                ? "DỮ LIỆU HÀNG NGÀY"
+                : timeFilter === "week"
+                ? "DỮ LIỆU HÀNG TUẦN"
+                : "DỮ LIỆU HÀNG THÁNG"}
+            </h3>
+            <Line data={lineData} options={lineOptions} />
+          </div>
+        </div>
+        <div className="col-md-6">
+          <div className="tile">
+            <h3 className="tile-title" style={{ textAlign: "center", marginTop: 12 }}>
+              {timeFilter === "day"
+                ? "DỮ LIỆU HÀNG NGÀY"
+                : timeFilter === "week"
+                ? "DỮ LIỆU HÀNG TUẦN"
+                : timeFilter === "month"
+                ? "DỮ LIỆU HÀNG THÁNG"
+                : "DỮ LIỆU HÀNG NĂM"}
+            </h3>
+            <Bar data={updatedBarData} />
+          </div>
+        </div>
+      </div> 
+
+      {/* BẢNG ĐƠN HÀNG CHƯA DUYỆT */}
       <div className="row">
         <div className="col-md-12">
           <div className="tile">
-            <h3 className="tile-title">10 ĐƠN HÀNG GẦN NHẤT</h3>
+            <h3 className="tile-title">ĐƠN HÀNG CHƯA DUYỆT</h3>
             <div className="tile-body">
               <table className="table table-hover table-bordered" id="sampleTable">
                 <thead>
@@ -696,7 +774,7 @@ export default function ReportManagement() {
                   </tr>
                 </thead>
                 <tbody>
-                  {latestOrders.map(order => (
+                  {pagedOrders.map(order => (
                     <tr key={order._id || order.id}>
                       <td>{order.orderId || order._id || order.id}</td>
                       <td>{getProductNames(order)}</td>
@@ -747,7 +825,7 @@ export default function ReportManagement() {
                       </td>
                     </tr>
                   ))}
-                  {latestOrders.length === 0 && (
+                  {pagedOrders.length === 0 && (
                     <tr>
                       <td colSpan={11} className="text-center">Không có đơn hàng nào.</td>
                     </tr>
@@ -799,51 +877,30 @@ export default function ReportManagement() {
         </div>
       )}
 
-      {/* option chọn thời gian */}
-      <div className="row mb-3">
-        <div className="col-md-12 text-right">
-          <select
-            className="form-select w-auto d-inline"
-            value={timeFilter}
-            onChange={(e) => setTimeFilter(e.target.value as any)}
-          >
-            <option value="day">Theo ngày</option>
-            <option value="week">Theo tuần</option>
-            <option value="month">Theo tháng</option>
-            <option value="year">Theo năm</option>
-          </select>
-        </div>
+      <div className="d-flex justify-content-end align-items-center mt-2">
+        <nav>
+          <ul className="pagination mb-0">
+            <li className={`page-item${currentPage === 1 ? " disabled" : ""}`}>
+              <button className="page-link" onClick={() => setCurrentPage(currentPage - 1)} disabled={currentPage === 1}>
+                &laquo;
+              </button>
+            </li>
+            {Array.from({ length: totalPages }, (_, i) => (
+              <li key={i + 1} className={`page-item${currentPage === i + 1 ? " active" : ""}`}>
+                <button className="page-link" onClick={() => setCurrentPage(i + 1)}>
+                  {i + 1}
+                </button>
+              </li>
+            ))}
+            <li className={`page-item${currentPage === totalPages ? " disabled" : ""}`}>
+              <button className="page-link" onClick={() => setCurrentPage(currentPage + 1)} disabled={currentPage === totalPages}>
+                &raquo;
+              </button>
+            </li>
+          </ul>
+        </nav>
       </div>
 
-      {/* Charts */}
-     <div className="row">
-        <div className="col-md-6">
-          <div className="tile">
-            <h3 className="tile-title" style={{ textAlign: "center", marginTop: 12 }}>
-              {timeFilter === "day"
-                ? "DỮ LIỆU HÀNG NGÀY"
-                : timeFilter === "week"
-                ? "DỮ LIỆU HÀNG TUẦN"
-                : "DỮ LIỆU HÀNG THÁNG"}
-            </h3>
-            <Line data={lineData} options={lineOptions} />
-          </div>
-        </div>
-        <div className="col-md-6">
-          <div className="tile">
-            <h3 className="tile-title" style={{ textAlign: "center", marginTop: 12 }}>
-              {timeFilter === "day"
-                ? "DỮ LIỆU HÀNG NGÀY"
-                : timeFilter === "week"
-                ? "DỮ LIỆU HÀNG TUẦN"
-                : timeFilter === "month"
-                ? "DỮ LIỆU HÀNG THÁNG"
-                : "DỮ LIỆU HÀNG NĂM"}
-            </h3>
-            <Bar data={updatedBarData} />
-          </div>
-        </div>
-      </div> 
       <div className="text-right" style={{ fontSize: 12 }}>
         <p><b>Hệ thống quản lý V2.0 | Code by Trường</b></p>
       </div>

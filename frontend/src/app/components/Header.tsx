@@ -31,11 +31,13 @@ const Header: React.FC<Props> = ({ categories, onOpenWheel }) => {
   const [mobileMenuActive, setMobileMenuActive] = useState(false);
   const [mobileOpenIndex, setMobileOpenIndex] = useState<number | null>(null);
   const router = useRouter();
+  // State tìm kiếm
   const [searchValue, setSearchValue] = useState("");
   const [suggestions, setSuggestions] = useState<Products[]>([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
   const suggestionBoxRef = useRef<HTMLDivElement>(null);
+  // State yêu thích
   const favoriteCount = useFavoriteCount();
   // Lấy danh mục bài viết
   const [postCategories, setPostCategories] = useState<PostCategory[]>([]);

@@ -1212,3 +1212,11 @@
     font-size: 13px;
   }
 }
+.quantity_v4_input::-webkit-outer-spin-button,
+.quantity_v4_input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+.quantity_v4_input[type="number"] {
+  -moz-appearance: textfield;
+}
