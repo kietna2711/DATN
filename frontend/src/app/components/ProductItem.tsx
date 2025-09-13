@@ -36,21 +36,6 @@ export default function ProductItem({ product }: { product: Products }) {
     ? Number(product.variants[selectedIdx]?.price) || 0
     : Number(product.price) || 0;
 
-  // const handleAddToCart = () => {
-  //   const selectedVariant = hasVariants ? product.variants[selectedIdx] : undefined;
-  //   const safeProduct = {
-  //     ...product,
-  //     createdAt: new Date(product.createdAt).toISOString(),
-  //     updatedAt: product.updatedAt ? new Date(product.updatedAt).toISOString() : undefined,
-  //   };
-  //   dispatch(addToCart({ product: safeProduct, selectedVariant }));
-  //   success("Đã thêm vào giỏ hàng!");
-  //   // Chuyển hướng đến trang GH sau khi thêm sp
-  //   setTimeout(() => {
-  //     router.push('/cart');
-  //   }, 300);
-  // };
-
   const handleBuyNow = () => {
       //hàm bấm nút mua ngay chuyển qua thanh toán
     const selectedVariant = hasVariants ? product.variants[selectedIdx] : undefined;

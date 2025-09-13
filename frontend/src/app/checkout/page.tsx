@@ -218,7 +218,7 @@ const CheckoutPage: React.FC = () => {
   };
 
 
-  // const cartItems = useAppSelector((state) => state.cart.items);
+  // lấy thông tin sp từ GH qua TToan
   const cartItemsRedux = useAppSelector((state) => state.cart.items);
   const cartItems = luckyProduct ? [luckyProduct] : buyNowItem ? [buyNowItem] : cartItemsRedux;
   // 
